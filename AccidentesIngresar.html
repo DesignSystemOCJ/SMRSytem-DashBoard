@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP EHS | Registro de Accidentes</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+:root{
+    --sap-blue:#0A6ED1;
+    --sap-dark:#062E52;
+    --sap-turquoise:#00A6A6;
+    --white:#ffffff;
+    --gray:#eef3f8;
+    --glass:rgba(255,255,255,.15);
+}
+
+
+*{
+    box-sizing:border-box;
+    font-family:"Segoe UI",Arial,sans-serif;
+}
+
+
+body{
+
+    margin:0;
+    height:100vh;
+    overflow:hidden;
+
+    background:
+    radial-gradient(circle at top left,#0A6ED1,transparent 35%),
+    radial-gradient(circle at bottom right,#00A6A6,transparent 30%),
+    linear-gradient(135deg,#041827,#0b3954);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+}
+
+
+.container{
+
+    width:95%;
+    max-width:1200px;
+    height:94vh;
+    display:flex;
+    flex-direction:column;
+}
+
+
+
+.header{
+    height:90px;
+    display:flex;
+    align-items:center;
+    color:white;
+    padding:20px 35px;
+    background:
+    rgba(255,255,255,.10);
+    backdrop-filter:blur(15px);
+    border-radius:20px;
+    box-shadow:
+    0 15px 40px rgba(0,0,0,.25);
+    margin-bottom:15px;
+}
+
+
+.header i{
+    font-size:45px;
+    margin-right:20px;
+    color:#00d4ff;
+}
+
+
+.header h1{
+    margin:0;
+    font-size:28px;
+}
+
+.header span{
+    display:block;
+    font-size:14px;
+    opacity:.8;
+}
+
+
+.card{
+    flex:1;
+    overflow:hidden;
+    padding:25px;
+    background:
+    rgba(255,255,255,.14);
+    backdrop-filter:blur(20px);
+    border-radius:25px;
+    box-shadow:
+    0 20px 60px rgba(0,0,0,.35);
+}
+
+
+.form-grid{
+    display:grid;
+    grid-template-columns:
+    repeat(4,1fr);
+    gap:15px;
+}
+
+
+.field{
+    display:flex;
+    flex-direction:column;
+}
+
+
+label{
+    color:white;
+    font-size:13px;
+    margin-bottom:5px;
+}
+
+
+input,
+select,
+textarea{
+    border:none;
+    outline:none;
+    padding:12px;
+    border-radius:12px;
+    background:
+    rgba(255,255,255,.85);
+    color:#17324d;
+    font-size:14px;
+}
+
+
+textarea{
+    resize:none;
+    height:70px;
+}
+
+
+
+.readonly{
+    background:#dce8f5;
+    font-weight:bold;
+}
+
+
+
+/* SECCIONES */
+.section-title{
+    grid-column:1/-1;
+    color:#00e1ff;
+    font-size:18px;
+    font-weight:bold;
+    border-bottom:
+    1px solid rgba(255,255,255,.3);
+    padding-bottom:8px;
+}
+
+
+.btn-container{
+    margin-top:20px;
+    display:flex;
+    justify-content:center;
+}
+
+button{
+    border:none;
+    padding:15px 50px;
+    border-radius:30px;
+    cursor:pointer;
+    background:
+    linear-gradient(
+    90deg,
+    #0A6ED1,
+    #00A6A6
+    );
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    box-shadow:
+    0 10px 25px rgba(0,0,0,.3);
+    transition:.3s;
+}
+
+
+
+button:hover{
+    transform:translateY(-3px) scale(1.03);
+}
+
+
+#mensaje{
+    text-align:center;
+    margin-top:15px;
+    color:white;
+    font-weight:bold;
+}
+
+
+@media(max-width:900px){
+.form-grid{
+grid-template-columns:repeat(2,1fr);
+}
+}
+
+#mensajeEmpleado{
+    margin-top:6px;
+    font-size:12px;
+    color:#d9f7ff;
+    min-height:16px;
+    font-weight:500;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<div class="header">
+<i class="fa-solid fa-helmet-safety"></i>
+<div>
+
+<h1>Accidents & Incidents</h1>
+<span> Registro de Accidentes e Incidentes </span>
+</div>
+</div>
+
+
+<div class="card">
+<div class="form-grid">
+<div class="section-title">
+<i class="fa-solid fa-user"></i>
+ Datos del empleado
+</div>
+
+
+<div class="field">
+<label># Empl</label>
+<input 
+id="empleado"
+type="number"
+placeholder="Ingrese número empleado">
+<small id="mensajeEmpleado"></small>
+</div>
+
+
+<div class="field">
+<label>Name</label>
+<input 
+id="nombre"
+class="readonly"
+readonly>
+</div>
+
+
+<div class="field">
+<label>Position</label>
+<input 
+id="puesto"
+class="readonly"
+readonly>
+</div>
+
+
+<div class="field">
+<label>Depart</label>
+<input 
+id="departamento"
+class="readonly"
+readonly>
+</div>
+
+
+<div class="section-title">
+<i class="fa-solid fa-triangle-exclamation"></i>
+ Datos del accidente
+</div>
+
+
+<div class="field">
+<label>Description</label>
+<textarea id="descripcion"></textarea>
+</div>
+
+
+<div class="field">
+<label>Part Body</label>
+<input id="partbody">
+</div>
+
+
+<div class="field">
+<label>Shift</label>
+<select id="shift">
+<option>A</option>
+<option>B</option>
+<option>C</option>
+<option>D</option>
+<option>L-V</option>
+</select>
+</div>
+
+
+<div class="field">
+<label>EPP</label>
+<input id="epp">
+</div>
+
+
+<div class="field">
+<label>Date</label>
+<input id="fecha" type="date">
+</div>
+
+
+<div class="field">
+<label>Hour</label>
+<input id="hora" type="time">
+</div>
+
+
+<div class="field">
+<label>Type</label>
+<input id="tipo">
+</div>
+
+
+<div class="field">
+<label>Status</label>
+<select id="status">
+<option>Open</option>
+<option>Closed</option>
+</select>
+</div>
+</div>
+
+
+<div class="btn-container">
+<button onclick="guardarAccidente()">
+<i class="fa-solid fa-floppy-disk"></i>
+ Registrar Accidente
+</button>
+</div>
+
+
+<div id="mensaje"></div>
+</div>
+</div>
+
+<script>
+
+const supabaseUrl =
+"https://mrxtqmvufmlozplszfxc.supabase.co";
+
+const supabaseKey =
+"sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+
+const supabaseClient = supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
+
+
+const empleadoInput =
+document.getElementById("empleado");
+
+const nombreInput =
+document.getElementById("nombre");
+
+const puestoInput =
+document.getElementById("puesto");
+
+const departamentoInput =
+document.getElementById("departamento");
+
+const mensaje =
+document.getElementById("mensaje");
+
+const mensajeEmpleado =
+document.getElementById("mensajeEmpleado");
+
+
+empleadoInput.addEventListener(
+"change",
+async()=>{
+    let empleado =
+    empleadoInput.value;
+    if(!empleado){
+        limpiarEmpleado();
+        return;
+    }
+
+
+  mensajeEmpleado.innerHTML =
+"🔍 Consultando empleado...";
+    const {
+        data,
+        error
+    } = await supabaseClient
+    .from("Empleados")
+    .select(
+        "Nombre,Puesto,Departamento"
+    )
+    .eq(
+        "Empleado",
+        empleado
+    )
+    .single();
+    if(error || !data){
+        limpiarEmpleado();
+       mensajeEmpleado.innerHTML =
+"❌ Empleado no encontrado";
+        return;
+    }
+
+
+    nombreInput.value =
+    data.Nombre;
+
+    puestoInput.value =
+    data.Puesto;
+
+    departamentoInput.value =
+    data.Departamento;
+
+  mensajeEmpleado.innerHTML =
+"✅ Empleado encontrado";
+});
+
+
+function limpiarEmpleado(){
+nombreInput.value="";
+puestoInput.value="";
+departamentoInput.value="";
+mensajeEmpleado.innerHTML="";
+}
+
+
+async function guardarAccidente(){
+mensaje.innerHTML =
+"⏳ Guardando información...";
+
+const registro = {
+"#Empl":
+Number(
+document.getElementById("empleado").value
+),
+
+Name:
+nombreInput.value,
+
+Description:
+document.getElementById("descripcion").value,
+
+Position:
+puestoInput.value,
+
+PartBody:
+document.getElementById("partbody").value,
+
+Depart:
+departamentoInput.value,
+
+Shift:
+document.getElementById("shift").value,
+
+EPP:
+document.getElementById("epp").value,
+
+Date:
+document.getElementById("fecha").value,
+
+Hour:
+document.getElementById("hora").value,
+
+Type:
+document.getElementById("tipo").value,
+
+Status:
+document.getElementById("status").value
+};
+
+
+
+
+if(!registro["#Empl"]){
+mensaje.innerHTML =
+"⚠ Capture número de empleado";
+return;
+}
+
+
+const {
+error
+}= await supabaseClient
+.from("Accidentes")
+.insert([registro]);
+if(error){
+console.error(error);
+mensaje.innerHTML =
+"❌ Error: "
++
+error.message;
+return;
+}
+
+
+mensaje.innerHTML =
+"✅ Accidente registrado correctamente";
+
+setTimeout(()=>{
+limpiarFormulario();
+},2000);
+}
+
+
+function limpiarFormulario(){
+document.querySelectorAll(
+"input, textarea"
+)
+.forEach(campo=>{
+campo.value="";
+});
+
+document.getElementById("shift").value="";
+document.getElementById("status").value="";
+
+nombreInput.value="";
+puestoInput.value="";
+departamentoInput.value="";
+
+mensaje.innerHTML =
+"🟢 Listo para registrar otro accidente";
+}
+</script>
+
+<script>
+
+window.onload = function(){
+    const fecha =
+    document.getElementById("fecha");
+
+    const hora =
+    document.getElementById("hora");
+
+    let ahora = new Date();
+
+    fecha.value =
+    ahora.toISOString()
+    .substring(0,10);
+
+    hora.value =
+    ahora.toLocaleTimeString(
+        [],
+        {
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+};
+
+
+empleadoInput.addEventListener(
+"input",
+()=>{
+    if(empleadoInput.value.length > 0){
+        empleadoInput.style.boxShadow =
+        "0 0 15px #00A6A6";
+    }else{
+        empleadoInput.style.boxShadow =
+        "none";
+    }
+});
+
+
+const boton =
+document.querySelector("button");
+boton.addEventListener(
+"click",
+()=>{
+    boton.innerHTML =
+    '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+    setTimeout(()=>{
+        boton.innerHTML =
+        '<i class="fa-solid fa-floppy-disk"></i> Registrar Accidente';
+    },3000);
+
+});
+
+
+</script>
+</body>
+</html>

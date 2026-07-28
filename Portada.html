@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>SMRC Portal</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background:
+    linear-gradient(
+      rgba(2,6,23,0.85),
+      rgba(2,6,23,0.95)
+    ),
+    url("https://primewheel.com/pwlogo.jpg");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color:#020617;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+}
+
+.login-box {
+  background:rgba(7,16,41,.75);
+  padding:50px;
+  border-radius:18px;
+  width:360px;
+  text-align:center;
+  backdrop-filter:blur(10px);
+  box-shadow:
+  0 0 40px rgba(0,234,255,.25);
+}
+
+h1 {
+  margin-top:0;
+  color:#00eaff;
+  font-size:45px;
+}
+
+p {
+  font-size:18px;
+}
+
+/* PANTALLA DE CARGA */
+
+.loader {
+  display:none;
+  width:420px;
+  text-align:center;
+}
+
+.cohete {
+  font-size:70px;
+  animation:volar 1s infinite alternate;
+}
+
+@keyframes volar {
+from{
+ transform:translateX(-40px);
+}
+to{
+ transform:translateX(40px);
+}
+}
+
+.loader h2 {
+ color:#00eaff;
+}
+
+/* BARRA */
+.progress-container {
+ width:100%;
+ height:20px;
+ background:#111827;
+ border-radius:20px;
+ overflow:hidden;
+ margin-top:25px;
+ box-shadow:
+ 0 0 20px #00eaff;
+}
+
+.progress-bar {
+ height:100%;
+ width:0%;
+ background:#00eaff;
+ transition:.1s;
+}
+
+#mensaje {
+ margin-top:20px;
+ font-size:18px;
+ color:white;
+}
+
+</style>
+</head>
+
+<body onload="entrar()">
+
+<div class="login-box" id="login">
+<h1>SMRC</h1>
+<p>CNC ROUGH CUT</p>
+</div>
+
+<div class="loader" id="loader">
+<div class="cohete">🛰️</div>
+
+<h2>SMRC</h2>
+<div class="progress-container">
+<div class="progress-bar" id="barra"></div>
+</div>
+
+<p id="mensaje">Inicializando sistema...</p>
+</div>
+
+<script>
+
+function entrar(){
+
+    document.getElementById("login").style.display="none";
+    document.getElementById("loader").style.display="block";
+
+    let progreso = 0;
+
+    let mensajes = [
+        "Inicializando sistema SMRC...",
+        "Conectando servidor...",
+        "Validando módulos CNC...",
+        "Cargando dashboard..."
+    ];
+
+    let intervalo = setInterval(function(){
+
+        progreso += 10; // mucho más rápido
+
+        document.getElementById("barra").style.width = progreso + "%";
+
+        let posicion = Math.floor(progreso / 25);
+
+        if(posicion < mensajes.length){
+            document.getElementById("mensaje").innerHTML = mensajes[posicion];
+        }
+
+        if(progreso >= 100){
+
+            clearInterval(intervalo);
+
+            document.getElementById("mensaje").innerHTML =
+            "Acceso autorizado ✔";
+
+            // entra inmediatamente
+            window.location.href="db.html";
+        }
+
+    },40); // velocidad de actualización
+}
+
+</script>
+</body>
+</html>
