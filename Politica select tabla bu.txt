@@ -1,0 +1,22 @@
+-- Activar RLS en la tabla
+ALTER TABLE public.bu
+ENABLE ROW LEVEL SECURITY;
+
+
+-- Eliminar política anterior si existe
+DROP POLICY IF EXISTS "Allow select bu"
+ON public.bu;
+
+
+-- Crear nueva política de lectura
+CREATE POLICY "Allow select bu"
+
+ON public.bu
+
+FOR SELECT
+
+TO anon
+
+USING (
+  true
+);
