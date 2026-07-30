@@ -405,7 +405,7 @@ async function cargar(){
     const cuerpo = document.querySelector("#tabla tbody");
     cuerpo.innerHTML = "";
     data.forEach(row=>{
-        let pdf = "Sin documento";
+        let pdf = "No document";
         if(row.PDF){
             pdf = `
             <a href="${row.PDF}" target="_blank">
@@ -447,9 +447,8 @@ async function cargar(){
     (r["C/O"] ?? "").trim().toUpperCase() === "CLOSED"
 ).length;
 
-    // Cuenta los registros donde la columna C/O tenga algún valor
     const co = data.filter(r =>
-        (r["C/O"] ?? "").toString().trim() !== ""
+    (r["C/O"] ?? "").toString().trim() !== ""
     ).length;
 
     document.getElementById("mensaje").innerHTML = `
