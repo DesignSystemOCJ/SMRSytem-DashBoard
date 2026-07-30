@@ -345,7 +345,7 @@ background:linear-gradient(135deg,#0984e3,#74b9ff);
 </div>
 
 
-<div id="mensaje" class="loading">🔄 Conectando con SAP EHS Database...</div>
+<div id="mensaje" class="loading">🔄 Connecting to the SAP EHS Database...</div>
 
 <div class="table-container">
 <table id="tabla">
@@ -399,7 +399,7 @@ async function cargar(){
     .order("Folio",{ascending:false});
     if(error){
         document.getElementById("mensaje").innerHTML =
-        "❌ Error conexión: " + error.message;
+        "❌ Connection Error: " + error.message;
         return;
     }
     const cuerpo = document.querySelector("#tabla tbody");
@@ -453,7 +453,7 @@ async function cargar(){
     ).length;
 
     document.getElementById("mensaje").innerHTML = `
-        ✅ <strong>Auditorías disponibles:</strong> ${total}
+        ✅ <strong>Available Audits:</strong> ${total}
         &nbsp;&nbsp;|&nbsp;&nbsp;
         🟡 <strong>In Process:</strong> ${inProcess}
         &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -532,13 +532,11 @@ window.exportarPDF = function(){
 }
 cargar();
 
-
 window.mostrarPassword = function(){
     document.getElementById("loginPassword").type="text";
     document.getElementById("verPassword").className =
     "fa-solid fa-eye-slash";
 }
-
 
 window.ocultarPassword = function(){
     document.getElementById("loginPassword").type="password";
@@ -546,10 +544,8 @@ window.ocultarPassword = function(){
     "fa-solid fa-eye";
 }
 
-
 </script>
 
-<!-- LOGIN MODAL -->
 <div id="loginModal" style="
 display:none;
 position:fixed;
@@ -576,7 +572,6 @@ box-shadow:0 20px 50px rgba(0,0,0,.3);
  Acceso
 </h2>
 
-
 <label>Usuario</label>
 <input id="loginUsuario" 
 type="text"
@@ -587,7 +582,6 @@ margin:8px 0 15px;
 border-radius:10px;
 border:1px solid #ccc;
 ">
-
 
 <label>Password</label>
 <div style="position:relative;">
@@ -617,12 +611,10 @@ onmouseleave="ocultarPassword()"
 ></i>
 </div>
 
-
 <button onclick="validarAcceso()" 
 style="width:100%">
 Ingresar
 </button>
-
 
 <button onclick="cerrarLogin()"
 style="
@@ -630,9 +622,8 @@ width:100%;
 margin-top:10px;
 background:#777;
 ">
-Cancelar
+Cancel
 </button>
-
 
 <p id="errorLogin"
 style="
@@ -641,7 +632,6 @@ text-align:center;
 font-weight:bold;
 ">
 </p>
-
 
 </div>
 </div>
