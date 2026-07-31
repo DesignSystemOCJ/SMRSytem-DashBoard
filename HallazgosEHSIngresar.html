@@ -191,8 +191,71 @@ input[readonly]{
     border-color:#b8c4d1;
 }
 
+.home-btn{
+position:fixed;
+top:20px;
+left:20px;
+width:60px;
+height:60px;
+border-radius:18px;
+background:linear-gradient(135deg,#0a6ed1,#00a6ff);
+display:flex;
+align-items:center;
+justify-content:center;
+text-decoration:none;
+box-shadow:
+0 10px 25px rgba(0,0,0,.35),
+0 0 15px rgba(0,166,255,.35);
+transition:.3s;
+z-index:9999;
+}
+
+.home-btn svg{
+width:32px;
+height:32px;
+fill:white;
+transition:.3s;
+}
+
+.home-btn:hover{
+transform:translateY(-4px) scale(1.08);
+box-shadow:
+0 18px 35px rgba(10,110,209,.45),
+0 0 25px rgba(0,166,255,.6);
+}
+
+.home-btn:hover svg{
+transform:scale(1.15);
+}
+
+.home-btn::after{
+content:"HOME";
+position:absolute;
+left:72px;
+background:rgba(8,43,76,.95);
+color:white;
+padding:7px 12px;
+border-radius:10px;
+font-size:13px;
+font-weight:600;
+opacity:0;
+transform:translateX(-10px);
+transition:.3s;
+white-space:nowrap;
+pointer-events:none;
+}
+
+.home-btn:hover::after{
+opacity:1;
+transform:translateX(0);
+}
+
+
 </style>
 </head>
+<a href="HallazgosEHSEditar.html" class="home-btn" title="Inicio">
+🏠
+</a>
 <body>
 
 <div class="contenedor">
