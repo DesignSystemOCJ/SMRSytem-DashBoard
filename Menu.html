@@ -7,7 +7,7 @@
   <title>SMRC System | Industrial Control Center</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
 
     * {
@@ -18,17 +18,16 @@
     }
 
     :root {
-      /* Colores Slate / Light SAP */
       --bg-main: #eef2f6;
       --sidebar-bg: #ffffff;
       --sidebar-border: #e2e8f0;
-            --accent-blue: #0a6ed1;
+      --accent-blue: #0a6ed1;
       --accent-cyan: #0284c7;
-            --text-main: #1e293b;
+      --text-main: #1e293b;
       --text-muted: #64748b;
-            --status-green: #10b981;
+      --status-green: #10b981;
       --hover-bg: #f1f5f9;
-       --sidebar-collapsed-width: 60px;
+      --sidebar-collapsed-width: 60px;
       --sidebar-expanded-width: 210px;
     }
 
@@ -57,13 +56,11 @@
       box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05);
     }
 
- 
-    .sidebar:hover {
+     .sidebar:hover {
       width: var(--sidebar-expanded-width);
     }
 
- 
-    .sidebar-header {
+     .sidebar-header {
       padding: 16px 12px;
       border-bottom: 1px solid var(--sidebar-border);
       display: flex;
@@ -113,7 +110,6 @@
       letter-spacing: 0.3px;
     }
 
-
     .sidebar-menu {
       list-style: none;
       padding: 10px 0;
@@ -132,7 +128,7 @@
       padding: 0 18px;
       color: var(--text-muted);
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition: color 0.2s ease, background 0.2s ease;
       position: relative;
     }
 
@@ -165,7 +161,6 @@
       transform: scale(1.1);
     }
 
-    /* Borde lateral azul activo */
     .sidebar-link::before {
       content: "";
       position: absolute;
@@ -183,8 +178,7 @@
       opacity: 1;
     }
 
-    
-    .sidebar-footer {
+      .sidebar-footer {
       padding: 14px 16px;
       border-top: 1px solid var(--sidebar-border);
       display: flex;
@@ -193,7 +187,6 @@
       background: #f8fafc;
     }
 
-    /* Status Online */
     .status {
       display: flex;
       align-items: center;
@@ -228,7 +221,6 @@
       opacity: 1;
     }
 
-    /* Clock & Date */
     .clock-box {
       display: flex;
       flex-direction: column;
@@ -253,7 +245,6 @@
       font-weight: 500;
     }
 
-    /* BACKGROUND */
     .background {
       position: fixed;
       width: 100%;
@@ -262,7 +253,6 @@
       background: radial-gradient(circle at 80% 20%, rgba(10, 110, 209, 0.05), transparent 50%),
                   radial-gradient(circle at 20% 80%, rgba(2, 132, 199, 0.05), transparent 50%);
     }
-
 
     .main-content {
       margin-left: var(--sidebar-collapsed-width);
@@ -274,7 +264,6 @@
       padding: 0;
       position: relative;
     }
-
    
     #welcome-logo {
       max-width: 80%;
@@ -293,15 +282,11 @@
   </style>
 </head>
 
+
 <body>
-
   <div class="background"></div>
-
-
   <aside class="sidebar">
-
- 
-    <div class="sidebar-header">
+     <div class="sidebar-header">
       <div class="sidebar-brand-icon">
         <i class="fa-solid fa-cube"></i>
       </div>
@@ -310,8 +295,6 @@
         <small>Design Control Center</small>
       </div>
     </div>
-
-
     <ul class="sidebar-menu">
       <li class="sidebar-item">
         <a href="ManttoIssues.html" target="content-frame" class="sidebar-link">
@@ -357,20 +340,16 @@
         </a>
       </li>
     </ul>
-
-  
     <div class="sidebar-footer">
       <div class="status">
         <span class="dot"></span>
         <span class="status-text">System Online</span>
       </div>
-
       <div class="clock-box">
         <div id="time">00:00:00</div>
         <div id="date">Loading date...</div>
       </div>
     </div>
-
   </aside>
 
 
@@ -380,29 +359,30 @@
   </main>
 
   <script>
-   
-    function updateClock() {
+
+const timeElement = document.getElementById("time");
+const dateElement = document.getElementById("date");
+
+const dateOptions = {
+ weekday: "short",
+ year: "numeric",
+ month: "short",
+ day: "numeric"
+};
+
+      function updateClock() {
       const now = new Date();
       let hours = now.getHours().toString().padStart(2, "0");
       let minutes = now.getMinutes().toString().padStart(2, "0");
       let seconds = now.getSeconds().toString().padStart(2, "0");
-
-      document.getElementById("time").innerHTML = `${hours}:${minutes}:${seconds}`;
-
-      let options = {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric"
-      };
-
-      document.getElementById("date").innerHTML = now.toLocaleDateString("en-US", options);
+      timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+     
+      dateElement.textContent = now.toLocaleDateString("en-US", dateOptions);
     }
 
     setInterval(updateClock, 1000);
     updateClock();
 
-    /* Manejo para ocultar el logo e interactuar con el Iframe */
     const links = document.querySelectorAll('.sidebar-link');
     const welcomeLogo = document.getElementById('welcome-logo');
     const iframe = document.getElementById('main-iframe');
@@ -415,5 +395,4 @@
     });
   </script>
 </body>
-
 </html>
