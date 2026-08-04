@@ -320,19 +320,19 @@ background:linear-gradient(135deg,#0984e3,#74b9ff);
 
     <button class="icon-btn btn-excel"
             onclick="exportarExcel()"
-            title="Exportar Excel">
+            title="Export Excel">
         <i class="fa-solid fa-file-excel"></i>
     </button>
 
     <button class="icon-btn btn-pdf"
             onclick="exportarPDF()"
-            title="Exportar PDF">
+            title="Export PDF">
         <i class="fa-solid fa-file-pdf"></i>
     </button>
 
     <button class="icon-btn btn-refresh"
             onclick="location.reload()"
-            title="Actualizar">
+            title="Update">
         <i class="fa-solid fa-rotate-right"></i>
     </button>
 
@@ -340,7 +340,7 @@ background:linear-gradient(135deg,#0984e3,#74b9ff);
 </div>
 
 
-<div id="mensaje" class="loading">🔄 Conectando con SAP EHS Database...</div>
+<div id="mensaje" class="loading">🔄 Connecting to the SMRC EHS Database...</div>
 
 <div class="table-container">
 <table id="tabla">
@@ -441,7 +441,6 @@ async function cargar(){
     (r["C/O"] ?? "").trim().toUpperCase() === "CLOSED"
 ).length;
 
-    // Cuenta los registros donde la columna C/O tenga algún valor
     const co = data.filter(r =>
         (r["C/O"] ?? "").toString().trim() !== ""
     ).length;
@@ -543,7 +542,6 @@ window.ocultarPassword = function(){
 
 </script>
 
-<!-- LOGIN MODAL -->
 <div id="loginModal" style="
 display:none;
 position:fixed;
