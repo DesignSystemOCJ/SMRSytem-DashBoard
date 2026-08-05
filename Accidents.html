@@ -438,18 +438,7 @@ Let's Continue Working With Safety!
 
     <select id="monthSelector"></select>
 
-    <button onclick="loadData()">
-        <i class="fa-solid fa-rotate"></i>
-        Update
-    </button>
-
     <div class="action-buttons">
-
-        <button class="action-btn add"
-            onclick="openAddAccident()"
-            title="Add Accident">
-            <i class="fa-solid fa-plus"></i>
-        </button>
 
         <button class="action-btn view"
             onclick="openAccidentView()"
@@ -826,12 +815,15 @@ onclick="closeModal()">
 
 
 <div class="modal-toolbar">
+<div class="search-box-wrapper">
+<i class="fa-solid fa-magnifying-glass"></i>
 <input
 type="text"
 id="searchInput"
-placeholder="🔍 Search employee, name, department..."
+placeholder="Search employee, name, department..."
 onkeyup="filterTable()"
 />
+</div>
 
 
 
@@ -858,127 +850,6 @@ Closed
 <table id="accidentTable">
 </table>
 </div>
-</div>
-</div>
-
-
-<div id="loginModal"
-style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,.75);
-z-index:9999;
-backdrop-filter:blur(8px);
-">
-
-
-<div
-style="
-background:white;
-color:black;
-width:360px;
-margin:10% auto;
-padding:30px;
-border-radius:20px;
-box-shadow:0 25px 60px black;
-">
-
-
-<h2>
-<i class="fa-solid fa-lock"></i>
-Acceso requerido
-</h2>
-
-
-<label>
-Usuario
-</label>
-
-
-<input
-id="loginUser"
-type="text"
-style="
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:10px;
-border:1px solid #ccc;
-"
->
-
-
-
-<label>
-Password
-</label>
-
-
-<div style="position:relative">
-<input
-id="loginPass"
-type="password"
-style="
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:10px;
-border:1px solid #ccc;
-padding-right:45px;
-"
->
-
-
-<i
-class="fa-solid fa-eye"
-id="eyePassword"
-style="
-position:absolute;
-right:15px;
-top:22px;
-cursor:pointer;
-color:#0A6ED1;
-"
-></i>
-</div>
-
-
-
-<button
-onclick="validateLogin()"
-style="
-width:100%;
-margin-top:15px;
-">
-<i class="fa-solid fa-right-to-bracket"></i>
-Ingresar
-</button>
-
-
-
-<button
-onclick="closeLogin()"
-style="
-width:100%;
-margin-top:10px;
-background:#ef4444;
-">
-Cancelar
-</button>
-
-
-
-<p
-id="loginMessage"
-style="
-color:red;
-font-weight:bold;
-">
-</p>
 </div>
 </div>
 
@@ -1013,11 +884,6 @@ background:#0A6ED1;
 }
 
 
-.add{
-color:#22c55e;
-}
-
-
 .view{
 color:#38BDF8;
 }
@@ -1045,96 +911,196 @@ top:0;
 width:100%;
 height:100%;
 background:
-rgba(0,0,0,.75);
-backdrop-filter:blur(8px);
+rgba(2, 6, 23, 0.75);
+backdrop-filter:blur(10px);
 z-index:9999;
+animation: fadeInModal 0.3s ease-in-out;
+}
+
+@keyframes fadeInModal {
+from { opacity: 0; transform: scale(0.98); }
+to { opacity: 1; transform: scale(1); }
 }
 
 
 .modal-content{
-width:95%;
-height:90%;
-margin:2% auto;
-background:white;
-border-radius:20px;
+width:97%;
+max-width: 1750px;
+height:92vh;
+margin:2vh auto;
+background:#0F172A;
+color:#F8FAFC;
+border-radius:24px;
 overflow:hidden;
 display:flex;
 flex-direction:column;
+border: 1px solid rgba(255,255,255,0.12);
+box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
 
 .modal-header{
-background:
-linear-gradient(
-90deg,
-#0A6ED1,
-#0284c7
-);
-
-
-padding:20px;
+background: linear-gradient(135deg, #0A6ED1, #0284c7);
+padding: 22px 30px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-color:white;
+border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-header h2 {
+margin: 0;
+font-size: 22px;
+font-weight: 600;
+display: flex;
+align-items: center;
+gap: 12px;
+letter-spacing: 0.3px;
+}
+
+#totalRecords {
+display: inline-block;
+margin-top: 6px;
+font-size: 13px;
+color: #E2E8F0;
+background: rgba(255, 255, 255, 0.15);
+padding: 3px 10px;
+border-radius: 20px;
+font-weight: 500;
 }
 
 
 .close-btn{
-background:#ef4444;
-padding:10px 15px;
-border-radius:10px;
-color:white;
+background: rgba(239, 68, 68, 0.2);
+border: 1px solid #EF4444;
+width: 40px;
+height: 40px;
+border-radius: 12px;
+color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+background: #EF4444;
+transform: scale(1.05);
 }
 
 
 
 .modal-toolbar{
-padding:15px;
+padding: 20px 30px;
 display:flex;
-gap:15px;
-background:#f5f5f5;
+gap:20px;
+background: rgba(15, 23, 42, 0.95);
+border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+align-items: center;
 }
 
+.search-box-wrapper {
+flex: 1;
+position: relative;
+display: flex;
+align-items: center;
+}
+
+.search-box-wrapper i {
+position: absolute;
+left: 16px;
+color: #94A3B8;
+font-size: 15px;
+}
 
 .modal-toolbar input{
-flex:1;
-padding:12px;
-border-radius:10px;
-border:1px solid #ccc;
+width: 100%;
+padding: 12px 16px 12px 46px;
+border-radius: 12px;
+border: 1px solid rgba(255, 255, 255, 0.12);
+background: rgba(255, 255, 255, 0.05);
+color: white;
+font-size: 14px;
+transition: all 0.2s ease;
+outline: none;
+}
+
+.modal-toolbar input:focus {
+border-color: #38BDF8;
+background: rgba(255, 255, 255, 0.08);
+box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.modal-toolbar select {
+padding: 12px 20px;
+border-radius: 12px;
+border: 1px solid rgba(255, 255, 255, 0.12);
+background: rgba(255, 255, 255, 0.05);
+color: white;
+font-size: 14px;
+outline: none;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.modal-toolbar select:focus {
+border-color: #38BDF8;
+box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.modal-toolbar select option {
+background: #0F172A;
+color: white;
 }
 
 
 .table-container{
 flex:1;
 overflow:auto;
+background: #0B1120;
 }
 
 
 #accidentTable{
 width:100%;
-border-collapse:collapse;
-color:black;
+border-collapse:separate;
+border-spacing: 0;
+color: #F8FAFC;
+text-align: left;
 }
 
 
 #accidentTable th{
 position:sticky;
 top:0;
-background:#0A6ED1;
-color:white;
-padding:12px;
+background: #1E293B;
+color: #E2E8F0;
+padding: 16px 20px;
+font-weight: 600;
+font-size: 13px;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+z-index: 10;
 }
 
 
 #accidentTable td{
-padding:10px;
-border-bottom:1px solid #ddd;
+padding: 14px 20px;
+border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+font-size: 14px;
+color: #CBD5E1;
 }
 
 
-#accidentTable tr:nth-child(even){
-background:#f8fafc;
+#accidentTable tr:hover td{
+background: rgba(56, 189, 248, 0.04);
+color: white;
+}
+
+#accidentTable tr:nth-child(even) td {
+background: rgba(255, 255, 255, 0.01);
 }
 </style>
 
@@ -1797,13 +1763,17 @@ String(value)
 value=
 `
 <span style="
-background:#FEF3C7;
-color:#D97706;
-padding:5px 12px;
+background:rgba(251, 191, 36, 0.15);
+color:#F59E0B;
+padding:6px 14px;
 border-radius:20px;
-font-weight:bold;
+font-weight:600;
+display:inline-flex;
+align-items:center;
+gap:6px;
+border:1px solid rgba(245, 158, 11, 0.3);
 ">
-🟡 Open
+● Open
 </span>
 `;
 }
@@ -1816,13 +1786,17 @@ String(value)
 value=
 `
 <span style="
-background:#DCFCE7;
-color:#15803D;
-padding:5px 12px;
+background:rgba(34, 197, 94, 0.15);
+color:#22C55E;
+padding:6px 14px;
 border-radius:20px;
-font-weight:bold;
+font-weight:600;
+display:inline-flex;
+align-items:center;
+gap:6px;
+border:1px solid rgba(34, 197, 94, 0.3);
 ">
-🟢 Closed
+● Closed
 </span>
 `;
 }
@@ -1966,134 +1940,6 @@ doc.save(
 );
 }
 
-
-
-function openAddAccident(){
-document
-.getElementById(
-"loginModal"
-)
-.style.display="block";
-}
-
-
-
-async function validateLogin(){
-let usuario =
-document
-.getElementById(
-"loginUser"
-)
-.value;
-
-let password =
-document
-.getElementById(
-"loginPass"
-)
-.value;
-
-if(!usuario || !password){
-
-document
-.getElementById(
-"loginMessage"
-)
-.innerHTML=
-"⚠ Complete all fields";
-return;
-}
-
-let {
-data,
-error
-}=
-await db
-.from("Cuentas")
-.select("*")
-.eq(
-"Usurio",
-usuario
-)
-.eq(
-"Password",
-password
-)
-.single();
-
-if(error || !data){
-document
-.getElementById(
-"loginMessage"
-)
-.innerHTML=
-"❌ Incorrect user or password";
-return;
-}
-
-window.location.href =
-"Accidentes- Agregar_datos.html";
-}
-
-
-function closeLogin(){
-document
-.getElementById(
-"loginModal"
-)
-.style.display="none";
-document
-.getElementById(
-"loginUser"
-)
-.value="";
-document
-.getElementById(
-"loginPass"
-)
-.value="";
-document
-.getElementById(
-"loginMessage"
-)
-.innerHTML="";
-}
-
-
-let eye =
-document.getElementById(
-"eyePassword"
-);
-if(eye){
-eye.addEventListener(
-"mouseenter",
-()=>{
-
-document
-.getElementById(
-"loginPass"
-)
-.type="text";
-eye.className=
-"fa-solid fa-eye-slash";
-});
-
-
-eye.addEventListener(
-"mouseleave",
-()=>{
-
-document
-.getElementById(
-"loginPass"
-)
-.type="password";
-eye.className=
-"fa-solid fa-eye";
-});
-}
-
 </script>
 </body>
 </html>
-
