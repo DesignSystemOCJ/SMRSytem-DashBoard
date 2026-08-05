@@ -348,7 +348,6 @@ canvas{
         SCRAP QUALITY SUMMARY
     </div>
     <div class="d-flex align-items-center gap-3">
-        <!-- Tarjeta de Mes Actual Estilo Imagen -->
         <div class="current-month-card">
             <div class="current-month-icon">
                 <i class="fa-solid fa-gears"></i>
@@ -536,8 +535,7 @@ const activeCharts = {};
 
 let selectedDefects = [];
 let trendCharts = [];
-let trendStartDate = new Date();
-const TREND_DAYS = 14;
+const TREND_DAYS = 15; // Actualizado a últimos 15 días
 
 const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",
@@ -899,7 +897,6 @@ async function openTrendModal(){
         </div>
     `;
     await loadTrendTop20();
-    trendStartDate = new Date();
 }
 
 function closeTrendModal(){
@@ -979,26 +976,57 @@ function renderTrendCharts(){
     trendCharts.forEach(chart => chart.destroy());
     trendCharts = [];
 
+    // Generar etiquetas de los últimos 15 días (ej: 08/04 hacia atrás)
+    const hoy = new Date();
+    let fechasLabels = [];
+    for(let i = TREND_DAYS - 1; i >= 0; i--){
+        let fecha = new Date();
+        fecha.setDate(hoy.getDate() - i);
+        let formatoEtiqueta = String(fecha.getDate()).padStart(2, "0") + "/" + 
+                              String(fecha.getMonth() + 1).padStart(2, "0") + "/" + 
+                              fecha.getFullYear();
+        fechasLabels.push(formatoEtiqueta);
+    }
+
     selectedDefects.forEach((defect, index) => {
         const ctx = document.getElementById(`trendChart${index}`).getContext("2d");
         let chart = new Chart(ctx, {
             type: "bar",
             plugins: [ChartDataLabels],
             data: {
-                labels: Array.from({length: 14}, (_, i) => i + 1),
+                labels: fechasLabels,
                 datasets: [
                     {
                         type: "bar",
-                        label: "Scrap Quantity",
-                        data: Array(14).fill(0),
-                        backgroundColor: "rgba(10,110,209,0.45)",
+                        label: "Cantidad (Barras)",
+                        data: Array(TREND_DAYS).fill(0),
+                        backgroundColor: "rgba(10,110,209,0.55)",
                         borderColor: "#0A6ED1",
-                        borderWidth: 2,
-                        borderRadius: 10,
-                        barPercentage: .65,
-                        categoryPercentage: .7,
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.7,
                         yAxisID: "y",
                         datalabels: { display: false }
+                    },
+                    {
+                        type: "line",
+                        label: "Porcentaje % (Marks)",
+                        data: Array(TREND_DAYS).fill(0),
+                        borderColor: "#00a3a3",
+                        backgroundColor: "#00a3a3",
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.1,
+                        yAxisID: "y1",
+                        datalabels: {
+                            display: true,
+                            align: "top",
+                            formatter: val => val > 0 ? val + "%" : "",
+                            font: { size: 10, weight: "bold" },
+                            color: "#003b5c"
+                        }
                     }
                 ]
             },
@@ -1007,13 +1035,27 @@ function renderTrendCharts(){
                 maintainAspectRatio: false,
                 interaction: { mode: "index", intersect: false },
                 plugins: {
-                    legend: { display: true, position: "bottom", labels: { font: { size: 13, weight: "bold" } } },
-                    tooltip: { backgroundColor: "#003b5c" },
-                    datalabels: { display: false }
+                    legend: { display: true, position: "bottom", labels: { font: { size: 12, weight: "bold" } } },
+                    tooltip: { backgroundColor: "#003b5c" }
                 },
                 scales: {
                     x: { grid: { display: false } },
-                    y: { beginAtZero: true, position: "left", title: { display: true, text: "Quantity" } }
+                    y: { 
+                        beginAtZero: true, 
+                        position: "left", 
+                        title: { display: true, text: "Cantidad" },
+                        grid: { drawOnChartArea: true }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: "right",
+                        max: 100,
+                        title: { display: true, text: "Porcentaje (%)" },
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            formatter: val => val + "%"
+                        }
+                    }
                 }
             }
         });
@@ -1024,51 +1066,57 @@ function renderTrendCharts(){
 }
 
 async function loadTrendChartData(){
+    const hoy = new Date();
+    let fechasISO = [];
+    for(let i = TREND_DAYS - 1; i >= 0; i--){
+        let fecha = new Date();
+        fecha.setDate(hoy.getDate() - i);
+        let formatoISO = fecha.getFullYear() + "-" +
+            String(fecha.getMonth() + 1).padStart(2, "0") + "-" +
+            String(fecha.getDate()).padStart(2, "0");
+        fechasISO.push(formatoISO);
+    }
+
+    let fechaInicio = fechasISO[0];
+    let fechaFin = fechasISO[fechasISO.length - 1];
+
     for(let i = 0; i < selectedDefects.length; i++){
-        await updateTrendChart(selectedDefects[i], trendCharts[i]);
-    }
-}
+        let defect = selectedDefects[i];
+        let chart = trendCharts[i];
 
-async function updateTrendChart(defect, chart){
-    let endDate = new Date(trendStartDate);
-    let startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - TREND_DAYS + 1);
+        const { data, error } = await supabaseClient
+            .from("Scrap")
+            .select("Date, Defect_Desc, Stripp")
+            .eq("Defect_Desc", defect)
+            .gte("Date", fechaInicio)
+            .lte("Date", fechaFin);
 
-    let fechaInicio = startDate.toISOString().substring(0, 10);
-    let fechaFin = endDate.toISOString().substring(0, 10);
-
-    const { data, error } = await supabaseClient
-        .from("Scrap")
-        .select("Date, Defect_Desc, Stripp")
-        .eq("Defect_Desc", defect)
-        .gte("Date", fechaInicio)
-        .lte("Date", fechaFin);
-
-    if(error){
-        console.error(error);
-        return;
-    }
-
-    let fechas = [];
-    let cantidades = [];
-
-    for(let d = 0; d < TREND_DAYS; d++){
-        let fecha = new Date(startDate);
-        fecha.setDate(fecha.getDate() + d);
-        let texto = fecha.toISOString().substring(0, 10);
-        fechas.push(texto);
-        cantidades.push(0);
-    }
-
-    data.forEach(row => {
-        let index = fechas.indexOf(row.Date);
-        if(index !== -1){
-            cantidades[index] += Number(row.Stripp) || 0;
+        if(error){
+            console.error(error);
+            continue;
         }
-    });
 
-    chart.data.datasets[0].data = cantidades;
-    chart.update();
+        let cantidades = Array(TREND_DAYS).fill(0);
+        let totalDefectoRango = 0;
+
+        data.forEach(row => {
+            let idx = fechasISO.indexOf(row.Date);
+            if(idx !== -1){
+                let qty = Number(row.Stripp) || 0;
+                cantidades[idx] += qty;
+                totalDefectoRango += qty;
+            }
+        });
+
+              let porcentajes = cantidades.map(qty => {
+            if (totalDefectoRango === 0) return 0;
+            return Number(((qty / totalDefectoRango) * 100).toFixed(1));
+        });
+
+        chart.data.datasets[0].data = cantidades;
+        chart.data.datasets[1].data = porcentajes;
+        chart.update();
+    }
 }
 
 loadDashboard();
