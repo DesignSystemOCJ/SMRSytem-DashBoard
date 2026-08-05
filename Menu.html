@@ -7,6 +7,8 @@
   <title>SMRC System | Industrial Control</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     * {
       margin: 0;
@@ -47,7 +49,7 @@
       pointer-events: none;
     }
 
-     .sidebar {
+    .sidebar {
       position: fixed;
       top: 0;
       left: 0;
@@ -120,7 +122,7 @@
       text-transform: uppercase;
     }
 
-     .sidebar-menu {
+    .sidebar-menu {
       list-style: none;
       padding: 12px 0;
       flex-grow: 1;
@@ -290,12 +292,252 @@
       border: none;
       display: none;
     }
+
+    .settings-cards-container {
+      display: none;
+      flex-direction: row;
+      gap: 25px;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 30px;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .setting-card {
+      position: relative;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 20px;
+      padding: 35px 25px;
+      width: 280px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0,0,0,0.02);
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-main);
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .setting-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(10, 110, 209, 0.05), transparent);
+      transition: 0.5s;
+    }
+
+    .setting-card:hover::before {
+      left: 100%;
+    }
+
+    .card-icon-wrapper {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 28px;
+      box-shadow: 0 8px 20px rgba(10, 110, 209, 0.3);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .setting-card:hover .card-icon-wrapper {
+      transform: scale(1.15) rotate(5deg);
+    }
+
+    .setting-card span {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: var(--text-main);
+      transition: color 0.3s ease;
+    }
+
+    .setting-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(10, 110, 209, 0.15);
+      border-color: var(--accent-blue);
+    }
+
+    .setting-card:hover span {
+      color: var(--accent-blue);
+    }
+
+    /* Modal de Login */
+    .login-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeInModal 0.3s ease forwards;
+    }
+
+    @keyframes fadeInModal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .login-modal-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      width: 380px;
+      padding: 35px 30px;
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      transform: translateY(20px);
+      animation: slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpModal {
+      to { transform: translateY(0); }
+    }
+
+    .login-header {
+      text-align: center;
+    }
+
+    .login-header .login-icon {
+      width: 55px;
+      height: 55px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 22px;
+      box-shadow: 0 8px 20px rgba(10, 110, 209, 0.3);
+      margin-bottom: 12px;
+    }
+
+    .login-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .login-header p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .login-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .login-form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .login-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .login-input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .login-input-wrapper input {
+      width: 100%;
+      height: 45px;
+      padding: 0 14px 0 42px;
+      border: 1px solid var(--sidebar-border);
+      border-radius: 12px;
+      font-size: 13px;
+      background: #f8fafc;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .login-input-wrapper input:focus {
+      background: #fff;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(10, 110, 209, 0.15);
+    }
+
+    .login-btn {
+      height: 45px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(10, 110, 209, 0.3);
+      transition: all 0.2s ease;
+      margin-top: 5px;
+    }
+
+    .login-btn:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(10, 110, 209, 0.4);
+    }
+
+    .login-close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .login-close-btn:hover {
+      color: var(--text-main);
+    }
   </style>
 </head>
 
 <body>
   <div class="background"></div>
-    <aside class="sidebar">
+  
+  <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-brand-icon">
         <i class="fa-solid fa-cube"></i>
@@ -344,7 +586,7 @@
         </a>
       </li>
       <li class="sidebar-item">
-        <a href="Configuracion.html" target="content-frame" class="sidebar-link">
+        <a href="#" id="settings-link" class="sidebar-link">
           <i class="fa-solid fa-gear"></i>
           <span>Settings</span>
         </a>
@@ -366,10 +608,72 @@
 
   <main class="main-content">
     <img id="welcome-logo" src="https://controlaccesosysistemas.com/wp-content/uploads/2022/03/prime-wheel-980x980.png" alt="Company Logo">
+    
+    <!-- Las 3 tarjetas que se muestran al iniciar sesión correctamente -->
+    <div id="settings-cards" class="settings-cards-container">
+      <div class="setting-card" data-url="AccidentesIngresar.html">
+        <div class="card-icon-wrapper">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <span>Enter Accidents</span>
+      </div>
+      <div class="setting-card" data-url="HallazgosEHSEditar.html">
+        <div class="card-icon-wrapper">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <span>Edit Findings</span>
+      </div>
+      <div class="setting-card" data-url="HallazgosEHSIngresar.html">
+        <div class="card-icon-wrapper">
+          <i class="fa-solid fa-folder-plus"></i>
+        </div>
+        <span>Enter Findings</span>
+      </div>
+    </div>
+
     <iframe name="content-frame" id="main-iframe" class="content-frame"></iframe>
   </main>
 
+  <!-- Modal de Login (Pantalla Emergente) -->
+  <div id="login-modal" class="login-modal-overlay">
+    <div class="login-modal-card">
+      <button id="login-close" class="login-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      <div class="login-header">
+        <div class="login-icon">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <h3>Security Authentication</h3>
+        <p>SMRC Supabase Login</p>
+      </div>
+      
+      <form id="login-form" style="display: flex; flex-direction: column; gap: 15px;">
+        <div class="login-form-group">
+          <label for="username-input">Usuario</label>
+          <div class="login-input-wrapper">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="username-input" placeholder="Enter username" required autocomplete="off">
+          </div>
+        </div>
+
+        <div class="login-form-group">
+          <label for="password-input">Password</label>
+          <div class="login-input-wrapper">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" id="password-input" placeholder="Enter password" required>
+          </div>
+        </div>
+
+        <button type="submit" class="login-btn">Sign In</button>
+      </form>
+    </div>
+  </div>
+
   <script>
+    // Credenciales de Supabase
+    const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
+    const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+    const db = supabase.createClient(supabaseUrl, supabaseKey);
+
     const timeElement = document.getElementById("time");
     const dateElement = document.getElementById("date");
 
@@ -389,15 +693,85 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    const links = document.querySelectorAll('.sidebar-link');
+    const links = document.querySelectorAll('.sidebar-link:not(#settings-link)');
+    const settingsLink = document.getElementById('settings-link');
     const welcomeLogo = document.getElementById('welcome-logo');
     const iframe = document.getElementById('main-iframe');
+    const settingsCards = document.getElementById('settings-cards');
+    const allLinks = document.querySelectorAll('.sidebar-link');
+    const settingCardElements = document.querySelectorAll('.setting-card');
+
+    const loginModal = document.getElementById('login-modal');
+    const loginCloseBtn = document.getElementById('login-close');
+    const loginForm = document.getElementById('login-form');
+    const usernameInput = document.getElementById('username-input');
+    const passwordInput = document.getElementById('password-input');
 
     links.forEach(link => {
       link.addEventListener('click', (e) => {
-        links.forEach(l => l.classList.remove('active'));
+        allLinks.forEach(l => l.classList.remove('active'));
         link.classList.add('active');
         welcomeLogo.style.display = 'none';
+        settingsCards.style.display = 'none';
+        iframe.style.display = 'block';
+        loginModal.style.display = 'none';
+      });
+    });
+
+    // Al hacer clic en Settings se abre la ventana emergente
+    settingsLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      usernameInput.value = '';
+      passwordInput.value = '';
+      loginModal.style.display = 'flex';
+    });
+
+    loginCloseBtn.addEventListener('click', () => {
+      loginModal.style.display = 'none';
+    });
+
+    // Validación contra la tabla Cuentas de Supabase (columnas 'Usurio' y 'Password')
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userVal = usernameInput.value.trim();
+      const passVal = passwordInput.value.trim();
+
+      try {
+        const { data, error } = await db
+          .from('Cuentas')
+          .select('*')
+          .eq('Usurio', userVal)
+          .eq('Password', passVal);
+
+        if (error) {
+          console.error("Error en Supabase:", error.message);
+          alert('Error al conectar con la base de datos.');
+          return;
+        }
+
+        // Si se encuentra el registro, se concede el acceso y se muestran las 3 tarjetas
+        if (data && data.length > 0) {
+          loginModal.style.display = 'none';
+          allLinks.forEach(l => l.classList.remove('active'));
+          settingsLink.classList.add('active');
+          welcomeLogo.style.display = 'none';
+          iframe.style.display = 'none';
+          iframe.src = '';
+          settingsCards.style.display = 'flex';
+        } else {
+          alert('Acceso denegado: Usuario o contraseña incorrectos.');
+        }
+      } catch (err) {
+        console.error("Error inesperado:", err);
+        alert('Ocurrió un error al procesar el inicio de sesión.');
+      }
+    });
+
+    settingCardElements.forEach(card => {
+      card.addEventListener('click', () => {
+        const url = card.getAttribute('data-url');
+        settingsCards.style.display = 'none';
+        iframe.src = url;
         iframe.style.display = 'block';
       });
     });
