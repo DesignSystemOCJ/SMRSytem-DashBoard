@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
   <style>
-
     * {
       margin: 0;
       padding: 0;
@@ -26,18 +25,29 @@
       --text-muted: #64748b;
       --status-green: #10b981;
       --hover-bg: #f1f5f9;
-      --sidebar-collapsed-width: 60px;
-      --sidebar-expanded-width: 210px;
+      --active-bg: #e0f2fe;
+      --sidebar-collapsed-width: 70px;
+      --sidebar-expanded-width: 220px;
     }
 
     body {
-      min-height: 100vh;
+      height: 100vh;
       background: var(--bg-main);
       color: var(--text-main);
       overflow: hidden;
+      display: flex;
     }
 
-    .sidebar {
+    .background {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(circle at 80% 20%, rgba(10, 110, 209, 0.04), transparent 50%),
+                  radial-gradient(circle at 20% 80%, rgba(2, 132, 199, 0.04), transparent 50%);
+      pointer-events: none;
+    }
+
+     .sidebar {
       position: fixed;
       top: 0;
       left: 0;
@@ -46,21 +56,21 @@
       background: var(--sidebar-bg);
       border-right: 1px solid var(--sidebar-border);
       z-index: 1000;
-      overflow: hidden;
-      white-space: nowrap;
-      transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05);
+      box-shadow: 4px 0 25px rgba(15, 23, 42, 0.04);
+      transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      white-space: nowrap;
+      overflow: hidden;
     }
 
-     .sidebar:hover {
+    .sidebar:hover {
       width: var(--sidebar-expanded-width);
     }
 
-     .sidebar-header {
-      padding: 16px 12px;
+    .sidebar-header {
+      padding: 18px 14px;
       border-bottom: 1px solid var(--sidebar-border);
       display: flex;
       align-items: center;
@@ -68,16 +78,16 @@
     }
 
     .sidebar-brand-icon {
-      min-width: 35px;
-      height: 35px;
+      min-width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 10px;
+      font-size: 18px;
       color: #ffffff;
-      box-shadow: 0 3px 8px rgba(10, 110, 209, 0.25);
+      box-shadow: 0 4px 10px rgba(10, 110, 209, 0.3);
     }
 
     .sidebar-brand-info {
@@ -92,7 +102,7 @@
     }
 
     .sidebar-brand-info h2 {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--text-main);
       line-height: 1.2;
@@ -106,40 +116,52 @@
       font-size: 10px;
       font-weight: 600;
       color: var(--text-muted);
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
-    .sidebar-menu {
+     .sidebar-menu {
       list-style: none;
-      padding: 10px 0;
+      padding: 12px 0;
       flex-grow: 1;
       overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar-menu::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-menu::-webkit-scrollbar-thumb {
+      background: var(--sidebar-border);
+      border-radius: 4px;
     }
 
     .sidebar-item {
       width: 100%;
+      margin-bottom: 4px;
     }
 
     .sidebar-link {
       display: flex;
       align-items: center;
-      height: 46px;
-      padding: 0 18px;
+      height: 48px;
+      padding: 0 20px;
       color: var(--text-muted);
       text-decoration: none;
-      transition: color 0.2s ease, background 0.2s ease;
+      transition: all 0.2s ease;
       position: relative;
     }
 
     .sidebar-link i {
-      font-size: 17px;
-      min-width: 24px;
+      font-size: 18px;
+      min-width: 28px;
       text-align: center;
       transition: transform 0.2s ease, color 0.2s ease;
     }
 
     .sidebar-link span {
-      margin-left: 14px;
+      margin-left: 12px;
       font-size: 13px;
       font-weight: 600;
       opacity: 0;
@@ -156,11 +178,16 @@
     }
 
     .sidebar-link:hover i {
-      color: var(--accent-blue);
       transform: scale(1.1);
     }
 
-    .sidebar-link::before {
+    .sidebar-link.active {
+      color: var(--accent-blue);
+      background: var(--active-bg);
+    }
+
+    .sidebar-link.active::before,
+    .sidebar-link:hover::before {
       content: "";
       position: absolute;
       left: 0;
@@ -169,20 +196,14 @@
       width: 3px;
       background: var(--accent-blue);
       border-radius: 0 3px 3px 0;
-      opacity: 0;
-      transition: opacity 0.2s ease;
     }
 
-    .sidebar-link:hover::before {
-      opacity: 1;
-    }
-
-      .sidebar-footer {
+    .sidebar-footer {
       padding: 14px 16px;
       border-top: 1px solid var(--sidebar-border);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       background: #f8fafc;
     }
 
@@ -202,17 +223,17 @@
     }
 
     @keyframes pulse {
+      0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
 
     .status-text {
       opacity: 0;
       transition: opacity 0.2s ease;
-      white-space: nowrap;
       font-size: 11px;
       font-weight: 700;
       color: var(--text-muted);
-      letter-spacing: 0.4px;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
     }
 
@@ -232,25 +253,16 @@
     }
 
     #time {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-main);
-      letter-spacing: 0.5px;
+      font-variant-numeric: tabular-nums;
     }
 
     #date {
       color: var(--text-muted);
       font-size: 10px;
       font-weight: 500;
-    }
-
-    .background {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      background: radial-gradient(circle at 80% 20%, rgba(10, 110, 209, 0.05), transparent 50%),
-                  radial-gradient(circle at 20% 80%, rgba(2, 132, 199, 0.05), transparent 50%);
     }
 
     .main-content {
@@ -260,15 +272,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0;
       position: relative;
+      transition: margin-left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
    
     #welcome-logo {
-      max-width: 80%;
-      max-height: 80%;
+      max-width: 65%;
+      max-height: 65%;
       object-fit: contain;
-      filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.1));
+      filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.08));
       transition: opacity 0.3s ease;
     }
 
@@ -281,19 +293,19 @@
   </style>
 </head>
 
-
 <body>
   <div class="background"></div>
-  <aside class="sidebar">
-     <div class="sidebar-header">
+    <aside class="sidebar">
+    <div class="sidebar-header">
       <div class="sidebar-brand-icon">
         <i class="fa-solid fa-cube"></i>
       </div>
       <div class="sidebar-brand-info">
         <h2>SMRC <span>System</span></h2>
-        <small>Design Control Center</small>
+        <small>Industrial Control</small>
       </div>
     </div>
+
     <ul class="sidebar-menu">
       <li class="sidebar-item">
         <a href="ManttoIssues.html" target="content-frame" class="sidebar-link">
@@ -326,7 +338,6 @@
         </a>
       </li>
       <li class="sidebar-item">
-       
         <a href="Projects.html" target="content-frame" class="sidebar-link">
           <i class="fa-solid fa-diagram-project"></i>
           <span>Projects</span>
@@ -339,11 +350,13 @@
         </a>
       </li>
     </ul>
+
     <div class="sidebar-footer">
       <div class="status">
         <span class="dot"></span>
         <span class="status-text">System Online</span>
       </div>
+
       <div class="clock-box">
         <div id="time">00:00:00</div>
         <div id="date">Loading date...</div>
@@ -351,31 +364,25 @@
     </div>
   </aside>
 
-
   <main class="main-content">
-    <img id="welcome-logo" src="https://controlaccesosysistemas.com/wp-content/uploads/2022/03/prime-wheel-980x980.png" alt="Prime Wheel Logo">
+    <img id="welcome-logo" src="https://controlaccesosysistemas.com/wp-content/uploads/2022/03/prime-wheel-980x980.png" alt="Company Logo">
     <iframe name="content-frame" id="main-iframe" class="content-frame"></iframe>
   </main>
 
   <script>
+    const timeElement = document.getElementById("time");
+    const dateElement = document.getElementById("date");
 
-const timeElement = document.getElementById("time");
-const dateElement = document.getElementById("date");
+    const dateOptions = {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    };
 
-const dateOptions = {
- weekday: "short",
- year: "numeric",
- month: "short",
- day: "numeric"
-};
-
-      function updateClock() {
+    function updateClock() {
       const now = new Date();
-      let hours = now.getHours().toString().padStart(2, "0");
-      let minutes = now.getMinutes().toString().padStart(2, "0");
-      let seconds = now.getSeconds().toString().padStart(2, "0");
-      timeElement.textContent = `${hours}:${minutes}:${seconds}`;
-     
+      timeElement.textContent = now.toTimeString().split(' ')[0];
       dateElement.textContent = now.toLocaleDateString("en-US", dateOptions);
     }
 
@@ -387,7 +394,9 @@ const dateOptions = {
     const iframe = document.getElementById('main-iframe');
 
     links.forEach(link => {
-      link.addEventListener('click', () => {
+      link.addEventListener('click', (e) => {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
         welcomeLogo.style.display = 'none';
         iframe.style.display = 'block';
       });
