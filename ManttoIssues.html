@@ -76,6 +76,7 @@ body {
 }
 
 .filter-box {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -85,6 +86,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     border: 1px solid var(--border-color);
     transition: all 0.3s;
+    cursor: pointer;
 }
 
 .filter-box:hover {
@@ -107,6 +109,7 @@ body {
 .filter-content {
     display: flex;
     flex-direction: column;
+    user-select: none;
 }
 
 .filter-content span {
@@ -117,21 +120,75 @@ body {
     letter-spacing: 1px;
 }
 
-.filter-content select {
+.custom-select-trigger {
     margin-top: 2px;
-    border: none;
-    outline: none;
-    background: transparent;
     font-size: 16px;
     font-weight: 600;
     color: var(--sap-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-select-trigger i {
+    font-size: 12px;
+    color: var(--sap-blue);
+    transition: transform 0.3s ease;
+}
+
+.filter-box.active .custom-select-trigger i {
+    transform: rotate(180deg);
+}
+
+/* Menú desplegable personalizado */
+.custom-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 210px;
+    background: var(--panel-bg);
+    border-radius: 14px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    display: none;
+    z-index: 1100;
+    max-height: 280px;
+    overflow-y: auto;
+    animation: dropdownFade 0.2s ease;
+}
+
+@keyframes dropdownFade {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.custom-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-dropdown::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 10px;
+}
+
+.custom-option {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    border-radius: 8px;
     cursor: pointer;
-    padding-right: 25px;
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, #0A6ED1 50%), linear-gradient(135deg, #0A6ED1 50%, transparent 50%);
-    background-position: calc(100% - 10px) 50%, calc(100% - 5px) 50%;
-    background-size: 5px 5px, 5px 5px;
-    background-repeat: no-repeat;
+    transition: all 0.2s;
+}
+
+.custom-option:hover {
+    background: #F1F5F9;
+    color: var(--sap-blue);
+}
+
+.custom-option.selected {
+    background: linear-gradient(135deg, #0A6ED1, #00A6A6);
+    color: white;
 }
 
 .container {
@@ -514,28 +571,35 @@ button:hover {
         Maintenance Issues Dashboard
     </h1>
     <div class="header-actions">
-        <div class="filter-box">
+        <!-- Filtro Modernizado con Menú Desplegable Personalizado -->
+        <div class="filter-box" id="filterBox" onclick="toggleMonthDropdown(event)">
             <div class="filter-icon">
                 <i class="fa-solid fa-gears"></i>
             </div>
             <div class="filter-content">
                 <span>Maintenance Period</span>
-                <select id="monthSelect">
-                    <option>January</option>
-                    <option>February</option>
-                    <option>March</option>
-                    <option>April</option>
-                    <option>May</option>
-                    <option>June</option>
-                    <option>July</option>
-                    <option>August</option>
-                    <option>September</option>
-                    <option>October</option>
-                    <option>November</option>
-                    <option>December</option>
-                </select>
+                <div class="custom-select-trigger">
+                    <span id="selectedMonthText">Loading...</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+            </div>
+            <!-- Lista desplegable estilizada -->
+            <div class="custom-dropdown" id="monthDropdown">
+                <div class="custom-option" onclick="selectMonth('January', event)">January</div>
+                <div class="custom-option" onclick="selectMonth('February', event)">February</div>
+                <div class="custom-option" onclick="selectMonth('March', event)">March</div>
+                <div class="custom-option" onclick="selectMonth('April', event)">April</div>
+                <div class="custom-option" onclick="selectMonth('May', event)">May</div>
+                <div class="custom-option" onclick="selectMonth('June', event)">June</div>
+                <div class="custom-option" onclick="selectMonth('July', event)">July</div>
+                <div class="custom-option" onclick="selectMonth('August', event)">August</div>
+                <div class="custom-option" onclick="selectMonth('September', event)">September</div>
+                <div class="custom-option" onclick="selectMonth('October', event)">October</div>
+                <div class="custom-option" onclick="selectMonth('November', event)">November</div>
+                <div class="custom-option" onclick="selectMonth('December', event)">December</div>
             </div>
         </div>
+
         <div class="table-icon" onclick="openTableModal()">
             <i class="fa-solid fa-eye"></i>
             <span>View Table</span>
@@ -695,18 +759,65 @@ const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 let maintenanceData = [];
 let activeCharts = {};
 let selectedMachine = null;
+let currentSelectedMonth = "";
 
 const operations = ["MD", "OP1", "OP2", "CHIRON", "ROBOT FANUC", "ROBOT JR", "AGS", "TRANSFER", "CONVEYOR"];
 const machines = ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16", "C17", "C18", "C19", "C20", "C21", "C22", "C23", "C24", "C25", "C26", "C27", "C28", "C29", "C30", "C33", "C34", "C35", "C36"];
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 function setCurrentMonth() {
-    let month = new Date().getMonth();
-    document.getElementById("monthSelect").value = months[month];
+    let monthIndex = new Date().getMonth();
+    selectMonth(months[monthIndex]);
+}
+
+// Funciones para manejar el menú desplegable personalizado
+function toggleMonthDropdown(event) {
+    event.stopPropagation();
+    let box = document.getElementById("filterBox");
+    let dropdown = document.getElementById("monthDropdown");
+    
+    let isOpen = dropdown.style.display === "block";
+    dropdown.style.display = isOpen ? "none" : "block";
+    if (!isOpen) {
+        box.classList.add("active");
+    } else {
+        box.classList.remove("active");
+    }
+}
+
+// Cerrar el menú si se hace clic fuera de él
+window.addEventListener("click", function() {
+    let box = document.getElementById("filterBox");
+    let dropdown = document.getElementById("monthDropdown");
+    dropdown.style.display = "none";
+    box.classList.remove("active");
+});
+
+function selectMonth(monthName, event) {
+    if (event) event.stopPropagation();
+    currentSelectedMonth = monthName;
+    document.getElementById("selectedMonthText").innerText = monthName;
+
+    // Actualizar estilos visuales de la opción seleccionada
+    let options = document.querySelectorAll(".custom-option");
+    options.forEach(opt => {
+        if (opt.innerText === monthName) {
+            opt.classList.add("selected");
+        } else {
+            opt.classList.remove("selected");
+        }
+    });
+
+    // Cerrar menú
+    document.getElementById("monthDropdown").style.display = "none";
+    document.getElementById("filterBox").classList.remove("active");
+
+    // Recargar datos de Supabase para el mes seleccionado
+    loadMaintenance();
 }
 
 async function loadMaintenance() {
-    let selectedMonth = document.getElementById("monthSelect").value;
+    if (!currentSelectedMonth) return;
     let allData = [];
     let pageSize = 1000;
     let from = 0;
@@ -716,7 +827,7 @@ async function loadMaintenance() {
         const { data, error } = await supabaseClient
             .from("ManttoIssues")
             .select("*")
-            .eq("Month", selectedMonth)
+            .eq("Month", currentSelectedMonth)
             .range(from, from + pageSize - 1);
 
         if (error) {
@@ -919,7 +1030,7 @@ function createIssueByColumnChart(column, data, canvasId) {
 function openTableModal() {
     document.getElementById("tableModal").style.display = "block";
     loadCellFilter();
-    document.getElementById("tableMonth").value = document.getElementById("monthSelect").value;
+    document.getElementById("tableMonth").value = currentSelectedMonth;
     filterIssueTable();
 }
 
@@ -980,10 +1091,7 @@ function renderTableRows(data) {
     document.getElementById("issuesTableBody").innerHTML = html;
 }
 
-document.getElementById("monthSelect").addEventListener("change", loadMaintenance);
-
 setCurrentMonth();
-loadMaintenance();
 </script>
 
 </body>
