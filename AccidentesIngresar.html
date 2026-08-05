@@ -210,8 +210,78 @@ grid-template-columns:repeat(2,1fr);
     color:#d9f7ff;
     min-height:16px;
     font-weight:500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
+/* ESTILOS PARA EL MODAL DE NUEVO EMPLEADO */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #0b3954;
+    padding: 25px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.modal-content h3 {
+    color: #00e1ff;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-content .field {
+    margin-bottom: 12px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 15px;
+}
+
+.btn-cancelar {
+    background: #555 !important;
+}
+
+.btn-add-icon {
+    cursor: pointer;
+    color: #00ffcc;
+    font-size: 14px;
+    transition: transform 0.2s;
+}
+
+.btn-add-icon:hover {
+    transform: scale(1.2);
+    color: #fff;
+}
 
 </style>
 </head>
@@ -350,6 +420,33 @@ readonly>
 </div>
 </div>
 
+<!-- MODAL PARA AGREGAR EMPLEADO -->
+<div id="modalEmpleado" class="modal-overlay">
+    <div class="modal-content">
+        <h3><i class="fa-solid fa-user-plus"></i> Agregar Nuevo Empleado</h3>
+        <div class="field">
+            <label># Empl</label>
+            <input id="nuevoEmplNum" type="number" readonly class="readonly">
+        </div>
+        <div class="field">
+            <label>Nombre</label>
+            <input id="nuevoEmplNombre" type="text" placeholder="Nombre completo">
+        </div>
+        <div class="field">
+            <label>Puesto</label>
+            <input id="nuevoEmplPuesto" type="text" placeholder="Puesto">
+        </div>
+        <div class="field">
+            <label>Departamento</label>
+            <input id="nuevoEmplDept" type="text" placeholder="Departamento">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-cancelar" onclick="cerrarModalEmpleado()">Cancelar</button>
+            <button onclick="guardarNuevoEmpleado()">Guardar</button>
+        </div>
+    </div>
+</div>
+
 <script>
 
 const supabaseUrl =
@@ -412,7 +509,7 @@ async()=>{
     if(error || !data){
         limpiarEmpleado();
        mensajeEmpleado.innerHTML =
-"❌ Empleado no encontrado";
+`❌ Empleado no encontrado <i class="fa-solid fa-user-plus btn-add-icon" title="Agregar empleado" onclick="abrirModalEmpleado('${empleado}')"></i>`;
         return;
     }
 
@@ -436,6 +533,52 @@ nombreInput.value="";
 puestoInput.value="";
 departamentoInput.value="";
 mensajeEmpleado.innerHTML="";
+}
+
+/* FUNCIONES PARA EL MODAL */
+function abrirModalEmpleado(numEmpl) {
+    document.getElementById("nuevoEmplNum").value = numEmpl;
+    document.getElementById("nuevoEmplNombre").value = "";
+    document.getElementById("nuevoEmplPuesto").value = "";
+    document.getElementById("nuevoEmplDept").value = "";
+    document.getElementById("modalEmpleado").style.display = "flex";
+}
+
+function cerrarModalEmpleado() {
+    document.getElementById("modalEmpleado").style.display = "none";
+}
+
+async function guardarNuevoEmpleado() {
+    const num = document.getElementById("nuevoEmplNum").value;
+    const nombre = document.getElementById("nuevoEmplNombre").value;
+    const puesto = document.getElementById("nuevoEmplPuesto").value;
+    const dept = document.getElementById("nuevoEmplDept").value;
+
+    if (!nombre || !puesto || !dept) {
+        alert("Por favor complete todos los campos");
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("Empleados")
+        .insert([{
+            Empleado: Number(num),
+            Nombre: nombre,
+            Puesto: puesto,
+            Departamento: dept
+        }]);
+
+    if (error) {
+        alert("Error al guardar empleado: " + error.message);
+        return;
+    }
+
+    cerrarModalEmpleado();
+    
+    // Limpiamos el campo y mensaje para que vuelva a digitar
+    empleadoInput.value = "";
+    limpiarEmpleado();
+    mensaje.innerHTML = "✅ Empleado agregado con éxito. Vuelva a digitar su número.";
 }
 
 
