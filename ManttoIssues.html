@@ -8,8 +8,6 @@
 
 <title>Maintenance Issues Dashboard</title>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -29,47 +27,29 @@
 
 box-sizing:border-box;
 font-family:"Segoe UI",Arial,sans-serif;
-
 }
 
 
 
 body{
-
 margin:0;
-
 min-height:100vh;
-
 background:
-
 radial-gradient(
 circle at top,
 #1e3a5f,
 #0f172a 65%
 );
-
 color:white;
-
 }
 
 
 
-
-/* ===========================
-HEADER
-=========================== */
-
-
 .header{
-
 padding:12px 25px;
-
 display:flex;
-
 justify-content:space-between;
-
 align-items:center;
-
 background:
 linear-gradient(
 135deg,
@@ -79,119 +59,61 @@ rgba(0,166,166,.85)
 
 box-shadow:
 0 10px 30px rgba(0,0,0,.35);
-
 }
 
 .header-actions{
-
 display:flex;
-
 align-items:center;
-
 gap:15px;
-
 }
 
 .header h1{
-
 margin:0;
-
 font-size:22px;
-
 font-weight:600;
-
 }
-
 
 
 .header i{
-
 margin-right:10px;
-
 }
 
 
-
-
-/* ===========================
-MAINTENANCE FILTER
-=========================== */
 
 
 .filter-box{
-
-
 display:flex;
-
 align-items:center;
-
 gap:14px;
-
-
 background:
-
 rgba(255,255,255,.95);
-
-
 padding:8px 15px;
-
-
 border-radius:18px;
-
-
 box-shadow:
-
 0 10px 30px rgba(0,0,0,.25);
-
-
 border:
-
 1px solid rgba(255,255,255,.5);
-
-
 transition:.3s;
-
-
 }
-
 
 
 .filter-box:hover{
-
-
 transform:translateY(-3px);
-
-
 box-shadow:
-
 0 15px 35px rgba(0,0,0,.35);
-
-
 }
-
 
 
 
 .filter-icon{
-
-
 width:38px;
-
 height:38px;
-
 font-size:18px;
 display:flex;
-
 align-items:center;
-
 justify-content:center;
-
-
 border-radius:14px;
-
-
 background:
-
 linear-gradient(
 135deg,
 #0A6ED1,
@@ -199,174 +121,86 @@ linear-gradient(
 );
 
 
-
 color:white;
-
-
 font-size:22px;
-
-
 }
 
 
-
-
 .filter-content{
-
-
 display:flex;
-
 flex-direction:column;
-
-
 }
 
 
 
 .filter-content span{
-
-
 font-size:12px;
-
-
 font-weight:700;
-
-
 color:#64748b;
-
-
 text-transform:uppercase;
-
-
 letter-spacing:1px;
-
-
 }
 
 
 
 .filter-content select{
-
-
 margin-top:4px;
-
-
 border:none;
-
-
 outline:none;
-
-
 background:transparent;
-
-
 font-size:18px;
-
-
 font-weight:600;
-
-
 color:#0F172A;
-
-
 cursor:pointer;
-
-
 padding-right:30px;
-
-
 appearance:none;
-
-
 background-image:
-
-
 linear-gradient(45deg,transparent 50%,#0A6ED1 50%),
 linear-gradient(135deg,#0A6ED1 50%,transparent 50%);
-
-
-
 background-position:
-
-
 calc(100% - 15px) 50%,
 calc(100% - 10px) 50%;
-
-
-
 background-size:
-
 5px 5px,
 5px 5px;
-
-
-
 background-repeat:no-repeat;
-
-
 }
 
 
-
 .filter-content select:hover{
-
-
 color:#0A6ED1;
-
-
 }
 
 
 
 select{
-
-
 padding:8px 20px;
-
 border-radius:8px;
-
 border:none;
-
 font-size:16px;
-
 cursor:pointer;
-
-
 }
-
-
-
-
-
-/* ===========================
-MAIN CONTAINER
-=========================== */
 
 
 .container{
-
-
 padding:25px;
-
-
 }
 
 
-/* ===========================
-KPI CARDS COMPACT
-=========================== */
-
 .cards{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    grid-template-columns:repeat(4, 1fr);
     gap:18px;
+    width:100%;
 }
 
 
 .card{
-
     position:relative;
-
+    display:grid;
+    grid-template-columns:46px 1fr;
+    grid-template-rows:auto auto auto;
+    column-gap:12px;
     background:
     linear-gradient(
         145deg,
@@ -375,76 +209,48 @@ KPI CARDS COMPACT
     );
 
     backdrop-filter:blur(18px);
-
     border-radius:18px;
-
-    padding:14px 16px;   /* menos altura */
-
+    padding:14px 16px;
+    min-height:105px;
     overflow:hidden;
-
     border:
     1px solid rgba(255,255,255,.25);
-
     box-shadow:
     0 10px 25px rgba(0,0,0,.28);
-
     transition:.35s ease;
-
 }
-
 
 
 .card:hover{
-
     transform:translateY(-5px);
-
     box-shadow:
     0 18px 35px rgba(0,0,0,.40);
-
 }
 
 
-
-/* linea superior */
-
 .card::before{
-
     content:"";
-
     position:absolute;
-
     top:0;
     left:0;
-
     width:100%;
     height:4px;
-
     background:
     linear-gradient(
         90deg,
         #0A6ED1,
         #00A6A6
     );
-
 }
 
 
-
-/* ICONO MAS PEQUEÑO */
-
 .card-icon{
-
     width:42px;
     height:42px;
-
     display:flex;
-
     align-items:center;
     justify-content:center;
-
-    border-radius:13px;
-
-
+    border-radius:12px;
     background:
     linear-gradient(
         135deg,
@@ -452,67 +258,43 @@ KPI CARDS COMPACT
         #00A6A6
     );
 
-
     color:white;
-
-    font-size:18px;
-
-    margin-bottom:8px;
-
-
-    box-shadow:
-    0 5px 15px rgba(0,166,166,.30);
-
+    font-size:17px;
+    margin:0;
+    grid-column:1;
+    grid-row:1 / 3;
+    align-self:start;
 }
 
-
-
-/* TITULO */
 
 .card-title{
-
+    grid-column:2;
+    grid-row:1;
     font-size:11px;
-
     text-transform:uppercase;
-
     letter-spacing:.8px;
-
     color:#cbd5e1;
-
     font-weight:700;
-
 }
 
-
-
-/* NUMERO / VALOR */
 
 .card-value{
-
-    margin-top:6px;
-
-    font-size:24px;
-
+    grid-column:2;
+    grid-row:2;
+    margin-top:3px;
+    font-size:22px;
     font-weight:700;
-
     color:white;
-
-    line-height:1;
-
+    line-height:1.1;
 }
 
 
-
-/* FOOTER */
-
 .card-footer{
-
+    grid-column:1 / -1;
+    grid-row:3;
     margin-top:7px;
-
     font-size:11px;
-
     color:#94a3b8;
-
 }
 
 
@@ -3117,92 +2899,39 @@ ${i+1}
 
 
 <td>
-
 ${x[0]}
-
 </td>
-
-
 <td>
-
 ${x[1]}
-
 </td>
-
-
 </tr>
-
 `;
-
-
 });
 
 
 
 document.getElementById("top10Table")
 .innerHTML=html;
-
-
-
 }
-
-
-// ===============================
-// SELECT CELL FROM TOP 10
-// ===============================
 
 
 function selectCell(cell){
-
-
 selectedMachine=cell;
-
-
-
 document.getElementById("selectedCell")
 .innerHTML=cell;
 
-
-
 createMachineCharts();
-
-
-
 }
 
 
-
-
-
-
-
-
-// ===============================
-// MACHINE DETAIL CHARTS
-// ===============================
-
-
 function createMachineCharts(){
-
-
-
 if(!selectedMachine)
-
 return;
 
-
-
-
 let filtered =
-
 maintenanceData.filter(row=>
-
 row.Maq===selectedMachine
-
 );
-
-
-
 
 
 createIssueByColumnChart(
@@ -3212,13 +2941,11 @@ filtered,
 );
 
 
-
 createIssueByColumnChart(
 "OP1",
 filtered,
 "op1Chart"
 );
-
 
 
 createIssueByColumnChart(
@@ -3228,27 +2955,13 @@ filtered,
 );
 
 
-
 createIssueByColumnChart(
 "CHIRON",
 filtered,
 "chironChart"
 );
-
-
-
 }
 
-
-
-
-
-
-
-
-// ===============================
-// GENERIC MACHINE CHART
-// ===============================
 
 function createIssueByColumnChart(
 column,
@@ -3258,477 +2971,212 @@ canvasId
 
 
 let counter={};
-
-
-
 data.forEach(row=>{
-
 let issue=row[column];
-
-
 if(issue){
-
 counter[issue]=
 (counter[issue]||0)+1;
-
 }
-
 });
 
 
 
 let result=
-
 Object.entries(counter)
-
 .sort((a,b)=>b[1]-a[1])
-
 .slice(0,10);
-
-
-
-
 
 let oldChart;
 
-
-
 switch(canvasId){
-
-
 case "mdChart":
-
 oldChart=mdChart;
-
 break;
-
 
 case "op1Chart":
-
 oldChart=op1Chart;
-
 break;
-
 
 case "op2Chart":
-
 oldChart=op2Chart;
-
 break;
-
 
 case "chironChart":
-
 oldChart=chironChart;
-
 break;
-
-
 }
 
 
 
 if(oldChart)
-
 oldChart.destroy();
 
-
-
-
-
 let colors=result.map((x,i)=>{
-
-
 return i===0
-
 ? "#00A6A6"
-
 : "#0A6ED1";
-
-
 });
-
-
-
-
 
 
 let newChart=new Chart(
-
 document.getElementById(canvasId),{
-
-
 type:"bar",
-
-
-
 data:{
-
-
-
 labels:result.map(x=>x[0]),
 
-
-
 datasets:[{
-
-
 label:"Issues",
-
-
 data:result.map(x=>x[1]),
-
-
 backgroundColor:colors,
-
-
 borderRadius:6
-
-
 }]
-
-
 },
-
-
 
 
 options:{
-
-
-
 responsive:true,
-
-
 maintainAspectRatio:false,
-
-
-
 layout:{
-
-
 padding:{
-
-
 top:35
-
-
 }
-
-
 },
-
-
-
 
 
 plugins:{
-
-
-
 legend:{
-
-
 display:false
-
-
 },
-
-
 
 datalabels:{
-
-
-
 color:"#333",
-
-
-
 anchor:"end",
-
-
-
 align:"top",
-
-
-
 offset:5,
-
-
-
 clip:false,
-
-
-
 font:{
-
-
 weight:"bold",
-
-
 size:12
-
-
 }
-
-
-
 }
-
-
-
 },
-
-
-
-
 scales:{
-
-
-
 y:{
-
-
 beginAtZero:true,
-
-
 grace:"15%",
-
-
 ticks:{
-
-
 precision:0
-
-
 }
-
-
 },
-
-
-
-
 x:{
-
-
 ticks:{
-
 
 maxRotation:45,
-
-
 minRotation:45,
-
-
 autoSkip:false
-
-
 }
-
-
 }
-
-
-
 }
-
-
-
 },
-
-
-
 plugins:[ChartDataLabels]
-
-
 });
 
 
-
-
-
-
 switch(canvasId){
-
-
 case "mdChart":
-
 mdChart=newChart;
-
 break;
-
-
 
 case "op1Chart":
-
 op1Chart=newChart;
-
 break;
-
-
 
 case "op2Chart":
-
 op2Chart=newChart;
-
 break;
-
-
 
 case "chironChart":
-
 chironChart=newChart;
-
 break;
-
-
 }
-
-
-
 }
-
-
-
-
-
-
-
-
-
-// ===============================
-// MONTH EVENT
-// ===============================
 
 
 document
-
 .getElementById("monthSelect")
-
 .addEventListener(
-
 "change",
-
 loadMaintenance
-
 );
 
 
-
 function openTableModal(){
-
     document.getElementById("tableModal")
     .style.display="block";
 
-
-    // poner mes actual automáticamente
     let currentMonth =
     months[new Date().getMonth()];
-
 
     document.getElementById("tableMonth").value =
     currentMonth;
 
-
     loadCellFilter();
-
-
     filterIssueTable();
-
 }
 
 
-// ===============================
-// START DASHBOARD
-// ===============================
-
-
 setCurrentMonth();
-
-
 loadMaintenance();
 
 
-
-//=========================================
-// ISSUES BY MACHINE
-//=========================================
-
 function createMachineChart(){
 
-    //Contador de todas las máquinas
     let count={};
-
     machines.forEach(machine=>{
         count[machine]=0;
     });
 
     maintenanceData.forEach(row=>{
-
         if(row.Maq && count.hasOwnProperty(row.Maq)){
             count[row.Maq]++;
         }
-
     });
 
     if(machineChart)
         machineChart.destroy();
-
     machineChart = new Chart(
         document.getElementById("machineChart"),
         {
-
         type:"bar",
-
         data:{
-
             labels:machines,
-
             datasets:[{
-
                 label:"Issues",
-
                 data:machines.map(m=>count[m]),
-
                 backgroundColor:"#0A6ED1",
-
                 borderRadius:5
-
             }]
-
         },
 
         options:{
-
             responsive:true,
-
             maintainAspectRatio:false,
-
             plugins:{
-
                 legend:{
                     display:false
                 },
 
                 datalabels:{
-
                     color:"#000",
-
                     anchor:"end",
-
                     align:"top",
-
                     font:{
                         weight:"bold"
                     }
-
                 }
-
             },
 
             scales:{
-
                 x:{
                     ticks:{
                         maxRotation:45,
@@ -3742,73 +3190,30 @@ function createMachineChart(){
                         precision:0
                     }
                 }
-
             }
-
         },
-
         plugins:[ChartDataLabels]
-
     });
-
 }
 
-
-
-// =====================================
-// OPEN TABLE
-// =====================================
 
 
 function openTableModal(){
-
-
 document.getElementById("tableModal")
 .style.display="block";
-
-
-// cargar celdas
 loadCellFilter();
-
-
-// copiar mes actual del dashboard
 document.getElementById("tableMonth").value =
 document.getElementById("monthSelect").value;
-
-
-// aplicar filtro automático
 filterIssueTable();
-
-
 }
-
-
-
-// =====================================
-// CLOSE TABLE
-// =====================================
 
 
 function closeTableModal(){
-
-
 document.getElementById("tableModal")
 .style.display="none";
-
-
 }
 
-
-
-
-// =====================================
-// LOAD CELLS
-// =====================================
-
-
 function loadCellFilter(){
-
-
 const cells = [
 
 "C01",
@@ -3841,68 +3246,40 @@ const cells = [
 "C28",
 "C29",
 "C30",
-
-// C31 y C32 omitidas
-
 "C33",
 "C34",
 "C35",
 "C36"
-
 ];
 
 
-
 let html = `
-
 <option value="ALL">
 ALL CELLS
 </option>
-
 `;
 
 
 
 cells.forEach(cell=>{
-
-
 html += `
-
 <option value="${cell}">
 ${cell}
 </option>
-
 `;
-
 });
-
-
-
 document.getElementById("tableCell").innerHTML = html;
-
-
 }
 
 
 
 
-
-
-// =====================================
-// FILTER TABLE
-// =====================================
-
-
 function filterIssueTable(){
-
-
 let month =
 document.getElementById("tableMonth").value;
 
-
 let cell =
 document.getElementById("tableCell").value;
-
 
 let from =
 document.getElementById("dateFrom").value;
@@ -3911,127 +3288,73 @@ let to =
 document.getElementById("dateTo").value;
 
 
-// Convertir fecha del filtro a YYYY-MM-DD
 if(from){
-
     let d = new Date(from);
-
     from =
     d.getFullYear() + "-" +
     String(d.getMonth()+1).padStart(2,"0") + "-" +
     String(d.getDate()).padStart(2,"0");
-
 }
 
 
 if(to){
-
     let d = new Date(to);
-
     to =
     d.getFullYear() + "-" +
     String(d.getMonth()+1).padStart(2,"0") + "-" +
     String(d.getDate()).padStart(2,"0");
-
 }
 
 
 
 let filtered =
 maintenanceData.filter(row=>{
-
-
 let ok=true;
-
-
-
-// MES
-
 if(month && month!="ALL"){
-
 ok =
 ok &&
 row.Month === month;
-
 }
 
 
 
-// CELDA
-
 if(cell && cell!="ALL"){
-
 ok =
 ok &&
 row.Maq === cell;
-
 }
 
 
 
-// FECHA INICIO
-
 if(from){
-
     ok =
     ok &&
     row.Date >= from;
-
 }
 
 
-// FECHA FINAL
-
 if(to){
-
     ok =
     ok &&
     row.Date <= to;
-
 }
-
-
 return ok;
-
-
-
 });
-
-
-
 renderIssueTable(filtered);
-
-
 }
 
-// =====================================
-// AUTO FILTER EVENTS
-// =====================================
 
-
-// =====================================
-// AUTO FILTER EVENTS
-// =====================================
-
-
-// CAMBIO DE MES
 document
 .getElementById("tableMonth")
 .addEventListener(
 "change",
 ()=>{
+       loadCellFilter();
 
-    // Actualiza las celdas disponibles
-    loadCellFilter();
-
-    // Filtra la tabla automáticamente
     filterIssueTable();
-
 });
 
 
-
-// CAMBIO DE CELDA
 document
 .getElementById("tableCell")
 .addEventListener(
@@ -4040,8 +3363,6 @@ filterIssueTable
 );
 
 
-
-// FECHA INICIAL
 document
 .getElementById("dateFrom")
 .addEventListener(
@@ -4051,18 +3372,12 @@ filterIssueTable
 
 
 
-// FECHA FINAL
 document
 .getElementById("dateTo")
 .addEventListener(
 "change",
 filterIssueTable
 );
-
-
-// =====================================
-// DRAW TABLE
-// =====================================
 
 
 function renderIssueTable(data){
