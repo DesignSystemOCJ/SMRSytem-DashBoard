@@ -204,7 +204,7 @@ canvas{
 }
 
 .trend-chart-card canvas{
-    height: 330px !important;
+    height: 300px !important;
 }
 
 .card-sap, .chart-card{
@@ -437,10 +437,29 @@ canvas{
     <div class="row mt-4 g-4">
         <div class="col-lg-12">
             <div class="chart-card">
-                <h5>
-                    <i class="fa-solid fa-clock"></i>
-                    Last 14 Days
-                </h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-clock"></i>
+                        <span id="last14DaysTitle">Last 14 Days</span>
+                    </h5>
+                    <div class="btn-group" role="group" aria-label="Navegación de días">
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(7)" title="Avanzar 7 días hacia atrás">
+                            <i class="fa-solid fa-angles-left"></i> +7 D.
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(1)" title="Día anterior">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(0)" title="Ir a Hoy">
+                            Hoy
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(-1)" title="Día siguiente">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(-7)" title="Avanzar 7 días hacia adelante">
+                            -7 D. <i class="fa-solid fa-angles-right"></i>
+                        </button>
+                    </div>
+                </div>
                 <canvas id="last7Chart"></canvas>
             </div>
         </div>
@@ -535,7 +554,11 @@ const activeCharts = {};
 
 let selectedDefects = [];
 let trendCharts = [];
-const TREND_DAYS = 15; // Actualizado a últimos 15 días
+const TREND_DAYS = 15;
+
+// Variables de desplazamiento para los días
+let offsetDiasMain = 0;
+const trendOffsets = {}; // Guarda el offset independiente para cada gráfica del modal por su índice
 
 const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",
@@ -729,10 +752,19 @@ async function loadDefectChart(){
     });
 }
 
+function cambiarDiasRangoMain(dias) {
+    if (dias === 0) {
+        offsetDiasMain = 0;
+    } else {
+        offsetDiasMain += dias;
+    }
+    loadLast14Days();
+}
+
 async function loadLast14Days(){
     const hoy = new Date();
     let fechas = [];
-    for(let i = 14; i >= 1; i--){
+    for(let i = 14 + offsetDiasMain; i >= 1 + offsetDiasMain; i--){
         let fecha = new Date();
         fecha.setDate(hoy.getDate() - i);
         let formato = fecha.getFullYear() + "-" +
@@ -743,6 +775,10 @@ async function loadLast14Days(){
     
     let fechaInicio = fechas[0];
     let fechaFin = fechas[13];
+
+    let fInicioTxt = fechas[0].split("-").reverse().join("/");
+    let fFinTxt = fechas[13].split("-").reverse().join("/");
+    document.getElementById("last14DaysTitle").textContent = `Tendencia Diaria (${fInicioTxt} al ${fFinTxt})`;
 
     const allData = await fetchAllRecords("Scrap", q => q.select("Date, Stripp").gte("Date", fechaInicio).lte("Date", fechaFin));
 
@@ -766,7 +802,7 @@ async function loadLast14Days(){
         plugins: [ChartDataLabels],
         data: {
             labels: etiquetas,
-            datasets: [{ label: "Scrap últimos 14 días", data: valores }]
+            datasets: [{ label: "Scrap por Día", data: valores }]
         },
         options: {
             responsive: true,
@@ -890,6 +926,7 @@ async function loadScrapPercentage(){
 async function openTrendModal(){
     document.getElementById("trendModal").style.display = "block";
     selectedDefects = [];
+    Object.keys(trendOffsets).forEach(k => delete trendOffsets[k]); // Limpiar offsets al abrir
     document.getElementById("trendChartsContainer").innerHTML = `
         <div class="text-center mt-5">
             <h3>Select up to 5 defects</h3>
@@ -944,10 +981,28 @@ function toggleTrendDefect(check, defect){
             return;
         }
         selectedDefects.push(defect);
+        trendOffsets[selectedDefects.length - 1] = 0; // Inicializar offset para este gráfico
     } else {
+        const indexRemovido = selectedDefects.indexOf(defect);
         selectedDefects = selectedDefects.filter(d => d !== defect);
+        // Reorganizar offsets
+        const nuevosOffsets = {};
+        selectedDefects.forEach((_, idx) => {
+            nuevosOffsets[idx] = idx >= indexRemovido ? (trendOffsets[idx + 1] || 0) : (trendOffsets[idx] || 0);
+        });
+        Object.keys(trendOffsets).forEach(k => delete trendOffsets[k]);
+        Object.assign(trendOffsets, nuevosOffsets);
     }
     renderTrendCharts();
+}
+
+function cambiarDiasTrend(index, dias) {
+    if (dias === 0) {
+        trendOffsets[index] = 0;
+    } else {
+        trendOffsets[index] = (trendOffsets[index] || 0) + dias;
+    }
+    loadTrendChartDataSingle(index);
 }
 
 function renderTrendCharts(){
@@ -967,8 +1022,27 @@ function renderTrendCharts(){
     selectedDefects.forEach((defect, index) => {
         container.innerHTML += `
             <div class="trend-chart-card">
-                <h5>${defect}</h5>
-                <canvas id="trendChart${index}" height="120"></canvas>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0" id="trendTitle${index}">${defect}</h5>
+                    <div class="btn-group" role="group" aria-label="Navegación trend">
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, 7)">
+                            <i class="fa-solid fa-angles-left"></i> +7D
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, 1)">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, 0)">
+                            Hoy
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, -1)">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, -7)">
+                            -7D <i class="fa-solid fa-angles-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="trendChart${index}"></canvas>
             </div>
         `;
     });
@@ -976,15 +1050,14 @@ function renderTrendCharts(){
     trendCharts.forEach(chart => chart.destroy());
     trendCharts = [];
 
-    // Generar etiquetas de los últimos 15 días (ej: 08/04 hacia atrás)
     const hoy = new Date();
     let fechasLabels = [];
     for(let i = TREND_DAYS - 1; i >= 0; i--){
         let fecha = new Date();
         fecha.setDate(hoy.getDate() - i);
         let formatoEtiqueta = String(fecha.getDate()).padStart(2, "0") + "/" + 
-                              String(fecha.getMonth() + 1).padStart(2, "0") + "/" + 
-                              fecha.getFullYear();
+                            String(fecha.getMonth() + 1).padStart(2, "0") + "/" + 
+                            fecha.getFullYear();
         fechasLabels.push(formatoEtiqueta);
     }
 
@@ -998,7 +1071,7 @@ function renderTrendCharts(){
                 datasets: [
                     {
                         type: "bar",
-                        label: "Cantidad (Barras)",
+                        label: "Cantidad",
                         data: Array(TREND_DAYS).fill(0),
                         backgroundColor: "rgba(10,110,209,0.55)",
                         borderColor: "#0A6ED1",
@@ -1011,7 +1084,7 @@ function renderTrendCharts(){
                     },
                     {
                         type: "line",
-                        label: "Porcentaje % (Marks)",
+                        label: "Porcentaje %",
                         data: Array(TREND_DAYS).fill(0),
                         borderColor: "#00a3a3",
                         backgroundColor: "#00a3a3",
@@ -1035,7 +1108,7 @@ function renderTrendCharts(){
                 maintainAspectRatio: false,
                 interaction: { mode: "index", intersect: false },
                 plugins: {
-                    legend: { display: true, position: "bottom", labels: { font: { size: 12, weight: "bold" } } },
+                    legend: { display: true, position: "bottom", labels: { font: { size: 11, weight: "bold" } } },
                     tooltip: { backgroundColor: "#003b5c" }
                 },
                 scales: {
@@ -1043,14 +1116,14 @@ function renderTrendCharts(){
                     y: { 
                         beginAtZero: true, 
                         position: "left", 
-                        title: { display: true, text: "Cantidad" },
+                        title: { display: true, text: "Qty" },
                         grid: { drawOnChartArea: true }
                     },
                     y1: {
                         beginAtZero: true,
                         position: "right",
                         max: 100,
-                        title: { display: true, text: "Porcentaje (%)" },
+                        title: { display: true, text: "%" },
                         grid: { drawOnChartArea: false },
                         ticks: {
                             formatter: val => val + "%"
@@ -1066,60 +1139,74 @@ function renderTrendCharts(){
 }
 
 async function loadTrendChartData(){
+    for(let i = 0; i < selectedDefects.length; i++){
+        await loadTrendChartDataSingle(i);
+    }
+}
+
+async function loadTrendChartDataSingle(i){
+    let defect = selectedDefects[i];
+    let chart = trendCharts[i];
+    let offset = trendOffsets[i] || 0;
+
     const hoy = new Date();
     let fechasISO = [];
-    for(let i = TREND_DAYS - 1; i >= 0; i--){
+    let fechasLabels = [];
+
+    for(let d = TREND_DAYS - 1 + offset; d >= 0 + offset; d--){
         let fecha = new Date();
-        fecha.setDate(hoy.getDate() - i);
+        fecha.setDate(hoy.getDate() - d);
         let formatoISO = fecha.getFullYear() + "-" +
             String(fecha.getMonth() + 1).padStart(2, "0") + "-" +
             String(fecha.getDate()).padStart(2, "0");
         fechasISO.push(formatoISO);
+
+        let formatoEtiqueta = String(fecha.getDate()).padStart(2, "0") + "/" + 
+                            String(fecha.getMonth() + 1).padStart(2, "0") + "/" + 
+                            fecha.getFullYear();
+        fechasLabels.push(formatoEtiqueta);
     }
 
     let fechaInicio = fechasISO[0];
     let fechaFin = fechasISO[fechasISO.length - 1];
 
-    for(let i = 0; i < selectedDefects.length; i++){
-        let defect = selectedDefects[i];
-        let chart = trendCharts[i];
+    const { data, error } = await supabaseClient
+        .from("Scrap")
+        .select("Date, Defect_Desc, Stripp")
+        .eq("Defect_Desc", defect)
+        .gte("Date", fechaInicio)
+        .lte("Date", fechaFin);
 
-        const { data, error } = await supabaseClient
-            .from("Scrap")
-            .select("Date, Defect_Desc, Stripp")
-            .eq("Defect_Desc", defect)
-            .gte("Date", fechaInicio)
-            .lte("Date", fechaFin);
-
-        if(error){
-            console.error(error);
-            continue;
-        }
-
-        let cantidades = Array(TREND_DAYS).fill(0);
-        let totalDefectoRango = 0;
-
-        data.forEach(row => {
-            let idx = fechasISO.indexOf(row.Date);
-            if(idx !== -1){
-                let qty = Number(row.Stripp) || 0;
-                cantidades[idx] += qty;
-                totalDefectoRango += qty;
-            }
-        });
-
-              let porcentajes = cantidades.map(qty => {
-            if (totalDefectoRango === 0) return 0;
-            return Number(((qty / totalDefectoRango) * 100).toFixed(1));
-        });
-
-        chart.data.datasets[0].data = cantidades;
-        chart.data.datasets[1].data = porcentajes;
-        chart.update();
+    if(error){
+        console.error(error);
+        return;
     }
+
+    let cantidades = Array(TREND_DAYS).fill(0);
+    let totalDefectoRango = 0;
+
+    data.forEach(row => {
+        let idx = fechasISO.indexOf(row.Date);
+        if(idx !== -1){
+            let qty = Number(row.Stripp) || 0;
+            cantidades[idx] += qty;
+            totalDefectoRango += qty;
+        }
+    });
+
+    let porcentajes = cantidades.map(qty => {
+        if (totalDefectoRango === 0) return 0;
+        return Number(((qty / totalDefectoRango) * 100).toFixed(1));
+    });
+
+    chart.data.labels = fechasLabels;
+    chart.data.datasets[0].data = cantidades;
+    chart.data.datasets[1].data = porcentajes;
+    chart.update();
 }
 
-loadDashboard();
+window.onload = loadDashboard;
 </script>
+
 </body>
 </html>
