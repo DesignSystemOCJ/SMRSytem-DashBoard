@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" translate="no">
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Project Detail</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -378,6 +378,43 @@ grid-template-columns:1fr;
 }
 }
 
+/* === DISEÑO RESPONSIVO PARA MÓVILES Y TABLETS === */
+@media(max-width: 900px) {
+    .evidence-layout {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
+    .progress-box {
+        flex-direction: row !important;
+        justify-content: center;
+        margin: 10px 0;
+    }
+    .progress-box i {
+        transform: rotate(90deg);
+    }
+}
+
+@media(max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    .header h1 {
+        font-size: 22px;
+    }
+    .grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+    .grid-4 {
+        grid-template-columns: 1fr !important;
+    }
+    .buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    .buttons button {
+        width: 100%;
+    }
+}
 
 </style>
 </head>
