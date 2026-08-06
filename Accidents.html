@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="es" translate="no">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>EHS Accident Dashboard</title>
 
-
-<link 
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -523,7 +519,7 @@ Let's Continue Working With Safety!
 </h2>
 
 <p>
-Días sin accidentes
+Days Without Accidents
 </p>
 </div>
 
@@ -564,7 +560,7 @@ Días sin accidentes
 <section class="dashboard">
 <div class="body-map-panel">
 <h3>
-🧍 Human Body Injury Map
+🧍 Human Body Injury
 </h3>
 <div class="body-container">
 
@@ -772,7 +768,6 @@ ry="12"
 
 
 
-
 <div 
 id="bodyTooltip"
 class="body-tooltip">
@@ -877,7 +872,6 @@ onkeyup="filterTable()"
 </div>
 
 
-
 <select 
 id="statusFilter"
 onchange="filterTable()">
@@ -894,7 +888,6 @@ Closed
 </option>
 </select>
 </div>
-
 
 
 <div class="table-container">
@@ -948,10 +941,6 @@ color:#22c55e;
 .pdf{
 color:#ef4444;
 }
-
-
-
-
 
 
 .modal{
@@ -1039,7 +1028,6 @@ transition: all 0.2s ease;
 background: #EF4444;
 transform: scale(1.05);
 }
-
 
 
 .modal-toolbar{
@@ -1226,7 +1214,6 @@ selector.addEventListener(
 loadData
 );
 }
-
 
 
 async function loadData(){
@@ -1468,7 +1455,6 @@ let map={
 "feet":"FootLeft",
 "pie":"FootLeft",
 "pies":"FootLeft"
-
 };
 
 
