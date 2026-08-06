@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SMRC System | Industrial Control</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
+  <!-- SDK de Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
@@ -34,6 +35,7 @@
 
     body {
       height: 100vh;
+      height: 100dvh;
       background: var(--bg-main);
       color: var(--text-main);
       overflow: hidden;
@@ -49,6 +51,7 @@
       pointer-events: none;
     }
 
+    /* Sidebar para Escritorio */
     .sidebar {
       position: fixed;
       top: 0;
@@ -271,11 +274,13 @@
       margin-left: var(--sidebar-collapsed-width);
       width: calc(100vw - var(--sidebar-collapsed-width));
       height: 100vh;
+      height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       transition: margin-left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      overflow-y: auto;
     }
    
     #welcome-logo {
@@ -296,11 +301,12 @@
     .settings-cards-container {
       display: none;
       flex-direction: row;
+      flex-wrap: wrap;
       gap: 25px;
       justify-content: center;
       align-items: center;
       width: 100%;
-      height: 100%;
+      min-height: 100%;
       padding: 30px;
       animation: fadeIn 0.4s ease forwards;
     }
@@ -394,6 +400,7 @@
       display: none;
       align-items: center;
       justify-content: center;
+      padding: 20px;
       animation: fadeInModal 0.3s ease forwards;
     }
 
@@ -406,7 +413,8 @@
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(15px);
       border: 1px solid rgba(255, 255, 255, 0.8);
-      width: 380px;
+      width: 100%;
+      max-width: 380px;
       padding: 35px 30px;
       border-radius: 24px;
       box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
@@ -483,7 +491,7 @@
       padding: 0 14px 0 42px;
       border: 1px solid var(--sidebar-border);
       border-radius: 12px;
-      font-size: 13px;
+      font-size: 16px; /* Evita zoom automático en iOS */
       background: #f8fafc;
       color: var(--text-main);
       outline: none;
@@ -530,6 +538,87 @@
 
     .login-close-btn:hover {
       color: var(--text-main);
+    }
+
+    /* === DISEÑO RESPONSIVO PARA TELÉFONOS Y TABLETS (Móviles) === */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+
+      .sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        top: auto;
+        height: 65px;
+        width: 100% !important;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        border-right: none;
+        border-top: 1px solid var(--sidebar-border);
+        box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+      }
+
+      .sidebar-header, .sidebar-footer {
+        display: none !important;
+      }
+
+      .sidebar-menu {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        width: 100%;
+        padding: 0;
+        align-items: center;
+      }
+
+      .sidebar-item {
+        margin-bottom: 0;
+      }
+
+      .sidebar-link {
+        flex-direction: column;
+        height: 100%;
+        padding: 8px 10px;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      .sidebar-link i {
+        font-size: 20px;
+        min-width: auto;
+      }
+
+      .sidebar-link span {
+        opacity: 1 !important;
+        font-size: 10px;
+        margin-left: 0;
+      }
+
+      .sidebar-link.active::before,
+      .sidebar-link:hover::before {
+        left: 0;
+        top: 0;
+        height: 3px;
+        width: 100%;
+        border-radius: 0;
+      }
+
+      .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        height: calc(100vh - 65px);
+        height: calc(100dvh - 65px);
+        margin-bottom: 65px;
+      }
+
+      .setting-card {
+        width: 100%;
+        max-width: 320px;
+      }
     }
   </style>
 </head>
@@ -701,7 +790,7 @@
     const allLinks = document.querySelectorAll('.sidebar-link');
     const settingCardElements = document.querySelectorAll('.setting-card');
 
-    const loginModal = document.getElementById('login-modal');
+    const loginModal = document.getElementById("login-modal");
     const loginCloseBtn = document.getElementById('login-close');
     const loginForm = document.getElementById('login-form');
     const usernameInput = document.getElementById('username-input');
