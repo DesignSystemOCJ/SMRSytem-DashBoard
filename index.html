@@ -1,23 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SMRC System</title>
 
+<!-- ===============================
+     FONT AWESOME ICONS
+================================ -->
+<link rel="preload" 
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" 
+as="style"
+onload="this.onload=null;this.rel='stylesheet'">
+
+<noscript>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</noscript>
 
 <style>
-
+/* ===============================
+   VARIABLES DE PALETA SLATE LIGHT
+================================ */
 :root {
-  --bg-main: #eef2f6;          
-  --card-bg: #ffffff;          
-  --card-border: #e2e8f0;      
-  --accent-blue: #0A6ED1;       
-  --accent-cyan: #0284C7;      
-  --text-main: #1e293b;      
-  --text-muted: #64748b;        
-  --track-bg: #cbd5e1;          
+  --bg-main: #eef2f6;           /* Gris azulado suave */
+  --card-bg: #ffffff;          /* Blanco limpio para la tarjeta */
+  --card-border: #e2e8f0;      /* Borde fino */
+  
+  --accent-blue: #0A6ED1;       /* Azul SAP Corporativo */
+  --accent-cyan: #0284C7;       /* Azul claro */
+  
+  --text-main: #1e293b;         /* Gris oscuro para títulos */
+  --text-muted: #64748b;        /* Gris medio para subtítulos */
+  
+  --track-bg: #cbd5e1;          /* Fondo de la barra de carga */
 }
 
 body {
@@ -25,7 +40,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   background:
     linear-gradient(
       rgba(238, 242, 246, 0.88),
@@ -40,6 +55,9 @@ body {
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
+/* ===============================
+   TARJETA CENTRAL DE CARGA
+================================ */
 .loaderBox {
   text-align: center;
   background: var(--card-bg);
@@ -49,6 +67,7 @@ body {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   max-width: 380px;
   width: 90%;
+  contain: layout paint;
 }
 
 .loaderLogo {
@@ -64,6 +83,7 @@ body {
   color: #ffffff;
   box-shadow: 0 6px 16px rgba(10, 110, 209, 0.3);
   animation: spin 3s infinite ease-in-out;
+  will-change: transform;
 }
 
 .loaderBox h1 {
@@ -80,6 +100,9 @@ body {
   margin: 0;
 }
 
+/* ===============================
+   BARRA DE PROGRESO
+================================ */
 .loadingBar {
   width: 100%;
   max-width: 280px;
@@ -93,11 +116,15 @@ body {
 .loadingBar div {
   width: 45%;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-  cyan));
   border-radius: 10px;
   animation: loading 1.5s infinite ease-in-out;
+  will-change: transform;
 }
 
+/* ===============================
+   ANIMACIONES
+================================ */
 @keyframes loading {
   0% { transform: translateX(-150px); }
   100% { transform: translateX(300px); }
@@ -106,6 +133,26 @@ body {
 @keyframes spin {
   50% { transform: rotateY(180deg); }
 }
+
+/* === DISEÑO RESPONSIVO PARA MÓVILES === */
+@media (max-width: 480px) {
+  .loaderBox {
+    padding: 30px 20px;
+    width: 92%;
+  }
+  .loaderLogo {
+    width: 70px;
+    height: 70px;
+    font-size: 32px;
+  }
+  .loaderBox h1 {
+    font-size: 21px;
+  }
+  .loaderBox p {
+    font-size: 13px;
+  }
+}
+
 </style>
 </head>
 
@@ -125,9 +172,11 @@ body {
 </div>
 
 <script>
-  setTimeout(() => {
-    window.location.href = "Menu.html";
-  }, 2000);
+
+ window.setTimeout(() => {
+    location.replace("Menu.html");
+}, 2000);
+
 </script>
 
 </body>
