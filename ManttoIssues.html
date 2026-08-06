@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Maintenance Issues Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -571,6 +572,57 @@ button:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* Asegurar que el cuerpo no desborde horizontalmente */
+body {
+    overflow-x: hidden;
+}
+
+/* === DISEÑO RESPONSIVO PARA MÓVILES Y TABLETS === */
+@media(max-width: 1100px) {
+    .analysis-layout {
+        grid-template-columns: 1fr;
+    }
+    .analysis-grid, .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 700px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    .header-actions {
+        justify-content: space-between;
+    }
+    .cards {
+        grid-template-columns: 1fr;
+    }
+    .container {
+        padding: 12px;
+    }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+    .chart-box {
+        height: 280px;
+    }
+    canvas {
+        max-height: 250px;
+    }
+}
+
+
+
+
+
+
+
 </style>
 </head>
 
@@ -1159,6 +1211,7 @@ function renderSubChart(canvasId, subCount) {
 window.onload = function() {
     setCurrentMonth();
 }
+
 </script>
 
 </body>
