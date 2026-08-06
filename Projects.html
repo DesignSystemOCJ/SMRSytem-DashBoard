@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es" translate="no">
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>SMRC Project Management</title>
 
@@ -490,6 +491,40 @@ transform:scale(1.1);
 font-size:22px;
 }
 
+/* === DISEÑO RESPONSIVO Y CORRECCIÓN MÓVIL === */
+@media(max-width: 1024px) {
+    header {
+        padding: 0 20px;
+        height: auto;
+        flex-direction: column;
+        gap: 15px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search {
+        width: 100%;
+    }
+    .container {
+        width: 98%;
+        padding: 15px;
+    }
+}
+
+@media(max-width: 768px) {
+    .cards {
+        grid-template-columns: 1fr;
+    }
+    .card h1 {
+        font-size: 32px;
+    }
+    .title h2 {
+        font-size: 24px;
+    }
+}
 
 </style>
 <body>
