@@ -573,12 +573,10 @@ button:hover {
     }
 }
 
-/* Asegurar que el cuerpo no desborde horizontalmente */
 body {
     overflow-x: hidden;
 }
 
-/* === DISEÑO RESPONSIVO PARA MÓVILES Y TABLETS === */
 @media(max-width: 1100px) {
     .analysis-layout {
         grid-template-columns: 1fr;
@@ -618,11 +616,6 @@ body {
 }
 
 
-
-
-
-
-
 </style>
 </head>
 
@@ -634,7 +627,7 @@ body {
         Maintenance Issues Dashboard
     </h1>
     <div class="header-actions">
-        <!-- Filtro Modernizado con Menú Desplegable Personalizado -->
+       
         <div class="filter-box" id="filterBox" onclick="toggleMonthDropdown(event)">
             <div class="filter-icon">
                 <i class="fa-solid fa-gears"></i>
@@ -646,7 +639,7 @@ body {
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
             </div>
-            <!-- Lista desplegable estilizada -->
+    
             <div class="custom-dropdown" id="monthDropdown">
                 <div class="custom-option" onclick="selectMonth('January', event)">January</div>
                 <div class="custom-option" onclick="selectMonth('February', event)">February</div>
@@ -670,7 +663,7 @@ body {
     </div>
 </div>
 
-<!-- Modal / Pantalla Emergente de Registros -->
+
 <div class="modal-overlay" id="recordsModal">
     <div class="modal-content">
         <div class="modal-header">
