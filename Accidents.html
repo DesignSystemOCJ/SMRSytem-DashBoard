@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" translate="no">
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>EHS Accident Dashboard</title>
 
 
@@ -405,6 +405,57 @@ transform:scale(.85);
 
 
 }
+
+@media (max-width: 1400px) {
+    .cards {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        padding: 15px;
+    }
+    .controls {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        padding: 10px;
+    }
+    .dashboard {
+        grid-template-columns: 1fr !important;
+        padding: 10px;
+    }
+    .charts-area {
+        width: 100% !important;
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .cards {
+        grid-template-columns: 1fr !important;
+    }
+    .title h1 {
+        font-size: 22px;
+    }
+    .modal-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .modal-content {
+        width: 98% !important;
+        height: 96vh !important;
+        margin: 2vh auto !important;
+    }
+}
+
 </style>
 </head>
 <body>
