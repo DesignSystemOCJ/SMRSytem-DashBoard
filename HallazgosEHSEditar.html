@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" translate="no">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Auditorías EHS</title>
 
 <style>
@@ -200,6 +201,27 @@ tbody tr:last-child td{
 .btn-add:hover{
     background:#1565c0;
     transform:scale(1.1);
+}
+
+/* === DISEÑO RESPONSIVO PARA MÓVILES Y TABLETS === */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    .table-container {
+        border-radius: 12px;
+    }
+    .btn-add {
+        width: 50px;
+        height: 50px;
+        font-size: 26px;
+        right: 20px;
+        bottom: 20px;
+    }
 }
 
 </style>
