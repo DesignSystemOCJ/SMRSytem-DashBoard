@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" translate="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SAP EHS | Registro de Accidentes</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -176,8 +176,6 @@ textarea{
 }
 
 
-
-/* SECCIONES */
 .section-title{
     grid-column:1/-1;
     color:#00e1ff;
@@ -245,7 +243,6 @@ grid-template-columns:repeat(2,1fr);
     gap: 6px;
 }
 
-/* ESTILOS PARA EL MODAL DE NUEVO EMPLEADO */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -311,6 +308,41 @@ grid-template-columns:repeat(2,1fr);
 .btn-add-icon:hover {
     transform: scale(1.2);
     color: #fff;
+}
+
+@media (max-width: 992px) {
+    body {
+        overflow: auto !important;
+        height: auto !important;
+        padding: 10px;
+    }
+    .container {
+        height: auto !important;
+        max-width: 100%;
+    }
+    .card {
+        overflow-y: visible !important;
+    }
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .header {
+        height: auto;
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    .header i {
+        margin-right: 0;
+        font-size: 35px;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 
 </style>
@@ -468,7 +500,7 @@ readonly>
 <div class="btn-container">
 <button onclick="guardarAccidente()">
 <i class="fa-solid fa-floppy-disk"></i>
- Registrar Accidente
+ Report Accident
 </button>
 </div>
 
@@ -477,10 +509,9 @@ readonly>
 </div>
 </div>
 
-<!-- MODAL PARA AGREGAR EMPLEADO -->
 <div id="modalEmpleado" class="modal-overlay">
     <div class="modal-content">
-        <h3><i class="fa-solid fa-user-plus"></i> Agregar Nuevo Empleado</h3>
+        <h3><i class="fa-solid fa-user-plus"></i>Add New Employee</h3>
         <div class="field">
             <label># Empl</label>
             <input id="nuevoEmplNum" type="number" readonly class="readonly">
@@ -549,7 +580,7 @@ async()=>{
 
 
   mensajeEmpleado.innerHTML =
-"🔍 Consultando empleado...";
+"🔍 Searching for employee...";
     const {
         data,
         error
@@ -566,7 +597,7 @@ async()=>{
     if(error || !data){
         limpiarEmpleado();
        mensajeEmpleado.innerHTML =
-`❌ Empleado no encontrado <i class="fa-solid fa-user-plus btn-add-icon" title="Agregar empleado" onclick="abrirModalEmpleado('${empleado}')"></i>`;
+`❌ Employee not found <i class="fa-solid fa-user-plus btn-add-icon" title="Add Employee" onclick="abrirModalEmpleado('${empleado}')"></i>`;
         return;
     }
 
@@ -581,7 +612,7 @@ async()=>{
     data.Departamento;
 
   mensajeEmpleado.innerHTML =
-"✅ Empleado encontrado";
+"✅ Employee found";
 });
 
 
@@ -592,7 +623,6 @@ departamentoInput.value="";
 mensajeEmpleado.innerHTML="";
 }
 
-/* FUNCIONES PARA EL MODAL */
 function abrirModalEmpleado(numEmpl) {
     document.getElementById("nuevoEmplNum").value = numEmpl;
     document.getElementById("nuevoEmplNombre").value = "";
@@ -612,7 +642,7 @@ async function guardarNuevoEmpleado() {
     const dept = document.getElementById("nuevoEmplDept").value;
 
     if (!nombre || !puesto || !dept) {
-        alert("Por favor complete todos los campos");
+        alert("Please fill in all fields");
         return;
     }
 
@@ -626,22 +656,21 @@ async function guardarNuevoEmpleado() {
         }]);
 
     if (error) {
-        alert("Error al guardar empleado: " + error.message);
+        alert("Error saving employee.: " + error.message);
         return;
     }
 
     cerrarModalEmpleado();
     
-    // Limpiamos el campo y mensaje para que vuelva a digitar
-    empleadoInput.value = "";
+       empleadoInput.value = "";
     limpiarEmpleado();
-    mensaje.innerHTML = "✅ Empleado agregado con éxito. Vuelva a digitar su número.";
+    mensaje.innerHTML = "✅ Employee added successfully. Please enter the employee ID again.";
 }
 
 
 async function guardarAccidente(){
 mensaje.innerHTML =
-"⏳ Guardando información...";
+"⏳ Saving information...";
 
 const registro = {
 "#Empl":
@@ -688,7 +717,7 @@ document.getElementById("status").value
 
 if(!registro["#Empl"]){
 mensaje.innerHTML =
-"⚠ Capture número de empleado";
+"⚠ Enter Employee ID";
 return;
 }
 
@@ -709,7 +738,7 @@ return;
 
 
 mensaje.innerHTML =
-"✅ Accidente registrado correctamente";
+"✅ Accident recorded successfully";
 
 setTimeout(()=>{
 limpiarFormulario();
@@ -736,7 +765,7 @@ puestoInput.value="";
 departamentoInput.value="";
 
 mensaje.innerHTML =
-"🟢 Listo para registrar otro accidente";
+"🟢 Ready to record another accident";
 }
 </script>
 
