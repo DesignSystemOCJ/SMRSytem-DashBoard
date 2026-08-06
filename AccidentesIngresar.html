@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SAP EHS | Registro de Accidentes</title>
+<title>SAP EHS | Accident Records</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -47,7 +47,6 @@ body{
     display:flex;
     flex-direction:column;
 }
-
 
 
 .header{
@@ -356,7 +355,7 @@ grid-template-columns:repeat(2,1fr);
 <div>
 
 <h1>Accidents & Incidents</h1>
-<span> Registro de Accidentes e Incidentes </span>
+<span> Accident & Incident Records </span>
 </div>
 </div>
 
@@ -365,7 +364,7 @@ grid-template-columns:repeat(2,1fr);
 <div class="form-grid">
 <div class="section-title">
 <i class="fa-solid fa-user"></i>
- Datos del empleado
+ Employee Data
 </div>
 
 
@@ -374,7 +373,7 @@ grid-template-columns:repeat(2,1fr);
 <input 
 id="empleado"
 type="number"
-placeholder="Ingrese número empleado">
+placeholder="Enter Employee Number">
 <small id="mensajeEmpleado"></small>
 </div>
 
@@ -408,7 +407,7 @@ readonly>
 
 <div class="section-title">
 <i class="fa-solid fa-triangle-exclamation"></i>
- Datos del accidente
+ Accident Details
 </div>
 
 
@@ -421,7 +420,7 @@ readonly>
 <div class="field">
 <label>Part Body</label>
 <select id="partbody">
-<option value="" disabled selected>Seleccione...</option>
+<option value="" disabled selected>Select...</option>
 <option>Head</option>
 <option>Eyes</option>
 <option>Neck</option>
@@ -443,6 +442,7 @@ readonly>
 <div class="field">
 <label>Shift</label>
 <select id="shift">
+<option value="" disabled selected>Select...</option>
 <option>A</option>
 <option>B</option>
 <option>C</option>
@@ -455,7 +455,7 @@ readonly>
 <div class="field">
 <label>EPP</label>
 <select id="epp">
-<option value="" disabled selected>Seleccione...</option>
+<option value="" disabled selected>Select...</option>
 <option>Yes</option>
 <option>No</option>
 </select>
@@ -477,7 +477,7 @@ readonly>
 <div class="field">
 <label>Type</label>
 <select id="tipo">
-<option value="" disabled selected>Seleccione...</option>
+<option value="" disabled selected>Select...</option>
 <option>Accident</option>
 <option>Incident</option>
 <option>Minor Incident</option>
@@ -529,8 +529,8 @@ readonly>
             <input id="nuevoEmplDept" type="text" placeholder="Departamento">
         </div>
         <div class="modal-buttons">
-            <button class="btn-cancelar" onclick="cerrarModalEmpleado()">Cancelar</button>
-            <button onclick="guardarNuevoEmpleado()">Guardar</button>
+            <button class="btn-cancelar" onclick="cerrarModalEmpleado()">Cancell</button>
+            <button onclick="guardarNuevoEmpleado()">Save</button>
         </div>
     </div>
 </div>
