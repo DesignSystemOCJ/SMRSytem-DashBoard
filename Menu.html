@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SMRC System | Industrial Control</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
-  <!-- SDK de Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
     * {
@@ -51,8 +48,7 @@
       pointer-events: none;
     }
 
-    /* Sidebar para Escritorio */
-    .sidebar {
+      .sidebar {
       position: fixed;
       top: 0;
       left: 0;
@@ -540,8 +536,7 @@
       color: var(--text-main);
     }
 
-    /* === DISEÑO RESPONSIVO PARA TELÉFONOS Y TABLETS (Móviles) === */
-    @media (max-width: 768px) {
+      @media (max-width: 768px) {
       body {
         flex-direction: column;
         overflow-y: auto;
@@ -758,7 +753,7 @@
   </div>
 
   <script>
-    // Credenciales de Supabase
+  
     const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
     const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
     const db = supabase.createClient(supabaseUrl, supabaseKey);
@@ -819,8 +814,7 @@
       loginModal.style.display = 'none';
     });
 
-    // Validación contra la tabla Cuentas de Supabase (columnas 'Usurio' y 'Password')
-    loginForm.addEventListener('submit', async (e) => {
+     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const userVal = usernameInput.value.trim();
       const passVal = passwordInput.value.trim();
@@ -838,7 +832,7 @@
           return;
         }
 
-        // Si se encuentra el registro, se concede el acceso y se muestran las 3 tarjetas
+       
         if (data && data.length > 0) {
           loginModal.style.display = 'none';
           allLinks.forEach(l => l.classList.remove('active'));
@@ -848,11 +842,11 @@
           iframe.src = '';
           settingsCards.style.display = 'flex';
         } else {
-          alert('Acceso denegado: Usuario o contraseña incorrectos.');
+          alert('Invalid username or password..');
         }
       } catch (err) {
-        console.error("Error inesperado:", err);
-        alert('Ocurrió un error al procesar el inicio de sesión.');
+        console.error("unexpected error:", err);
+        alert('An error occurred while processing your login.');
       }
     });
 
