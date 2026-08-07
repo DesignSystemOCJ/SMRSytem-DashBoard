@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Auditorías EHS</title>
+    <link rel="stylesheet" href="HallazgosEHSEditars.css">
+</head>
+
+<body>
+    <h2>Auditorias Gestión EHS</h2>
+        <div class="table-container">
+        <table id="tabla">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Folio</th>
+                    <th>Plant</th>
+                    <th>Shift</th>
+                    <th>Area</th>
+                    <th>EHSName</th>
+                    <th>Gerente</th>
+                    <th>Fecha</th>
+                    <th>Status</th>
+                    <th>C/O</th>
+                    <th>Description</th>
+                    <th>PDF</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+
+    <button class="btn-add" onclick="window.location.href='HallazgosEHSIngresar.html'" title="Agregar Auditoría">
+        ➕
+    </button>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="HallazgosEHSEditar.js"></script>
+</body>
+</html>

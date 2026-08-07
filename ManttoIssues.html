@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maintenance Issues Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="ManttoIssuess.css">
+</head>
+
+<body>
+
+<div class="header">
+    <h1>
+        <i class="fa-solid fa-screwdriver-wrench"></i>
+        Maintenance Issues Dashboard
+    </h1>
+    <div class="header-actions">
+             <div class="filter-box" id="filterBox" onclick="toggleMonthDropdown(event)">
+            <div class="filter-icon">
+                <i class="fa-solid fa-gears"></i>
+            </div>
+            <div class="filter-content">
+                <span>Maintenance Period</span>
+                <div class="custom-select-trigger">
+                    <span id="selectedMonthText">Loading...</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+            </div>
+          
+            <div class="custom-dropdown" id="monthDropdown">
+                <div class="custom-option" onclick="selectMonth('January', event)">January</div>
+                <div class="custom-option" onclick="selectMonth('February', event)">February</div>
+                <div class="custom-option" onclick="selectMonth('March', event)">March</div>
+                <div class="custom-option" onclick="selectMonth('April', event)">April</div>
+                <div class="custom-option" onclick="selectMonth('May', event)">May</div>
+                <div class="custom-option" onclick="selectMonth('June', event)">June</div>
+                <div class="custom-option" onclick="selectMonth('July', event)">July</div>
+                <div class="custom-option" onclick="selectMonth('August', event)">August</div>
+                <div class="custom-option" onclick="selectMonth('September', event)">September</div>
+                <div class="custom-option" onclick="selectMonth('October', event)">October</div>
+                <div class="custom-option" onclick="selectMonth('November', event)">November</div>
+                <div class="custom-option" onclick="selectMonth('December', event)">December</div>
+            </div>
+        </div>
+
+                <button class="btn-view-records" title="View Records" onclick="openRecordsModal()">
+            <i class="fa-solid fa-eye"></i>
+        </button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="recordsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fa-solid fa-table-list" style="color: var(--sap-blue);"></i> ManttoIssues Records</h2>
+            <button class="modal-close" onclick="closeRecordsModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-filters">
+            <label style="font-size: 13px; font-weight: 700; color: var(--sap-gray);">Month:</label>
+            <select id="modalMonthFilter" onchange="loadModalRecords()">
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+
+            <label style="font-size: 13px; font-weight: 700; color: var(--sap-gray); margin-left: 10px;">Cell:</label>
+            <select id="modalCellFilter" onchange="filterModalTable()">
+                <option value="">All Cells</option>
+            </select>
+
+            <button onclick="clearCellFilter()"><i class="fa-solid fa-filter-circle-xmark"></i> Clean</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-table-container">
+                <table id="modalTable">
+                    <thead>
+                        <tr id="modalTableHeaders"></tr>
+                    </thead>
+                    <tbody id="modalTableBody">
+                        <tr><td colspan="100" style="text-align: center; padding: 30px;">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="cards">
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="card-title">Total Issues</div>
+            <div class="card-value" id="totalIssues">0</div>
+            <div class="card-footer">Maintenance events</div>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-industry"></i></div>
+            <div class="card-title">Top Cell</div>
+            <div class="card-value" id="topCell">--</div>
+            <div class="card-footer">Highest affected cell</div>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <div class="card-title">Top Issue</div>
+            <div class="card-value" id="topIssue">--</div>
+            <div class="card-footer">Most frequent failure</div>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-gears"></i></div>
+            <div class="card-title">Top Operation</div>
+            <div class="card-value" id="topOperation">--</div>
+            <div class="card-footer">Main affected operation</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="panel">
+            <h2><i class="fa-solid fa-gears"></i> Issues By Operation</h2>
+            <div class="chart-box"><canvas id="operationChart"></canvas></div>
+        </div>
+        <div class="panel">
+            <h2><i class="fa-solid fa-industry"></i> Issues By Cell</h2>
+            <div class="chart-box"><canvas id="cellChart"></canvas></div>
+        </div>
+        <div class="panel">
+            <h2><i class="fa-solid fa-triangle-exclamation"></i> Issue Detail</h2>
+            <div class="chart-box"><canvas id="issueChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-top:25px">
+        <h2><i class="fa-solid fa-chart-column"></i> Issues By Machine</h2>
+        <div class="chart-box" style="height:420px"><canvas id="machineChart"></canvas></div>
+    </div>
+
+    <div class="analysis-layout">
+        <div class="panel table-panel">
+            <h2><i class="fa-solid fa-ranking-star"></i> Top 10 Cells</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Cell</th>
+                        <th>Issues</th>
+                    </tr>
+                </thead>
+                <tbody id="top10Table"></tbody>
+            </table>
+        </div>
+
+        <div class="panel analysis-panel">
+            <h2><i class="fa-solid fa-chart-line"></i> Selected Cell Analysis : <span id="selectedCell">ALL</span></h2>
+            <div class="analysis-grid">
+                <div class="panel">
+                    <h2>MD</h2>
+                    <div class="chart-box"><canvas id="mdChart"></canvas></div>
+                </div>
+                <div class="panel">
+                    <h2>OP1</h2>
+                    <div class="chart-box"><canvas id="op1Chart"></canvas></div>
+                </div>
+                <div class="panel">
+                    <h2>OP2</h2>
+                    <div class="chart-box"><canvas id="op2Chart"></canvas></div>
+                </div>
+                <div class="panel">
+                    <h2>CHIRON</h2>
+                    <div class="chart-box"><canvas id="chironChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="ManttoIssues.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SAP EHS | Registro de Accidentes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="AccidentesIngresars.css">
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header">
+        <i class="fa-solid fa-helmet-safety"></i>
+        <div>
+            <h1>Accidents & Incidents</h1>
+            <span>Accident and Incident Record</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="form-grid">
+            <div class="section-title">
+                <i class="fa-solid fa-user"></i>
+                Employee Information
+            </div>
+
+            <div class="field">
+                <label># Empl</label>
+                <input id="empleado" type="number" placeholder="Enter Employee Number">
+                <small id="mensajeEmpleado"></small>
+            </div>
+
+            <div class="field">
+                <label>Name</label>
+                <input id="nombre" class="readonly" readonly>
+            </div>
+
+            <div class="field">
+                <label>Position</label>
+                <input id="puesto" class="readonly" readonly>
+            </div>
+
+            <div class="field">
+                <label>Depart</label>
+                <input id="departamento" class="readonly" readonly>
+            </div>
+
+            <div class="section-title">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Datos del accidente
+            </div>
+
+            <div class="field">
+                <label>Description</label>
+                <textarea id="descripcion"></textarea>
+            </div>
+
+            <div class="field">
+                <label>Part Body</label>
+                <select id="partbody">
+                    <option value="" disabled selected>Select...</option>
+                    <option>Head</option>
+                    <option>Eyes</option>
+                    <option>Neck</option>
+                    <option>Shoulder</option>
+                    <option>Chest</option>
+                    <option>Back</option>
+                    <option>Waist</option>
+                    <option>Arm</option>
+                    <option>Hand</option>
+                    <option>Finger</option>
+                    <option>Leg</option>
+                    <option>Knee</option>
+                    <option>Foot</option>
+                    <option>Face</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Shift</label>
+                <select id="shift">
+                    <option value="" disabled selected>Select...</option>
+                    <option>A</option>
+                    <option>B</option>
+                    <option>C</option>
+                    <option>D</option>
+                    <option>L-V</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>EPP</label>
+                <select id="epp">
+                    <option value="" disabled selected>Select...</option>
+                    <option>Yes</option>
+                    <option>No</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Date</label>
+                <input id="fecha" type="date">
+            </div>
+
+            <div class="field">
+                <label>Hour</label>
+                <input id="hora" type="time">
+            </div>
+
+            <div class="field">
+                <label>Type</label>
+                <select id="tipo">
+                    <option value="" disabled selected>Selecct...</option>
+                    <option>Accident</option>
+                    <option>Incident</option>
+                    <option>Minor Incident</option>
+                    <option>Major Incident</option>
+                    <option>Conduct Report</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Status</label>
+                <select id="status">
+                    <option value="" disabled selected>Select...</option>
+                    <option>Open</option>
+                    <option>Closed</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button onclick="guardarAccidente()">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Report Accident
+            </button>
+        </div>
+
+        <div id="mensaje"></div>
+    </div>
+</div>
+
+<div id="modalEmpleado" class="modal-overlay">
+    <div class="modal-content">
+        <h3><i class="fa-solid fa-user-plus"></i>Add New Employee</h3>
+        <div class="field">
+            <label># Empl</label>
+            <input id="nuevoEmplNum" type="number" readonly class="readonly">
+        </div>
+        <div class="field">
+            <label>Nombre</label>
+            <input id="nuevoEmplNombre" type="text" placeholder="Full Name">
+        </div>
+        <div class="field">
+            <label>Puesto</label>
+            <input id="nuevoEmplPuesto" type="text" placeholder="Position">
+        </div>
+        <div class="field">
+            <label>Departamento</label>
+            <input id="nuevoEmplDept" type="text" placeholder="Departament">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-cancelar" onclick="cerrarModalEmpleado()">Cancel</button>
+            <button onclick="guardarNuevoEmpleado()">Save</button>
+        </div>
+    </div>
+</div>
+
+<script src="AccidentesIngresar.js"></script>
+
+</body>
+</html>

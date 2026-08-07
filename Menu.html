@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SMRC System | Industrial Control</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="Menus.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="Menus.js" defer></script>
+</head>
+
+<body>
+  <div class="background"></div>
+    <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand-icon">
+        <i class="fa-solid fa-cube"></i>
+      </div>
+      <div class="sidebar-brand-info">
+        <h2>SMRC <span>System</span></h2>
+        <small>Industrial Control</small>
+      </div>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="sidebar-item">
+        <a href="ManttoIssues.html" target="content-frame" class="sidebar-link">
+          <i class="fa-solid fa-industry"></i>
+          <span>Mantto Issues</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="ScrapMrb.html" target="content-frame" class="sidebar-link">
+          <i class="fa-solid fa-recycle"></i>
+          <span>Scrap</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="EhsAudits.html" target="content-frame" class="sidebar-link">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>EHS Audits</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="Accidents.html" target="content-frame" class="sidebar-link">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Accidents</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="bu.html" target="content-frame" class="sidebar-link">
+          <i class="fa-solid fa-building"></i>
+          <span>B&amp;U</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="Projects.html" target="content-frame" class="sidebar-link">
+          <i class="fa-solid fa-diagram-project"></i>
+          <span>Projects</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="#" id="settings-link" class="sidebar-link">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="status">
+        <span class="dot"></span>
+        <span class="status-text">System Online</span>
+      </div>
+
+      <div class="clock-box">
+        <div id="time">00:00:00</div>
+        <div id="date">Loading date...</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <img id="welcome-logo" src="https://controlaccesosysistemas.com/wp-content/uploads/2022/03/prime-wheel-980x980.png" alt="Company Logo" loading="lazy">
+    
+    <!-- Las 3 tarjetas que se muestran al iniciar sesión correctamente -->
+    <div id="settings-cards" class="settings-cards-container">
+      <div class="setting-card" data-url="AccidentesIngresar.html">
+        <div class="card-icon-wrapper">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <span>Enter Accidents</span>
+      </div>
+      <div class="setting-card" data-url="HallazgosEHSEditar.html">
+        <div class="card-icon-wrapper">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <span>Edit Findings</span>
+      </div>
+      <div class="setting-card" data-url="HallazgosEHSIngresar.html">
+        <div class="card-icon-wrapper">
+          <i class="fa-solid fa-folder-plus"></i>
+        </div>
+        <span>Enter Findings</span>
+      </div>
+    </div>
+
+    <iframe name="content-frame" id="main-iframe" class="content-frame" title="SMRC Module Viewer"></iframe>
+  </main>
+
+  <!-- Modal de Login (Pantalla Emergente) -->
+  <div id="login-modal" class="login-modal-overlay">
+    <div class="login-modal-card">
+      <button id="login-close" class="login-close-btn" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      <div class="login-header">
+        <div class="login-icon">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <h3>Security Authentication</h3>
+        <p>SMRC Supabase Login</p>
+      </div>
+      
+      <form id="login-form">
+        <div class="login-form-group">
+          <label for="username-input">Usuario</label>
+          <div class="login-input-wrapper">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="username-input" placeholder="Enter username" required autocomplete="off">
+          </div>
+        </div>
+
+        <div class="login-form-group">
+          <label for="password-input">Password</label>
+          <div class="login-input-wrapper">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" id="password-input" placeholder="Enter password" required>
+          </div>
+        </div>
+
+        <button type="submit" class="login-btn">Sign In</button>
+      </form>
+    </div>
+  </div>
+</body>
+
+</html>

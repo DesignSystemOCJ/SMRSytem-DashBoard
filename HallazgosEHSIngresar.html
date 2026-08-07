@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EHS Audit Form</title>
+<link rel="stylesheet" href="HallazgosEHSIngresars.css">
+</head>
+
+<body>
+
+<div class="contenedor">
+<div class="header">
+<div class="logo">
+E
+</div>
+<div>
+<h1>EHS Audit Management</h1>
+<div class="subtitulo">
+Environmental Health & Safety Platform
+</div>
+</div>
+</div>
+
+<div class="form-grid">
+<input id="folio" placeholder="📌 Folio Auditoría">
+<input id="plant" value="Plant1" placeholder="🏭 Plant" readonly>
+<input id="shift" placeholder="⏱ Shift">
+<input id="area" value="Rough Cut" placeholder="📍 Area" readonly>
+<input id="ehs" placeholder="👷 EHS Responsible">
+<input id="gerente" value="Ernesto Guerrero" placeholder="👔 Manager" readonly>
+<input id="fecha" type="date">
+<input id="status" value="In Process" placeholder="📊 Status" readonly>
+<input id="co" value="Open" placeholder="⚠ C/O" readonly>
+</div>
+
+<textarea 
+id="descripcion"
+placeholder="📝 Audit Description">
+</textarea>
+
+<div class="file-box">
+<label>📄 Upload Audit PDF</label>
+<input 
+type="file" 
+id="pdf"
+accept=".pdf">
+</div>
+
+<button id="btnGuardar">🚀 Save Audit Record</button>
+
+<div id="resultado">
+Ready...
+</div>
+
+<div class="footer">
+Disign LAOM System 
+</div>
+</div>
+
+<script type="module" src="HallazgosEHSIngresar.js"></script>
+</body>
+</html>

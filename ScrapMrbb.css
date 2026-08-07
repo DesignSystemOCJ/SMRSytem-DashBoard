@@ -1,0 +1,651 @@
+* {
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #eef5fb, #dceaf5, #f7f9fb);
+    color: #1d2d3e;
+}
+
+.sap-header {
+    height: 75px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(0, 0, 0, .08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0a6ed1;
+}
+
+.header-title i {
+    margin-right: 12px;
+}
+
+.btn {
+    border-radius: 12px !important;
+    padding: 8px 18px !important;
+    font-weight: 600;
+    transition: .3s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, .15);
+}
+
+.btn-primary {
+    background: #0a6ed1 !important;
+    border: none !important;
+}
+
+.btn-success {
+    background: #00a3a3 !important;
+    border: none !important;
+}
+
+.current-month-card {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(10, 110, 209, 0.18);
+    border-radius: 14px;
+    padding: 5px 14px 5px 7px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    gap: 10px;
+    width: 185px;
+    height: 54px;
+    transition: all 0.25s ease;
+}
+
+.current-month-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #0a6ed1, #00a3a3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(10, 110, 209, 0.25);
+    flex-shrink: 0;
+}
+
+.current-month-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 105px;
+    gap: 1px;
+}
+
+.current-month-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.4px;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.month-dropdown {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 800;
+    color: #003b5c;
+    border: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0;
+    cursor: pointer;
+    outline: none;
+    line-height: 20px;
+    box-shadow: none !important;
+}
+
+.month-dropdown:focus {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+.current-month-card:hover {
+    border-color: rgba(10, 110, 209, 0.35);
+    box-shadow: 0 6px 18px rgba(10, 110, 209, 0.10);
+    transform: translateY(-1px);
+}
+
+.card-sap {
+    height: 110px;
+    padding: 18px 22px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .65);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    border: 1px solid rgba(255, 255, 255, .8);
+    transition: .35s;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.card-sap:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .14);
+}
+
+.card-sap-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-sap i {
+    font-size: 22px; /* Ligeramente más compacto */
+    color: #0a6ed1;
+}
+
+.card-sap h6 {
+    margin: 0;
+    color: #52616b;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.card-sap h2 {
+    margin: 0;
+    color: #003b5c;
+    font-weight: 800;
+    line-height: 1; /* Elimina espacios sobrantes en la altura de la fuente */
+}
+
+.chart-card {
+    padding: 22px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .75);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    min-height: 350px;
+    border: 1px solid rgba(255, 255, 255, .9);
+}
+
+.chart-card h5 {
+    color: #003b5c;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.chart-card h5 i {
+    color: #0a6ed1;
+    margin-right: 8px;
+}
+
+.table {
+    background: transparent !important;
+}
+
+.table thead {
+    background: rgba(10, 110, 209, .1);
+}
+
+.table th {
+    color: #003b5c;
+}
+
+.table td {
+    font-weight: 500;
+}
+
+.table tbody tr {
+    transition: .2s;
+}
+
+.table tbody tr:hover {
+    background: rgba(0, 163, 163, .12);
+}
+
+canvas {
+    max-height: 280px !important;
+}
+
+.trend-chart-card canvas {
+    height: 310px !important;
+    max-height: 320px !important;
+}
+
+#trendModal {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .6);
+    z-index: 99999;
+    overflow: hidden;
+}
+
+.trend-content {
+    width: 96%;
+    height: 94%;
+    margin: 1.5% auto;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .35);
+}
+
+.trend-header {
+    height: 65px;
+    background: #0A6ED1;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 25px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.trend-header button {
+    border: none;
+    background: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.trend-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.trend-left {
+    width: 35%;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.trend-right {
+    width: 65%;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f4f7f9;
+}
+
+.trend-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.trend-table th {
+    position: sticky;
+    top: 0;
+    background: #0A6ED1;
+    color: white;
+    padding: 10px;
+    font-size: 13px;
+    z-index: 2;
+}
+
+.trend-table td {
+    padding: 8px;
+    font-size: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.trend-table tbody tr:hover {
+    background: #eef6ff;
+}
+
+.trend-chart-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+    padding: 18px;
+    margin-bottom: 20px;
+    border: 1px solid #e1e8ed;
+}
+
+.trend-chart-card h5 {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #003b5c;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   PC / LAPTOP / TABLET / MOBILE
+   ========================================================= */
+
+/* ---------- LAPTOP ---------- */
+@media (max-width: 1200px) {
+
+    .sap-header {
+        padding: 0 20px;
+    }
+
+    .header-title {
+        font-size: 21px;
+    }
+
+    .current-month-card {
+        width: 175px;
+    }
+
+    .card-sap {
+        padding: 16px 18px;
+    }
+
+    .chart-card {
+        padding: 18px;
+    }
+
+}
+
+
+/* ---------- TABLET ---------- */
+@media (max-width: 992px) {
+
+    .sap-header {
+        height: auto;
+        min-height: 70px;
+        padding: 12px 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .sap-header > div:last-child {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .current-month-card {
+        width: 180px;
+    }
+
+    .card-sap {
+        height: 105px;
+    }
+
+    .chart-card {
+        min-height: 320px;
+        padding: 18px;
+    }
+
+    .chart-card h5 {
+        font-size: 16px;
+    }
+
+    .trend-content {
+        width: 97%;
+        height: 95%;
+        margin: 2% auto;
+    }
+
+    .trend-body {
+        flex-direction: column;
+    }
+
+    .trend-left,
+    .trend-right {
+        width: 100%;
+    }
+
+    .trend-left {
+        height: 40%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .trend-right {
+        height: 60%;
+    }
+
+}
+
+
+/* ---------- MOBILE ---------- */
+@media (max-width: 576px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    /* HEADER */
+
+    .sap-header {
+        position: relative;
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .header-title {
+        width: 100%;
+        text-align: center;
+        font-size: 18px;
+    }
+
+    .header-title i {
+        margin-right: 6px;
+    }
+
+    .sap-header > div:last-child {
+        width: 100%;
+        justify-content: center;
+        gap: 8px !important;
+        flex-wrap: wrap;
+    }
+
+    /* MONTH SELECT */
+
+    .current-month-card {
+        width: 170px;
+        height: 50px;
+    }
+
+    .current-month-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .current-month-label {
+        font-size: 8px;
+    }
+
+    .month-dropdown {
+        font-size: 13px;
+    }
+
+    /* BUTTONS */
+
+    .sap-header .btn {
+        padding: 7px 11px !important;
+        font-size: 13px;
+    }
+
+    /* CONTAINERS */
+
+    .container-fluid {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    /* KPI CARDS */
+
+    .card-sap {
+        height: auto;
+        min-height: 100px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        gap: 5px;
+    }
+
+    .card-sap-header {
+        gap: 9px;
+    }
+
+    .card-sap i {
+        font-size: 18px;
+    }
+
+    .card-sap h6 {
+        font-size: 13px;
+    }
+
+    .card-sap h2 {
+        font-size: 24px;
+    }
+
+    /* CHARTS */
+
+    .chart-card {
+        padding: 15px;
+        border-radius: 16px;
+        min-height: 300px;
+    }
+
+    .chart-card h5 {
+        font-size: 15px;
+        margin-bottom: 12px;
+    }
+
+    .chart-card h5 i {
+        margin-right: 5px;
+    }
+
+    canvas {
+        max-height: 240px !important;
+    }
+
+    .trend-chart-card canvas {
+        height: 240px !important;
+        max-height: 250px !important;
+    }
+
+    /* DAY NAVIGATION */
+
+    .chart-card .btn-group {
+        width: 100%;
+        display: flex;
+    }
+
+    .chart-card .btn-group .btn {
+        flex: 1;
+        padding: 6px 4px !important;
+        font-size: 11px;
+    }
+
+    /* TABLES */
+
+    .chart-card:has(table) {
+        overflow-x: auto;
+    }
+
+    .table {
+        min-width: 520px;
+        font-size: 12px;
+    }
+
+    .table th,
+    .table td {
+        padding: 7px 8px;
+        white-space: nowrap;
+    }
+
+    /* TREND MODAL */
+
+    #trendModal {
+        overflow: hidden;
+    }
+
+    .trend-content {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .trend-header {
+        min-height: 55px;
+        height: auto;
+        padding: 10px 14px;
+        font-size: 15px;
+    }
+
+    .trend-header button {
+        font-size: 24px;
+    }
+
+    .trend-body {
+        flex-direction: column;
+    }
+
+    .trend-left {
+        width: 100%;
+        height: 42%;
+        padding: 10px;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .trend-right {
+        width: 100%;
+        height: 58%;
+        padding: 10px;
+    }
+
+    .trend-table {
+        min-width: 500px;
+    }
+
+    .trend-table th,
+    .trend-table td {
+        padding: 7px 6px;
+        font-size: 11px;
+    }
+
+    .trend-chart-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .trend-chart-card h5 {
+        font-size: 13px;
+        max-width: 45%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .trend-chart-card .btn-group .btn {
+        font-size: 9px !important;
+        padding: 4px 5px !important;
+    }
+
+}

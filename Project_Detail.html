@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Project Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<link rel="stylesheet" href="Project_Details.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="Project_Detail.js" defer></script>
+</head>
+<body>
+
+<div class="container">
+<div class="header">
+<h1><i class="fa-solid fa-folder-open"></i>Project Detail</h1>
+
+<button 
+class="home-btn"
+onclick="window.location.href='Projects.html'"
+title="Go Home">
+<i class="fa-solid fa-house"></i>
+</button>
+</div>
+
+<div class="card">
+<div class="grid-2">
+<div class="field">
+<label>Project ID</label>
+<input id="ProjectID" readonly>
+</div>
+
+<div class="field">
+<label>Folio</label>
+<input id="Folio" readonly>
+</div>
+</div>
+<br>
+
+<div class="grid-2">
+<div class="field">
+<label>Date Start</label>
+<input id="DateStart" readonly>
+</div>
+
+<div class="field">
+<label>Date End</label>
+<input id="DateEnd" readonly>
+</div>
+</div>
+<br>
+
+<div class="grid-4">
+<div class="field">
+<label>Project Name</label>
+<input id="ProjectName" readonly>
+</div>
+
+<div class="field">
+<label>Type</label>
+<input id="Type" readonly>
+</div>
+
+<div class="field">
+<label>Priority</label>
+<input id="Priority" readonly>
+</div>
+
+<div class="field">
+<label>Status</label>
+<input id="Status" readonly>
+</div>
+</div>
+</div>
+
+<div class="main-layout">
+<div>
+<div class="card">
+<div class="section-title">
+<i class="fa-solid fa-triangle-exclamation"></i>
+Problem Description
+</div>
+<textarea id="ProblemDescription" readonly></textarea>
+</div>
+</div>
+
+<div>
+<div class="card">
+<div class="section-title">
+<i class="fa-solid fa-users"></i>
+Responsibility
+</div>
+
+<div class="responsibility">
+<div class="field">
+<label>Lead</label>
+<input id="Lead" readonly>
+</div>
+
+<div class="field">
+<label>Manager</label>
+<input id="Manager" readonly>
+</div>
+
+<div class="field">
+<label>Department</label>
+<input id="Department" readonly>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="evidence-layout">
+<div class="image-box">
+<label>Evidence Before</label>
+<img id="Evidencebefore" src="" alt="Evidence Before">
+<input type="file" id="EvidenceBeforeFile" accept="image/*" disabled onchange="previewImage(this,'Evidencebefore')">
+</div>
+
+<div class="progress-box">
+<label>Progress %</label>
+<input id="Progress" readonly>
+<i class="fa-solid fa-arrow-right-long" style="font-size:35px; color:#8EE9FF;"></i>
+</div>
+
+<div class="image-box">
+<label>Evidence After</label>
+<img id="EvidenceAfter" src="" alt="Evidence After">
+<input type="file" id="EvidenceAfterFile" accept="image/*" disabled onchange="previewImage(this,'EvidenceAfter')">
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="section-title">
+<i class="fa-solid fa-comments"></i>
+Comments
+</div>
+<textarea id="RemarksComments" readonly></textarea>
+</div>
+
+<div class="card">
+<div class="buttons">
+<button id="btnEdit" onclick="activarEdicion()">
+<i class="fa-solid fa-pen"></i> Edit
+</button>
+
+<button id="btnSave" onclick="guardarProyecto()" disabled>
+<i class="fa-solid fa-floppy-disk"></i> Save
+</button>
+
+<button class="delete" onclick="eliminarProyecto()">
+<i class="fa-solid fa-trash"></i> Delete
+</button>
+
+<button class="close-btn" onclick="window.close()">
+<i class="fa-solid fa-xmark"></i> Close
+</button>
+</div>
+</div>
+</div>
+
+</body>
+</html>
