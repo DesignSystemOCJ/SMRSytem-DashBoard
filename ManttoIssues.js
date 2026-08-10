@@ -1,6 +1,18 @@
-const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
-const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseUrl =
+"https://mrxtqmvufmlozplszfxc.supabase.co";
+
+const supabaseKey =
+"sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+
+const supabaseClient =
+supabase.createClient(
+supabaseUrl,
+supabaseKey
+);
+
+/* =========================================================
+GLOBAL STATE
+========================================================= */
 
 let maintenanceData = [];
 let activeCharts = {};
@@ -8,80 +20,267 @@ let selectedMachine = null;
 let currentSelectedMonth = "";
 let modalRawData = [];
 
-const operations = ["MD", "OP1", "OP2", "CHIRON", "ROBOT FANUC", "ROBOT JR", "AGS", "TRANSFER", "CONVEYOR"];
-const machines = ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16", "C17", "C18", "C19", "C20", "C21", "C22", "C23", "C24", "C25", "C26", "C27", "C28", "C29", "C30", "C33", "C34", "C35", "C36"];
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+/* =========================================================
+CONSTANTS
+========================================================= */
+
+const operations = [
+"MD",
+"OP1",
+"OP2",
+"CHIRON",
+"ROBOT FANUC",
+"ROBOT JR",
+"AGS",
+"TRANSFER",
+"CONVEYOR"
+];
+
+const machines = [
+"C01","C02","C03","C04","C05",
+"C06","C07","C08","C09","C10",
+"C11","C12","C13","C14","C15",
+"C16","C17","C18","C19","C20",
+"C21","C22","C23","C24","C25",
+"C26","C27","C28","C29","C30",
+"C33","C34","C35","C36"
+];
+
+const months = [
+"January",
+"February",
+"March",
+"April",
+"May",
+"June",
+"July",
+"August",
+"September",
+"October",
+"November",
+"December"
+];
+
+/* =========================================================
+CHART DEFAULTS
+========================================================= */
+
+Chart.defaults.font.family =
+'"Segoe UI", Inter, Arial, sans-serif';
+
+Chart.defaults.color =
+"#64748B";
+
+Chart.defaults.animation.duration =
+800;
+
+/* =========================================================
+LOADING SCREEN
+========================================================= */
+
+function showLoading() {
+const screen =
+    document.getElementById("loadingScreen");
+
+if (screen) {
+    screen.classList.remove("hidden");
+}
+}
+
+function hideLoading() {
+const screen =
+    document.getElementById("loadingScreen");
+
+if (screen) {
+    setTimeout(() => {
+        screen.classList.add("hidden");
+    }, 350);
+}
+}
+
+/* =========================================================
+INITIAL MONTH
+========================================================= */
 
 function setCurrentMonth() {
-    let monthIndex = new Date().getMonth();
-    selectMonth(months[monthIndex]);
-    
-    let modalSelect = document.getElementById("modalMonthFilter");
-    if (modalSelect) {
-        modalSelect.value = months[monthIndex];
-    }
-    
-    populateModalCellFilter();
+const monthIndex =
+    new Date().getMonth();
+
+const month =
+    months[monthIndex] || "August";
+
+selectMonth(month);
+
+const modalSelect =
+    document.getElementById(
+        "modalMonthFilter"
+    );
+
+if (modalSelect) {
+    modalSelect.value = month;
 }
+
+populateModalCellFilter();
+}
+
+/* =========================================================
+CELL FILTER
+========================================================= */
 
 function populateModalCellFilter() {
-    let cellSelect = document.getElementById("modalCellFilter");
-    if (!cellSelect) return;
-    cellSelect.innerHTML = '<option value="">All Cells</option>';
-    
-    for (let i = 1; i <= 36; i++) {
-        let cellName = "C" + (i < 10 ? "0" + i : i);
-        if (cellName === "C31" || cellName === "C32") continue;
-        let opt = document.createElement("option");
-        opt.value = cellName;
-        opt.textContent = cellName;
-        cellSelect.appendChild(opt);
-    }
+const cellSelect =
+    document.getElementById(
+        "modalCellFilter"
+    );
+
+if (!cellSelect) return;
+
+cellSelect.innerHTML =
+    '<option value="">All Cells</option>';
+
+machines.forEach(machine => {
+    const option =
+        document.createElement("option");
+
+    option.value = machine;
+    option.textContent = machine;
+
+    cellSelect.appendChild(option);
+});
 }
 
+/* =========================================================
+RECORD MODAL
+========================================================= */
+
 function openRecordsModal() {
-    document.getElementById("recordsModal").style.display = "flex";
-    let currentMonthName = currentSelectedMonth || months[new Date().getMonth()];
-    document.getElementById("modalMonthFilter").value = currentMonthName;
-    loadModalRecords();
+const modal =
+    document.getElementById(
+        "recordsModal"
+    );
+
+if (modal) {
+    modal.style.display = "flex";
+}
+
+const currentMonth =
+    currentSelectedMonth ||
+    months[new Date().getMonth()];
+
+const modalMonthFilter = document.getElementById("modalMonthFilter");
+if (modalMonthFilter) {
+    modalMonthFilter.value = currentMonth;
+}
+
+loadModalRecords();
 }
 
 function closeRecordsModal() {
-    document.getElementById("recordsModal").style.display = "none";
+const modal = document.getElementById("recordsModal");
+if (modal) {
+    modal.style.display = "none";
+}
 }
 
 function clearCellFilter() {
-    document.getElementById("modalCellFilter").value = "";
-    filterModalTable();
+const cellFilter = document.getElementById("modalCellFilter");
+if (cellFilter) {
+    cellFilter.value = "";
 }
 
+filterModalTable();
+}
+
+/* =========================================================
+LOAD RECORDS
+========================================================= */
+
 async function loadModalRecords() {
-    let selectedMonth = document.getElementById("modalMonthFilter").value;
-    let tbody = document.getElementById("modalTableBody");
-    let thead = document.getElementById("modalTableHeaders");
-    
-    tbody.innerHTML = '<tr><td colspan="100" style="text-align: center; padding: 30px;">Loading data...</td></tr>';
+const monthFilterElem = document.getElementById("modalMonthFilter");
+const selectedMonth = monthFilterElem ? monthFilterElem.value : "August";
 
-    let allData = [];
-    let pageSize = 1000;
-    let from = 0;
-    let moreData = true;
+const tbody =
+    document.getElementById(
+        "modalTableBody"
+    );
 
+const thead =
+    document.getElementById(
+        "modalTableHeaders"
+    );
+
+const counter =
+    document.getElementById(
+        "recordsCount"
+    );
+
+if (!tbody || !thead) return;
+
+tbody.innerHTML = `
+    <tr>
+        <td colspan="100"
+            class="loading-table">
+            <div class="table-loader"></div>
+            Loading records...
+        </td>
+    </tr>
+`;
+
+if (counter) {
+    counter.textContent =
+        "Loading records...";
+}
+
+let allData = [];
+const pageSize = 1000;
+let from = 0;
+let moreData = true;
+
+try {
     while (moreData) {
-        const { data, error } = await supabaseClient
+        const {
+            data,
+            error
+        } = await supabaseClient
             .from("ManttoIssues")
             .select("*")
-            .eq("Month", selectedMonth)
-            .range(from, from + pageSize - 1);
+            .eq(
+                "Month",
+                selectedMonth
+            )
+            .range(
+                from,
+                from + pageSize - 1
+            );
 
         if (error) {
             console.error(error);
-            tbody.innerHTML = '<tr><td colspan="100" style="text-align: center; color: red; padding: 30px;">Error loading data from Supabase</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="100"
+                        style="
+                        text-align:center;
+                        padding:40px;
+                        color:#EF4444;
+                        ">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        Error loading data from Supabase.
+                    </td>
+                </tr>
+            `;
+
+            if (counter) {
+                counter.textContent =
+                    "Unable to load records";
+            }
+
             return;
         }
 
         if (data && data.length > 0) {
-            allData = allData.concat(data);
+            allData =
+                allData.concat(data);
+
             from += pageSize;
         } else {
             moreData = false;
@@ -91,313 +290,1018 @@ async function loadModalRecords() {
     modalRawData = allData;
 
     if (modalRawData.length === 0) {
-        thead.innerHTML = '<th>No Data</th>';
-        tbody.innerHTML = '<tr><td style="text-align: center; padding: 30px;">No records found for ' + selectedMonth + '</td></tr>';
+        thead.innerHTML =
+            "<th>No Data</th>";
+
+        tbody.innerHTML = `
+            <tr>
+                <td style="
+                    text-align:center;
+                    padding:40px;
+                ">
+                    <i class="fa-solid fa-database"
+                       style="
+                       font-size:25px;
+                       color:#CBD5E1;
+                       display:block;
+                       margin-bottom:10px;
+                       "></i>
+                    No records found for
+                    <strong>${selectedMonth}</strong>
+                </td>
+            </tr>
+        `;
+
+        if (counter) {
+            counter.textContent =
+                "0 records";
+        }
+
         return;
     }
 
-    let keys = Object.keys(modalRawData[0]);
+    const keys =
+        Object.keys(
+            modalRawData[0]
+        );
+
     let headerHtml = "";
+
     keys.forEach(key => {
-        headerHtml += `<th>${key}</th>`;
+        headerHtml +=
+            `<th>${key}</th>`;
     });
-    thead.innerHTML = headerHtml;
+
+    thead.innerHTML =
+        headerHtml;
 
     filterModalTable();
+
+} catch (error) {
+    console.error(error);
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="100"
+                style="
+                text-align:center;
+                padding:40px;
+                color:#EF4444;
+                ">
+                Unexpected error loading records.
+            </td>
+        </tr>
+    `;
 }
+}
+
+/* =========================================================
+FILTER RECORD TABLE
+========================================================= */
 
 function filterModalTable() {
-    let selectedCell = document.getElementById("modalCellFilter").value;
-    let tbody = document.getElementById("modalTableBody");
-    
-    let filtered = modalRawData;
-    if (selectedCell) {
-        filtered = modalRawData.filter(row => row.Maq === selectedCell);
-    }
+const cellFilterElem = document.getElementById("modalCellFilter");
+const selectedCell = cellFilterElem ? cellFilterElem.value : "";
 
-    if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="100" style="text-align: center; padding: 30px;">No records match the selected cell filter</td></tr>';
-        return;
-    }
+const tbody =
+    document.getElementById(
+        "modalTableBody"
+    );
 
-    let keys = modalRawData.length > 0 ? Object.keys(modalRawData[0]) : [];
-    let rowsHtml = "";
+const counter =
+    document.getElementById(
+        "recordsCount"
+    );
 
-    filtered.forEach(row => {
-        rowsHtml += "<tr>";
-        keys.forEach(key => {
-            let val = row[key] !== null && row[key] !== undefined ? row[key] : "";
-            rowsHtml += `<td>${val}</td>`;
-        });
-        rowsHtml += "</tr>";
+if (!tbody) return;
+
+let filtered =
+    modalRawData;
+
+if (selectedCell) {
+    filtered =
+        modalRawData.filter(
+            row =>
+                row.Maq === selectedCell
+        );
+}
+
+if (counter) {
+    counter.textContent =
+        `${filtered.length.toLocaleString()} records`;
+}
+
+if (filtered.length === 0) {
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="100"
+                style="
+                text-align:center;
+                padding:40px;
+                ">
+                No records match the selected cell.
+            </td>
+        </tr>
+    `;
+
+    return;
+}
+
+const keys =
+    modalRawData.length > 0
+        ? Object.keys(modalRawData[0])
+        : [];
+
+let rowsHtml = "";
+
+filtered.forEach(row => {
+    rowsHtml += "<tr>";
+
+    keys.forEach(key => {
+        const value =
+            row[key] !== null &&
+            row[key] !== undefined
+                ? row[key]
+                : "";
+
+        rowsHtml +=
+            `<td>${value}</td>`;
     });
 
-    tbody.innerHTML = rowsHtml;
+    rowsHtml += "</tr>";
+});
+
+tbody.innerHTML =
+    rowsHtml;
 }
+
+/* =========================================================
+MONTH DROPDOWN
+========================================================= */
 
 function toggleMonthDropdown(event) {
-    event.stopPropagation();
-    let box = document.getElementById("filterBox");
-    let dropdown = document.getElementById("monthDropdown");
-    
-    let isOpen = dropdown.style.display === "block";
-    dropdown.style.display = isOpen ? "none" : "block";
-    if (!isOpen) {
-        box.classList.add("active");
-    } else {
-        box.classList.remove("active");
-    }
+event.stopPropagation();
+
+const box =
+    document.getElementById(
+        "filterBox"
+    );
+
+const dropdown =
+    document.getElementById(
+        "monthDropdown"
+    );
+
+if (!box || !dropdown) return;
+
+const isOpen =
+    dropdown.style.display === "block";
+
+dropdown.style.display =
+    isOpen
+        ? "none"
+        : "block";
+
+box.classList.toggle(
+    "active",
+    !isOpen
+);
 }
 
-window.addEventListener("click", function(event) {
-    let box = document.getElementById("filterBox");
-    let dropdown = document.getElementById("monthDropdown");
-    
-    let modal = document.getElementById("recordsModal");
+window.addEventListener(
+"click",
+function(event) {
+    const box =
+        document.getElementById(
+            "filterBox"
+        );
+
+    const dropdown =
+        document.getElementById(
+            "monthDropdown"
+        );
+
+    const modal =
+        document.getElementById(
+            "recordsModal"
+        );
+
     if (event.target === modal) {
         closeRecordsModal();
     }
 
-    dropdown.style.display = "none";
-    box.classList.remove("active");
-});
+    if (dropdown) dropdown.style.display = "none";
+    if (box) box.classList.remove("active");
+}
+);
 
-function selectMonth(monthName, event) {
-    if (event) event.stopPropagation();
-    currentSelectedMonth = monthName;
-    document.getElementById("selectedMonthText").innerText = monthName;
+/* =========================================================
+SELECT MONTH
+========================================================= */
 
-    let options = document.querySelectorAll(".custom-option");
-    options.forEach(opt => {
-        if (opt.innerText === monthName) {
-            opt.classList.add("selected");
-        } else {
-            opt.classList.remove("selected");
-        }
-    });
-
-    document.getElementById("monthDropdown").style.display = "none";
-    document.getElementById("filterBox").classList.remove("active");
-
-    loadMaintenance();
+function selectMonth(
+monthName,
+event
+) {
+if (event) {
+    event.stopPropagation();
 }
 
-async function loadMaintenance() {
-    if (!currentSelectedMonth) return;
-    let allData = [];
-    let pageSize = 1000;
-    let from = 0;
-    let moreData = true;
+currentSelectedMonth =
+    monthName;
 
+const monthTextElement = document.getElementById("selectedMonthText");
+if (monthTextElement) {
+    monthTextElement.innerText = monthName;
+}
+
+const options =
+    document.querySelectorAll(
+        ".custom-option"
+    );
+
+options.forEach(option => {
+    option.classList.toggle(
+        "selected",
+        option.innerText ===
+            monthName
+    );
+});
+
+const dropdownElement = document.getElementById("monthDropdown");
+if (dropdownElement) {
+    dropdownElement.style.display = "none";
+}
+
+const filterBoxElement = document.getElementById("filterBox");
+if (filterBoxElement) {
+    filterBoxElement.classList.remove("active");
+}
+
+loadMaintenance();
+}
+
+/* =========================================================
+LOAD MAINTENANCE DATA
+========================================================= */
+
+async function loadMaintenance() {
+if (!currentSelectedMonth) return;
+
+showLoading();
+
+let allData = [];
+const pageSize = 1000;
+let from = 0;
+let moreData = true;
+
+try {
     while (moreData) {
-        const { data, error } = await supabaseClient
+        const {
+            data,
+            error
+        } = await supabaseClient
             .from("ManttoIssues")
             .select("*")
-            .eq("Month", currentSelectedMonth)
-            .range(from, from + pageSize - 1);
+            .eq(
+                "Month",
+                currentSelectedMonth
+            )
+            .range(
+                from,
+                from + pageSize - 1
+            );
 
         if (error) {
             console.error(error);
-            alert("Error loading Supabase data");
+            alert(
+                "Error loading Supabase data."
+            );
+            hideLoading();
             return;
         }
 
-        if (data && data.length > 0) {
-            allData = allData.concat(data);
+        if (
+            data &&
+            data.length > 0
+        ) {
+            allData =
+                allData.concat(data);
+
             from += pageSize;
         } else {
             moreData = false;
         }
     }
 
-    maintenanceData = allData;
+    maintenanceData =
+        allData;
+
+    selectedMachine =
+        null;
+
+    const selectedCellElem = document.getElementById("selectedCell");
+    if (selectedCellElem) {
+        selectedCellElem.innerText = "ALL";
+    }
+
     updateDashboard();
+    hideLoading();
+
+} catch (error) {
+    console.error(error);
+    alert(
+        "Unexpected error loading data."
+    );
+    hideLoading();
 }
+}
+
+/* =========================================================
+DASHBOARD
+========================================================= */
 
 function updateDashboard() {
-    calculateKPIs();
-    createOperationChart();
-    createCellChart();
-    createIssueChart();
-    createMachineChart();
-    createTop10Table();
-    updateCellAnalysis();
+calculateKPIs();
+createOperationChart();
+createCellChart();
+createIssueChart();
+createMachineChart();
+createTop10Table();
+updateCellAnalysis();
 }
+
+/* =========================================================
+KPI CALCULATIONS
+========================================================= */
 
 function calculateKPIs() {
-    document.getElementById("totalIssues").innerHTML = maintenanceData.length;
-
-    let cells = {};
-    maintenanceData.forEach(row => {
-        if (row.Maq) cells[row.Maq] = (cells[row.Maq] || 0) + 1;
-    });
-    let topCell = Object.entries(cells).sort((a, b) => b[1] - a[1])[0];
-    document.getElementById("topCell").innerHTML = topCell ? topCell[0] + "<br><small style='color:var(--sap-blue); font-size:12px;'>" + topCell[1] + " Issues</small>" : "--";
-
-    let opCount = {};
-    operations.forEach(op => opCount[op] = 0);
-    maintenanceData.forEach(row => {
-        operations.forEach(op => { if (row[op]) opCount[op]++; });
-    });
-    let topOperation = Object.entries(opCount).sort((a, b) => b[1] - a[1])[0];
-    document.getElementById("topOperation").innerHTML = topOperation && topOperation[1] > 0 ? topOperation[0] : "--";
-
-    let issues = {};
-    maintenanceData.forEach(row => {
-        operations.forEach(op => { if (row[op]) issues[row[op]] = (issues[row[op]] || 0) + 1; });
-    });
-    let topIssue = Object.entries(issues).sort((a, b) => b[1] - a[1])[0];
-    document.getElementById("topIssue").innerHTML = topIssue ? topIssue[0] : "--";
+const totalIssuesElem = document.getElementById("totalIssues");
+if (totalIssuesElem) {
+    totalIssuesElem.innerText =
+        maintenanceData.length.toLocaleString();
 }
 
-function renderChart(canvasId, config) {
-    if (activeCharts[canvasId]) {
-        activeCharts[canvasId].destroy();
+/* TOP CELL */
+const cells = {};
+
+maintenanceData.forEach(row => {
+    if (row.Maq) {
+        cells[row.Maq] =
+            (cells[row.Maq] || 0) + 1;
     }
-    activeCharts[canvasId] = new Chart(document.getElementById(canvasId), config);
+});
+
+const topCell =
+    Object.entries(cells)
+        .sort(
+            (a,b) =>
+                b[1] - a[1]
+        )[0];
+
+const topCellElem = document.getElementById("topCell");
+if (topCellElem) {
+    topCellElem.innerHTML =
+        topCell
+            ? `
+                ${topCell[0]}
+                <small style="
+                    display:block;
+                    color:#0A6ED1;
+                    font-size:10px;
+                    margin-top:2px;
+                ">
+                    ${topCell[1]} Issues
+                </small>
+              `
+            : "--";
 }
 
-function createOperationChart() {
-    let values = operations.map(op => maintenanceData.filter(row => row[op]).length);
-    renderChart("operationChart", {
-        type: "bar",
-        data: { labels: operations, datasets: [{ label: "Issues", data: values, backgroundColor: "#0A6ED1", borderRadius: 6 }] },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 35 } },
-            plugins: { legend: { display: false }, datalabels: { color: "#334155", anchor: "end", align: "top", offset: 5, font: { weight: "bold", size: 11 } } },
-            scales: { 
-                y: { beginAtZero: true, grace: "15%", ticks: { precision: 0, color: "#64748B" }, grid: { color: "#F1F5F9" } }, 
-                x: { ticks: { maxRotation: 45, minRotation: 45, color: "#64748B" }, grid: { display: false } } 
-            }
-        },
-        plugins: [ChartDataLabels]
-    });
-}
+/* TOP OPERATION */
+const opCount = {};
 
-function createCellChart() {
-    let count = {};
-    maintenanceData.forEach(row => { if (row.Maq) count[row.Maq] = (count[row.Maq] || 0) + 1; });
-    let result = Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    let colors = result.map((x, i) => i === 0 ? "#00A6A6" : "#0A6ED1");
+operations.forEach(
+    op =>
+        opCount[op] = 0
+);
 
-    renderChart("cellChart", {
-        type: "bar",
-        data: { labels: result.map(x => x[0]), datasets: [{ label: "Issues", data: result.map(x => x[1]), backgroundColor: colors, borderRadius: 6 }] },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 35 } },
-            plugins: { legend: { display: false }, datalabels: { color: "#334155", anchor: "end", align: "top", offset: 5, font: { weight: "bold", size: 11 } } },
-            scales: { 
-                y: { beginAtZero: true, grace: "15%", ticks: { precision: 0, color: "#64748B" }, grid: { color: "#F1F5F9" } }, 
-                x: { ticks: { maxRotation: 45, minRotation: 45, color: "#64748B" }, grid: { display: false } } 
-            }
-        },
-        plugins: [ChartDataLabels]
-    });
-}
-
-function createIssueChart() {
-    let issues = {};
-    maintenanceData.forEach(row => {
-        operations.forEach(op => { if (row[op]) issues[row[op]] = (issues[row[op]] || 0) + 1; });
-    });
-    let result = Object.entries(issues).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    let colors = result.map((x, i) => i === 0 ? "#00A6A6" : "#0A6ED1");
-
-    renderChart("issueChart", {
-        type: "bar",
-        data: { labels: result.map(x => x[0]), datasets: [{ label: "Count", data: result.map(x => x[1]), backgroundColor: colors, borderRadius: 6 }] },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 40 } },
-            plugins: { legend: { display: false }, datalabels: { color: "#334155", anchor: "end", align: "top", offset: 5, font: { weight: "bold", size: 11 } } },
-            scales: { 
-                y: { beginAtZero: true, grace: "15%", ticks: { precision: 0, color: "#64748B" }, grid: { color: "#F1F5F9" } }, 
-                x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: false, color: "#64748B" }, grid: { display: false } } 
-            }
-        },
-        plugins: [ChartDataLabels]
-    });
-}
-
-function createMachineChart() {
-    let count = {};
-    machines.forEach(machine => count[machine] = 0);
-    maintenanceData.forEach(row => {
-        if (row.Maq && count.hasOwnProperty(row.Maq)) {
-            count[row.Maq]++;
+maintenanceData.forEach(row => {
+    operations.forEach(op => {
+        if (row[op]) {
+            opCount[op]++;
         }
     });
-    
-    let labels = Object.keys(count);
-    let values = Object.values(count);
+});
 
-    renderChart("machineChart", {
-        type: "bar",
-        data: { labels: labels, datasets: [{ label: "Issues", data: values, backgroundColor: "#0A6ED1", borderRadius: 6 }] },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 35 } },
-            plugins: { legend: { display: false }, datalabels: { color: "#334155", anchor: "end", align: "top", offset: 5, font: { weight: "bold", size: 11 } } },
-            scales: { 
-                y: { beginAtZero: true, grace: "15%", ticks: { precision: 0, color: "#64748B" }, grid: { color: "#F1F5F9" } }, 
-                x: { ticks: { maxRotation: 45, minRotation: 45, color: "#64748B" }, grid: { display: false } } 
-            }
+const topOperation =
+    Object.entries(opCount)
+        .sort(
+            (a,b) =>
+                b[1] - a[1]
+        )[0];
+
+const topOpElem = document.getElementById("topOperation");
+if (topOpElem) {
+    topOpElem.innerText =
+        topOperation &&
+        topOperation[1] > 0
+            ? topOperation[0]
+            : "--";
+}
+
+/* TOP ISSUE */
+const issues = {};
+
+maintenanceData.forEach(row => {
+    operations.forEach(op => {
+        if (row[op]) {
+            issues[row[op]] =
+                (issues[row[op]] || 0) + 1;
+        }
+    });
+});
+
+const topIssue =
+    Object.entries(issues)
+        .sort(
+            (a,b) =>
+                b[1] - a[1]
+        )[0];
+
+const topIssueElem = document.getElementById("topIssue");
+if (topIssueElem) {
+    topIssueElem.innerText =
+        topIssue
+            ? topIssue[0]
+            : "--";
+}
+}
+
+/* =========================================================
+CHART ENGINE
+========================================================= */
+
+function renderChart(
+canvasId,
+config
+) {
+if (
+    activeCharts[canvasId]
+) {
+    activeCharts[
+        canvasId
+    ].destroy();
+}
+
+const canvas =
+    document.getElementById(
+        canvasId
+    );
+
+if (!canvas) return;
+
+activeCharts[canvasId] =
+    new Chart(
+        canvas,
+        config
+    );
+}
+
+/* =========================================================
+CHART OPTIONS
+========================================================= */
+
+function baseChartOptions() {
+return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+        intersect: false,
+        mode: "index"
+    },
+    plugins: {
+        legend: {
+            display: false
         },
-        plugins: [ChartDataLabels]
-    });
-}
-
-function createTop10Table() {
-    let count = {};
-    maintenanceData.forEach(row => { if (row.Maq) count[row.Maq] = (count[row.Maq] || 0) + 1; });
-    let result = Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    
-    let tbody = document.getElementById("top10Table");
-    let html = "";
-    result.forEach((item, index) => {
-        html += `<tr onclick="selectMachineForAnalysis('${item[0]}')">
-            <td class="rank">#${index + 1}</td>
-            <td>${item[0]}</td>
-            <td><b>${item[1]}</b></td>
-        </tr>`;
-    });
-    tbody.innerHTML = html;
-}
-
-function selectMachineForAnalysis(machineName) {
-    selectedMachine = machineName;
-    document.getElementById("selectedCell").innerText = machineName;
-    updateCellAnalysis();
-}
-
-function updateCellAnalysis() {
-    let filteredData = selectedMachine ? maintenanceData.filter(row => row.Maq === selectedMachine) : maintenanceData;
-    
-    ["md", "op1", "op2", "chiron"].forEach(opKey => {
-        let opName = opKey === "md" ? "MD" : opKey === "op1" ? "OP1" : opKey === "op2" ? "OP2" : "CHIRON";
-        let issues = {};
-        filteredData.forEach(row => { if (row[opName]) issues[row[opName]] = (issues[row[opName]] || 0) + 1; });
-        let result = Object.entries(issues).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-        renderChart(opKey + "Chart", {
-            type: "bar",
-            data: { labels: result.map(x => x[0]), datasets: [{ label: "Count", data: result.map(x => x[1]), backgroundColor: "#00A6A6", borderRadius: 6 }] },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                layout: { padding: { top: 30 } },
-                plugins: { legend: { display: false }, datalabels: { color: "#334155", anchor: "end", align: "top", offset: 4, font: { weight: "bold", size: 10 } } },
-                scales: { 
-                    y: { beginAtZero: true, grace: "15%", ticks: { precision: 0, color: "#64748B" }, grid: { color: "#F1F5F9" } }, 
-                    x: { ticks: { maxRotation: 30, minRotation: 30, color: "#64748B", font: { size: 10 } }, grid: { display: false } } 
+        tooltip: {
+            backgroundColor:
+                "#07111F",
+            titleColor:
+                "#FFFFFF",
+            bodyColor:
+                "#CBD5E1",
+            borderColor:
+                "rgba(255,255,255,.1)",
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 10,
+            displayColors: true
+        },
+        datalabels: {
+            color:
+                "#334155",
+            anchor:
+                "end",
+            align:
+                "top",
+            offset:
+                4,
+            font: {
+                weight:
+                    "800",
+                size:
+                    10
+            }
+        }
+    },
+    scales: {
+        y: {
+            beginAtZero: true,
+            grace: "15%",
+            ticks: {
+                precision: 0,
+                color:
+                    "#64748B",
+                font: {
+                    size: 10
                 }
             },
-            plugins: [ChartDataLabels]
-        });
-    });
+            grid: {
+                color:
+                    "rgba(148,163,184,.13)"
+            },
+            border: {
+                display: false
+            }
+        },
+        x: {
+            ticks: {
+                color:
+                    "#64748B",
+                font: {
+                    size: 9,
+                    weight: "600"
+                }
+            },
+            grid: {
+                display: false
+            },
+            border: {
+                display: false
+            }
+        }
+    }
+};
 }
 
-window.onload = function() {
+/* =========================================================
+OPERATION CHART
+========================================================= */
+
+function createOperationChart() {
+const values =
+    operations.map(
+        op =>
+            maintenanceData.filter(
+                row => row[op]
+            ).length
+    );
+
+const options =
+    baseChartOptions();
+
+options.scales.x.ticks.maxRotation =
+    40;
+options.scales.x.ticks.minRotation =
+    40;
+
+renderChart(
+    "operationChart",
+    {
+        type: "bar",
+        data: {
+            labels:
+                operations,
+            datasets: [
+                {
+                    label:
+                        "Issues",
+                    data:
+                        values,
+                    backgroundColor:
+                        "#0A6ED1",
+                    hoverBackgroundColor:
+                        "#00A6A6",
+                    borderRadius:
+                        7,
+                    borderSkipped:
+                        false,
+                    barPercentage:
+                        .68
+                }
+            ]
+        },
+        options,
+        plugins: [
+            ChartDataLabels
+        ]
+    }
+);
+}
+
+/* =========================================================
+CELL CHART
+========================================================= */
+
+function createCellChart() {
+const count = {};
+
+maintenanceData.forEach(row => {
+    if (row.Maq) {
+        count[row.Maq] =
+            (count[row.Maq] || 0) + 1;
+    }
+});
+
+const result =
+    Object.entries(count)
+        .sort(
+            (a,b) =>
+                b[1] - a[1]
+        )
+        .slice(0,10);
+
+const colors =
+    result.map(
+        (_,i) =>
+            i === 0
+                ? "#00A6A6"
+                : "#0A6ED1"
+    );
+
+const options =
+    baseChartOptions();
+
+options.scales.x.ticks.maxRotation =
+    0;
+
+renderChart(
+    "cellChart",
+    {
+        type: "bar",
+        data: {
+            labels:
+                result.map(x => x[0]),
+            datasets: [
+                {
+                    label:
+                        "Issues",
+                    data:
+                        result.map(x => x[1]),
+                    backgroundColor:
+                        colors,
+                    borderRadius:
+                        7,
+                    borderSkipped:
+                        false,
+                    barPercentage:
+                        .7
+                }
+            ]
+        },
+        options,
+        plugins: [
+            ChartDataLabels
+        ]
+    }
+);
+}
+
+/* =========================================================
+ISSUE CHART
+========================================================= */
+
+function createIssueChart() {
+const issues = {};
+
+maintenanceData.forEach(row => {
+    operations.forEach(op => {
+        if (row[op]) {
+            issues[row[op]] =
+                (issues[row[op]] || 0) + 1;
+        }
+    });
+});
+
+const result =
+    Object.entries(issues)
+        .sort(
+            (a,b) =>
+                b[1] - a[1]
+        )
+        .slice(0,10);
+
+const colors =
+    result.map(
+        (_,i) =>
+            i === 0
+                ? "#F59E0B"
+                : "#0A6ED1"
+    );
+
+const options =
+    baseChartOptions();
+
+options.scales.x.ticks.maxRotation =
+    45;
+options.scales.x.ticks.autoSkip =
+    false;
+
+renderChart(
+    "issueChart",
+    {
+        type: "bar",
+        data: {
+            labels:
+                result.map(x => x[0]),
+            datasets: [
+                {
+                    label:
+                        "Count",
+                    data:
+                        result.map(x => x[1]),
+                    backgroundColor:
+                        colors,
+                    borderRadius:
+                        7,
+                    borderSkipped:
+                        false
+                }
+            ]
+        },
+        options,
+        plugins: [
+            ChartDataLabels
+        ]
+    }
+);
+}
+
+/* =========================================================
+MACHINE CHART
+========================================================= */
+
+function createMachineChart() {
+const count = {};
+
+machines.forEach(
+    machine =>
+        count[machine] = 0
+);
+
+maintenanceData.forEach(row => {
+    if (
+        row.Maq &&
+        Object.prototype.hasOwnProperty.call(
+            count,
+            row.Maq
+        )
+    ) {
+        count[row.Maq]++;
+    }
+});
+
+const labels =
+    Object.keys(count);
+const values =
+    Object.values(count);
+
+const options =
+    baseChartOptions();
+
+options.scales.x.ticks.maxRotation =
+    45;
+options.scales.x.ticks.minRotation =
+    45;
+
+renderChart(
+    "machineChart",
+    {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [
+                {
+                    label:
+                        "Issues",
+                    data:
+                        values,
+                    backgroundColor:
+                        "#0A6ED1",
+                    hoverBackgroundColor:
+                        "#00A6A6",
+                    borderRadius:
+                        6,
+                    borderSkipped:
+                        false,
+                    barPercentage:
+                        .65
+                }
+            ]
+        },
+        options,
+        plugins: [
+            ChartDataLabels
+        ]
+    }
+);
+}
+
+/* =========================================================
+TOP 10
+========================================================= */
+
+function createTop10Table() {
+const count = {};
+
+maintenanceData.forEach(row => {
+    if (row.Maq) {
+        count[row.Maq] =
+            (count[row.Maq] || 0) + 1;
+    }
+});
+
+const result =
+    Object.entries(count)
+        .sort(
+            (a,b) =>
+                b[1] - a[1]
+        )
+        .slice(0,10);
+
+const tbody =
+    document.getElementById(
+        "top10Table"
+    );
+
+if (!tbody) return;
+
+let html = "";
+
+result.forEach(
+    (item,index) => {
+        html += `
+            <tr
+                onclick="
+                    selectMachineForAnalysis(
+                        '${item[0]}'
+                    )
+                "
+            >
+                <td class="rank">
+                    #${index + 1}
+                </td>
+                <td>
+                    ${item[0]}
+                </td>
+                <td>
+                    <b>
+                        ${item[1]}
+                    </b>
+                </td>
+            </tr>
+        `;
+    }
+);
+
+tbody.innerHTML =
+    html;
+}
+
+/* =========================================================
+SELECT MACHINE
+========================================================= */
+
+function selectMachineForAnalysis(
+machineName
+) {
+selectedMachine =
+    machineName;
+
+const selectedCellElem = document.getElementById("selectedCell");
+if (selectedCellElem) {
+    selectedCellElem.innerText = machineName;
+}
+
+updateCellAnalysis();
+}
+
+/* =========================================================
+CELL ANALYSIS
+========================================================= */
+
+function updateCellAnalysis() {
+const filteredData =
+    selectedMachine
+        ? maintenanceData.filter(
+            row =>
+                row.Maq ===
+                selectedMachine
+          )
+        : maintenanceData;
+
+[
+    "md",
+    "op1",
+    "op2",
+    "chiron"
+].forEach(opKey => {
+    const opName =
+        opKey === "md"
+            ? "MD"
+            : opKey === "op1"
+                ? "OP1"
+                : opKey === "op2"
+                    ? "OP2"
+                    : "CHIRON";
+
+    const issues = {};
+
+    filteredData.forEach(row => {
+        if (row[opName]) {
+            issues[row[opName]] =
+                (issues[row[opName]] || 0) + 1;
+        }
+    });
+
+    const result =
+        Object.entries(issues)
+            .sort(
+                (a,b) =>
+                    b[1] - a[1]
+            )
+            .slice(0,5);
+
+    const options =
+        baseChartOptions();
+
+    options.scales.x.ticks.maxRotation =
+        30;
+    options.scales.x.ticks.minRotation =
+        30;
+    options.scales.x.ticks.font =
+        {
+            size: 9
+        };
+
+    renderChart(
+        opKey + "Chart",
+        {
+            type: "bar",
+            data: {
+                labels:
+                    result.map(x => x[0]),
+                datasets: [
+                    {
+                        label:
+                            "Count",
+                        data:
+                            result.map(x => x[1]),
+                        backgroundColor:
+                            "#00A6A6",
+                        hoverBackgroundColor:
+                            "#0A6ED1",
+                        borderRadius:
+                            6,
+                        borderSkipped:
+                            false
+                    }
+                ]
+            },
+            options,
+            plugins: [
+                ChartDataLabels
+            ]
+        }
+    );
+});
+}
+
+/* =========================================================
+INITIALIZATION
+========================================================= */
+
+window.addEventListener(
+"load",
+function() {
+    if (!currentSelectedMonth) {
+        const monthIndex = new Date().getMonth();
+        currentSelectedMonth = months[monthIndex] || "August";
+        const monthTextElem = document.getElementById("selectedMonthText");
+        if (monthTextElem) {
+            monthTextElem.innerText = currentSelectedMonth;
+        }
+    }
     setCurrentMonth();
-};
+}
+);
