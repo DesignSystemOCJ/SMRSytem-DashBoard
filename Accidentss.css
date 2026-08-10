@@ -153,15 +153,15 @@ padding:20px;
 display:grid;
 grid-template-columns:360px 1fr;
 gap:25px;
-align-items:stretch;
+align-items:start;
 }
 
 .charts-area{
     display:grid;
     grid-template-columns:repeat(2,1fr);
     gap:25px;
-    width:80%;
-    margin:0 auto;
+    width:100%;
+    margin:0;
 }
 
 .panel,
@@ -174,14 +174,28 @@ backdrop-filter:blur(20px);
 box-shadow:0 15px 40px rgba(0,0,0,.35);
 }
 
+.panel{
+display:flex;
+flex-direction:column;
+height:320px;
+}
+
 .panel h3,
 .body-map-panel h3{
 color:#7dd3fc;
 margin-top:0;
 }
 
+.chart-container{
+position:relative;
+flex:1;
+width:100%;
+height:100%;
+}
+
 canvas{
-height:230px!important;
+width:100%!important;
+height:100%!important;
 }
 
 .body-map-panel{
