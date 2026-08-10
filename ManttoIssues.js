@@ -624,6 +624,7 @@ DASHBOARD
 function updateDashboard() {
 calculateKPIs();
 createOperationChart();
+loadIndependentMonthlyChart();
 createCellChart();
 createIssueChart();
 createMachineChart();
@@ -907,6 +908,74 @@ renderChart(
         ]
     }
 );
+}
+
+/* =========================================================
+MONTHLY ISSUES CHART (INDEPENDENT)
+========================================================= */
+
+async function loadIndependentMonthlyChart() {
+    let allYearData = [];
+    const pageSize = 1000;
+    let from = 0;
+    let moreData = true;
+
+    try {
+        while (moreData) {
+            const { data, error } = await supabaseClient
+                .from("ManttoIssues")
+                .select("Month")
+                .range(from, from + pageSize - 1);
+
+            if (error) {
+                console.error("Error loading yearly data for monthly chart", error);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                allYearData = allYearData.concat(data);
+                from += pageSize;
+            } else {
+                moreData = false;
+            }
+        }
+
+        const monthlyCount = {};
+        months.forEach(m => monthlyCount[m] = 0);
+
+        allYearData.forEach(row => {
+            if (row.Month && monthlyCount.hasOwnProperty(row.Month)) {
+                monthlyCount[row.Month]++;
+            }
+        });
+
+        const values = months.map(m => monthlyCount[m]);
+
+        const options = baseChartOptions();
+        options.scales.x.ticks.maxRotation = 40;
+        options.scales.x.ticks.minRotation = 40;
+
+        renderChart("monthlyIssuesChart", {
+            type: "bar",
+            data: {
+                labels: months,
+                datasets: [{
+                    label: "Issues",
+                    data: values,
+                    backgroundColor: "#7C3AED",
+                    hoverBackgroundColor: "#0A6ED1",
+                    borderRadius: 7,
+                    borderSkipped: false,
+                    barPercentage: 0.68
+                }]
+            },
+            options,
+            plugins: [ChartDataLabels]
+        });
+
+    } catch (err) {
+        console.error("Unexpected error in independent monthly chart:", err);
+    }
 }
 
 /* =========================================================
