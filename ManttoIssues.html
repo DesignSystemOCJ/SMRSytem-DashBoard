@@ -1,0 +1,619 @@
+<!DOCTYPE html><html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Maintenance Intelligence Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<link rel="stylesheet" href="ManttoIssuess.css">
+
+</head><body><div class="app-shell">
+<header class="topbar">
+
+    <div class="brand-section">
+        <div>
+            <div class="brand-subtitle">
+                Manufacturing Performance Dashboard
+            </div>
+        </div>
+    </div>
+
+    <div class="header-controls">
+
+        <div class="period-selector" id="filterBox"
+             onclick="toggleMonthDropdown(event)">
+
+            <div class="period-icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+
+            <div class="period-info">
+
+                <span class="period-label">
+                    MAINTENANCE PERIOD
+                </span>
+
+                <div class="period-value">
+                    <span id="selectedMonthText">Loading...</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+
+            </div>
+
+            <div class="custom-dropdown" id="monthDropdown">
+
+                <div class="dropdown-title">
+                    Select Maintenance Period
+                </div>
+
+                <div class="custom-option" onclick="selectMonth('January', event)">January</div>
+                <div class="custom-option" onclick="selectMonth('February', event)">February</div>
+                <div class="custom-option" onclick="selectMonth('March', event)">March</div>
+                <div class="custom-option" onclick="selectMonth('April', event)">April</div>
+                <div class="custom-option" onclick="selectMonth('May', event)">May</div>
+                <div class="custom-option" onclick="selectMonth('June', event)">June</div>
+                <div class="custom-option" onclick="selectMonth('July', event)">July</div>
+                <div class="custom-option" onclick="selectMonth('August', event)">August</div>
+                <div class="custom-option" onclick="selectMonth('September', event)">September</div>
+                <div class="custom-option" onclick="selectMonth('October', event)">October</div>
+                <div class="custom-option" onclick="selectMonth('November', event)">November</div>
+                <div class="custom-option" onclick="selectMonth('December', event)">December</div>
+
+            </div>
+
+        </div>
+
+        <button class="records-button"
+                title="View Maintenance Records"
+                onclick="openRecordsModal()">
+
+            <i class="fa-solid fa-table-list"></i>
+
+            <span>Records</span>
+
+        </button>
+
+    </div>
+
+</header>
+
+
+
+
+<main class="dashboard-container">
+
+    
+
+    <section class="kpi-grid">
+
+        <article class="kpi-card">
+
+            <div class="kpi-glow"></div>
+
+            <div class="kpi-icon danger">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+                    TOTAL ISSUES
+                </span>
+
+                <strong id="totalIssues">
+                    0
+                </strong>
+
+                <small>
+                    Maintenance events
+                </small>
+
+            </div>
+
+            <div class="kpi-decoration">
+                <i class="fa-solid fa-chart-column"></i>
+            </div>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <div class="kpi-glow"></div>
+
+            <div class="kpi-icon blue">
+                <i class="fa-solid fa-industry"></i>
+            </div>
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+                    TOP CELL
+                </span>
+
+                <strong id="topCell">
+                    --
+                </strong>
+
+                <small>
+                    Highest affected cell
+                </small>
+
+            </div>
+
+            <div class="kpi-decoration">
+                <i class="fa-solid fa-ranking-star"></i>
+            </div>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <div class="kpi-glow"></div>
+
+            <div class="kpi-icon orange">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+                    TOP ISSUE
+                </span>
+
+                <strong id="topIssue">
+                    --
+                </strong>
+
+                <small>
+                    Most frequent failure
+                </small>
+
+            </div>
+
+            <div class="kpi-decoration">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <div class="kpi-glow"></div>
+
+            <div class="kpi-icon purple">
+                <i class="fa-solid fa-gears"></i>
+            </div>
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+                    TOP OPERATION
+                </span>
+
+                <strong id="topOperation">
+                    --
+                </strong>
+
+                <small>
+                    Main affected operation
+                </small>
+
+            </div>
+
+            <div class="kpi-decoration">
+                <i class="fa-solid fa-gears"></i>
+            </div>
+
+        </article>
+
+    </section>
+
+
+    
+
+    <section class="analytics-grid">
+
+        <article class="dashboard-panel large-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <span class="panel-kicker">
+                        OPERATIONS
+                    </span>
+
+                    <h2>
+                        <i class="fa-solid fa-gears"></i>
+                        Issues by Operation
+                    </h2>
+                </div>
+
+                <div class="panel-badge">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Distribution
+                </div>
+
+            </div>
+
+            <div class="chart-container">
+                <canvas id="operationChart"></canvas>
+            </div>
+
+        </article>
+
+
+        <article class="dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <span class="panel-kicker">
+                        PRODUCTION CELLS
+                    </span>
+
+                    <h2>
+                        <i class="fa-solid fa-industry"></i>
+                        Issues by Cell
+                    </h2>
+                </div>
+
+                <div class="panel-badge">
+                    Top 10
+                </div>
+
+            </div>
+
+            <div class="chart-container">
+                <canvas id="cellChart"></canvas>
+            </div>
+
+        </article>
+
+
+        <article class="dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <span class="panel-kicker">
+                        FAILURE ANALYSIS
+                    </span>
+
+                    <h2>
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Issue Detail
+                    </h2>
+                </div>
+
+                <div class="panel-badge">
+                    Frequency
+                </div>
+
+            </div>
+
+            <div class="chart-container">
+                <canvas id="issueChart"></canvas>
+            </div>
+
+        </article>
+
+    </section>
+
+
+    
+
+    <section class="dashboard-panel machine-panel">
+
+        <div class="panel-header">
+
+            <div>
+                <span class="panel-kicker">
+                    MACHINE PERFORMANCE
+                </span>
+
+                <h2>
+                    <i class="fa-solid fa-robot"></i>
+                    Issues by Machine
+                </h2>
+            </div>
+
+            <div class="panel-badge live">
+                <span></span>
+                Live Analysis
+            </div>
+
+        </div>
+
+        <div class="machine-chart-container">
+            <canvas id="machineChart"></canvas>
+        </div>
+
+    </section>
+
+
+    
+
+    <section class="lower-grid">
+
+        <!-- TOP CELLS -->
+
+        <article class="dashboard-panel ranking-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <span class="panel-kicker">
+                        PERFORMANCE RANKING
+                    </span>
+
+                    <h2>
+                        <i class="fa-solid fa-ranking-star"></i>
+                        Top 10 Cells
+                    </h2>
+                </div>
+
+            </div>
+
+            <div class="ranking-header">
+                <span>RANK</span>
+                <span>CELL</span>
+                <span>ISSUES</span>
+            </div>
+
+            <div class="ranking-table">
+                <table>
+
+                    <tbody id="top10Table"></tbody>
+
+                </table>
+            </div>
+
+        </article>
+
+
+        <!-- CELL ANALYSIS -->
+
+        <article class="dashboard-panel selected-analysis-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <span class="panel-kicker">
+                        DEEP ANALYSIS
+                    </span>
+
+                    <h2>
+                        <i class="fa-solid fa-chart-line"></i>
+                        Selected Cell Analysis
+                    </h2>
+                </div>
+
+                <div class="selected-cell-badge">
+                    <span>SELECTED</span>
+                    <strong id="selectedCell">ALL</strong>
+                </div>
+
+            </div>
+
+
+            <div class="analysis-grid">
+
+                <div class="mini-analysis-card">
+
+                    <div class="mini-card-header">
+                        <span>MD</span>
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+
+                    <div class="mini-chart">
+                        <canvas id="mdChart"></canvas>
+                    </div>
+
+                </div>
+
+
+                <div class="mini-analysis-card">
+
+                    <div class="mini-card-header">
+                        <span>OP1</span>
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+
+                    <div class="mini-chart">
+                        <canvas id="op1Chart"></canvas>
+                    </div>
+
+                </div>
+
+
+                <div class="mini-analysis-card">
+
+                    <div class="mini-card-header">
+                        <span>OP2</span>
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+
+                    <div class="mini-chart">
+                        <canvas id="op2Chart"></canvas>
+                    </div>
+
+                </div>
+
+
+                <div class="mini-analysis-card">
+
+                    <div class="mini-card-header">
+                        <span>CHIRON</span>
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+
+                    <div class="mini-chart">
+                        <canvas id="chironChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </article>
+
+    </section>
+
+</main>
+
+</div><div class="loading-screen" id="loadingScreen"><div class="loader-box">
+
+    <div class="loader-logo">
+        <i class="fa-solid fa-screwdriver-wrench"></i>
+    </div>
+
+    <div class="loader-spinner"></div>
+
+    <h3>
+        Loading Maintenance Data
+    </h3>
+
+    <p>
+        Connecting to Supabase...
+    </p>
+
+</div>
+
+</div><div class="modal-overlay" id="recordsModal"><div class="records-modal">
+
+    <div class="modal-topbar">
+
+        <div class="modal-title">
+
+            <div class="modal-title-icon">
+                <i class="fa-solid fa-table-list"></i>
+            </div>
+
+            <div>
+                <span>MAINTENANCE DATABASE</span>
+                <h2>Maintenance Records</h2>
+            </div>
+
+        </div>
+
+        <button class="modal-close"
+                onclick="closeRecordsModal()">
+
+            <i class="fa-solid fa-xmark"></i>
+
+        </button>
+
+    </div>
+
+
+    <div class="modal-filters">
+
+        <div class="filter-control">
+
+            <label>
+                <i class="fa-regular fa-calendar"></i>
+                Month
+            </label>
+
+            <select id="modalMonthFilter"
+                    onchange="loadModalRecords()">
+
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-control">
+
+            <label>
+                <i class="fa-solid fa-industry"></i>
+                Cell
+            </label>
+
+            <select id="modalCellFilter"
+                    onchange="filterModalTable()">
+
+                <option value="">
+                    All Cells
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <button class="clear-filter"
+                onclick="clearCellFilter()">
+
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            Clear Filters
+
+        </button>
+
+    </div>
+
+
+    <div class="records-info">
+
+        <div>
+            <i class="fa-solid fa-database"></i>
+            <span id="recordsCount">
+                Loading records...
+            </span>
+        </div>
+
+    </div>
+
+
+    <div class="modal-body">
+
+        <div class="modal-table-container">
+
+            <table id="modalTable">
+
+                <thead>
+                    <tr id="modalTableHeaders"></tr>
+                </thead>
+
+                <tbody id="modalTableBody">
+
+                    <tr>
+                        <td colspan="100" class="loading-table">
+                            <div class="table-loader"></div>
+                            Loading data...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div><script src="ManttoIssues.js"></script></body>
+</html>
