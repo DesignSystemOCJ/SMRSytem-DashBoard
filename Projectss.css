@@ -1,0 +1,1374 @@
+/* =========================================================
+   SMRC PROJECT MANAGEMENT
+   SAP CORPORATE STYLE
+   ========================================================= */
+
+
+/* =========================================================
+   1. VARIABLES
+   ========================================================= */
+
+:root {
+
+    --sap-blue: #0A6ED1;
+    --sap-blue-dark: #0854A0;
+    --sap-blue-light: #E8F2FC;
+
+    --navy: #354A5F;
+
+    --background: #F5F6F7;
+    --card: #FFFFFF;
+
+    --border: #D9D9D9;
+    --border-light: #E5E7E9;
+
+    --text: #32363A;
+    --text-secondary: #6A6D70;
+    --text-light: #89919A;
+
+    --success: #107E3E;
+    --success-bg: #E8F5EE;
+
+    --warning: #E9730C;
+    --warning-bg: #FFF2E8;
+
+    --info: #0A6ED1;
+    --info-bg: #E8F2FC;
+
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.10);
+}
+
+
+/* =========================================================
+   2. RESET
+   ========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Poppins, sans-serif;
+}
+
+
+/* =========================================================
+   3. HTML
+   ========================================================= */
+
+html {
+    font-size: 14px;
+    background: var(--background);
+}
+
+
+/* =========================================================
+   4. BODY
+   ========================================================= */
+
+body {
+
+    margin: 0;
+
+    background: var(--background);
+
+    color: var(--text);
+
+    min-height: 100vh;
+
+    overflow-x: hidden;
+
+    /* Quitamos el zoom anterior */
+    zoom: 1;
+}
+
+
+/* =========================================================
+   5. HEADER
+   ========================================================= */
+
+header {
+
+    height: 64px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 28px;
+
+    background: #FFFFFF;
+
+    border-bottom: 1px solid var(--border);
+
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+}
+
+
+/* =========================================================
+   6. LOGO
+   ========================================================= */
+
+.logo {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+
+.logo i {
+
+    width: 36px;
+
+    height: 36px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: var(--sap-blue-light);
+
+    color: var(--sap-blue);
+
+    border-radius: 8px;
+
+    font-size: 18px;
+}
+
+
+.logo h1 {
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    color: var(--text);
+
+    letter-spacing: -0.2px;
+}
+
+
+/* =========================================================
+   7. HEADER RIGHT
+   ========================================================= */
+
+.right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+
+/* =========================================================
+   8. EXCEL BUTTON
+   ========================================================= */
+
+.header-btn {
+
+    width: 38px;
+
+    height: 38px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: transparent;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    color: var(--text-secondary);
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+
+.header-btn:hover {
+
+    background: var(--sap-blue-light);
+
+    border-color: #B7D4F2;
+
+    color: var(--sap-blue);
+
+    transform: none;
+}
+
+
+.header-btn i {
+
+    font-size: 17px;
+}
+
+
+/* =========================================================
+   9. MAIN CONTAINER
+   ========================================================= */
+
+.container {
+
+    width: 94%;
+
+    max-width: 1500px;
+
+    margin: 0 auto;
+
+    padding: 24px 0 40px;
+}
+
+
+/* =========================================================
+   10. KPI CARDS
+   ========================================================= */
+
+.cards {
+
+    display: grid;
+
+    grid-template-columns: repeat(5, 1fr);
+
+    gap: 14px;
+
+    margin-bottom: 20px;
+}
+
+
+.card {
+
+    background: var(--card);
+
+    border: 1px solid var(--border-light);
+
+    border-radius: 8px;
+
+    padding: 18px;
+
+    min-height: 125px;
+
+    position: relative;
+
+    overflow: hidden;
+
+    box-shadow: var(--shadow);
+
+    transition: all 0.2s ease;
+}
+
+
+.card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: var(--shadow-hover);
+}
+
+
+/* =========================================================
+   11. KPI LEFT ACCENTS
+   ========================================================= */
+
+.card:nth-child(1) {
+    border-left: 4px solid var(--sap-blue);
+}
+
+.card:nth-child(2) {
+    border-left: 4px solid #5B9BD5;
+}
+
+.card:nth-child(3) {
+    border-left: 4px solid var(--success);
+}
+
+.card:nth-child(4) {
+    border-left: 4px solid var(--warning);
+}
+
+.card:nth-child(5) {
+    border-left: 4px solid var(--navy);
+}
+
+
+/* =========================================================
+   12. KPI TITLES
+   ========================================================= */
+
+.card h4 {
+
+    color: var(--text-secondary);
+
+    font-size: 12px;
+
+    font-weight: 500;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+
+    margin-bottom: 12px;
+}
+
+
+/* =========================================================
+   13. KPI NUMBERS
+   ========================================================= */
+
+.card h1 {
+
+    font-size: 30px;
+
+    font-weight: 600;
+
+    color: var(--text);
+
+    line-height: 1.2;
+}
+
+
+/* =========================================================
+   14. KPI ICONS
+   ========================================================= */
+
+.card > i {
+
+    position: absolute;
+
+    right: 20px;
+
+    bottom: 18px;
+
+    font-size: 27px;
+
+    color: #B8C2CC;
+
+    opacity: 0.65;
+}
+
+
+/* =========================================================
+   15. TOOLBAR
+   ========================================================= */
+
+.toolbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 16px;
+}
+
+
+/* =========================================================
+   16. SEARCH
+   ========================================================= */
+
+.search {
+
+    flex: 1;
+
+    position: relative;
+}
+
+
+.search i {
+
+    position: absolute;
+
+    left: 15px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color: var(--text-light);
+
+    font-size: 13px;
+}
+
+
+.search input {
+
+    width: 100%;
+
+    height: 42px;
+
+    padding: 0 15px 0 40px;
+
+    background: #FFFFFF;
+
+    border: 1px solid var(--border);
+
+    border-radius: 7px;
+
+    outline: none;
+
+    color: var(--text);
+
+    font-size: 13px;
+
+    transition: all 0.2s ease;
+}
+
+
+.search input::placeholder {
+
+    color: #89919A;
+}
+
+
+.search input:focus {
+
+    border-color: var(--sap-blue);
+
+    box-shadow: 0 0 0 2px rgba(10, 110, 209, 0.10);
+}
+
+
+/* =========================================================
+   17. GENERAL BUTTON
+   ========================================================= */
+
+button {
+
+    height: 42px;
+
+    padding: 0 18px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    background: var(--sap-blue);
+
+    color: #FFFFFF;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+
+button:hover {
+
+    background: var(--sap-blue-dark);
+
+    transform: none;
+
+    box-shadow: 0 2px 6px rgba(10, 110, 209, 0.25);
+}
+
+
+/* =========================================================
+   18. PROJECT DATABASE CARD
+   ========================================================= */
+
+.table-card {
+
+    background: #FFFFFF;
+
+    border: 1px solid var(--border-light);
+
+    border-radius: 8px;
+
+    padding: 18px;
+
+    overflow: hidden;
+
+    box-shadow: var(--shadow);
+}
+
+
+/* =========================================================
+   19. TABLE HEADER
+   ========================================================= */
+
+.table-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 16px;
+
+    padding-bottom: 12px;
+
+    border-bottom: 1px solid var(--border-light);
+}
+
+
+.table-header h3 {
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    color: var(--text);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+}
+
+
+.table-header h3 i {
+
+    color: var(--sap-blue);
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   20. TABLE SCROLL
+   ========================================================= */
+
+.table-scroll {
+
+    max-height: 500px;
+
+    overflow-y: auto;
+
+    overflow-x: auto;
+
+    border: 1px solid var(--border-light);
+
+    border-radius: 6px;
+}
+
+
+/* =========================================================
+   21. TABLE
+   ========================================================= */
+
+table {
+
+    width: 100%;
+
+    border-collapse: separate;
+
+    border-spacing: 0;
+
+    background: #FFFFFF;
+}
+
+
+/* =========================================================
+   22. TABLE HEADER
+   ========================================================= */
+
+thead th {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 5;
+
+    background: #354A5F;
+
+    color: #FFFFFF;
+
+    padding: 11px 12px;
+
+    text-align: left;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    border-bottom: 2px solid var(--sap-blue);
+}
+
+
+/* =========================================================
+   23. TABLE CELLS
+   ========================================================= */
+
+td {
+
+    padding: 11px 12px;
+
+    font-size: 12px;
+
+    color: var(--text);
+
+    border-bottom: 1px solid #EDF0F2;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   24. TABLE ROWS
+   ========================================================= */
+
+tbody tr {
+
+    background: #FFFFFF;
+
+    transition: background 0.15s ease;
+}
+
+
+tbody tr:hover {
+
+    background: #F3F8FC;
+}
+
+
+/* =========================================================
+   25. PROGRESS CONTAINER
+   ========================================================= */
+
+.progress {
+
+    width: 100%;
+
+    min-width: 90px;
+
+    height: 7px;
+
+    background: #E5E8EB;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+
+    margin-bottom: 4px;
+}
+
+
+/* =========================================================
+   26. PROGRESS BAR
+   ========================================================= */
+
+.bar {
+
+    height: 100%;
+
+    background: var(--sap-blue);
+
+    border-radius: 20px;
+
+    transition: width 0.4s ease;
+}
+
+
+/* =========================================================
+   27. STATUS
+   ========================================================= */
+
+.status {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 5px 10px;
+
+    border-radius: 12px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   28. IN PROCESS
+   ========================================================= */
+
+.process {
+
+    background: var(--info-bg);
+
+    color: var(--sap-blue);
+}
+
+
+/* =========================================================
+   29. WAITING
+   ========================================================= */
+
+.waiting {
+
+    background: var(--warning-bg);
+
+    color: #B85C00;
+}
+
+
+/* =========================================================
+   30. COMPLETED
+   ========================================================= */
+
+.finish {
+
+    background: var(--success-bg);
+
+    color: var(--success);
+}
+
+
+/* =========================================================
+   31. ACTION ICON BUTTON
+   ========================================================= */
+
+.icon {
+
+    width: 30px;
+
+    height: 30px;
+
+    padding: 0;
+
+    margin-right: 4px;
+
+    border-radius: 6px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: 1px solid transparent;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   32. VIEW BUTTON
+   ========================================================= */
+
+.view {
+
+    background: var(--sap-blue-light);
+
+    color: var(--sap-blue);
+
+    border-color: #C7DCF2;
+}
+
+
+.view:hover {
+
+    background: var(--sap-blue);
+
+    color: #FFFFFF;
+
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   33. SCROLLBAR
+   ========================================================= */
+
+.table-scroll::-webkit-scrollbar {
+
+    width: 8px;
+
+    height: 8px;
+}
+
+
+.table-scroll::-webkit-scrollbar-track {
+
+    background: #F1F3F4;
+}
+
+
+.table-scroll::-webkit-scrollbar-thumb {
+
+    background: #C3CAD1;
+
+    border-radius: 10px;
+}
+
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+
+    background: #9AA4AE;
+}
+
+
+/* =========================================================
+   34. RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .cards {
+
+        grid-template-columns: repeat(3, 1fr);
+
+    }
+
+}
+
+
+/* =========================================================
+   35. RESPONSIVE - 1024px
+   ========================================================= */
+
+@media (max-width: 1024px) {
+
+    header {
+
+        padding: 0 20px;
+
+    }
+
+
+    .container {
+
+        width: 96%;
+
+        padding: 20px 0 30px;
+
+    }
+
+
+    .cards {
+
+        grid-template-columns: repeat(2, 1fr);
+
+    }
+
+
+    .toolbar {
+
+        flex-direction: row;
+
+    }
+
+}
+
+
+/* =========================================================
+   36. RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    header {
+
+        height: auto;
+
+        min-height: 60px;
+
+        padding: 12px 15px;
+
+    }
+
+
+    .logo h1 {
+
+        font-size: 16px;
+
+    }
+
+
+    .logo i {
+
+        width: 32px;
+
+        height: 32px;
+
+        font-size: 16px;
+
+    }
+
+
+    .container {
+
+        width: 94%;
+
+        padding: 18px 0 25px;
+
+    }
+
+
+    .cards {
+
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+
+    }
+
+
+    .card {
+
+        min-height: 105px;
+
+        padding: 16px;
+
+    }
+
+
+    .card h1 {
+
+        font-size: 28px;
+
+    }
+
+
+    .toolbar {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+
+    .toolbar button {
+
+        width: 100%;
+
+    }
+
+
+    .table-card {
+
+        padding: 12px;
+
+    }
+
+
+    .table-header h3 {
+
+        font-size: 14px;
+
+    }
+
+}
+
+
+/* =========================================================
+   37. SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .logo h1 {
+
+        font-size: 14px;
+
+    }
+
+
+    .header-btn {
+
+        width: 34px;
+
+        height: 34px;
+
+    }
+
+
+    .card {
+
+        min-height: 100px;
+
+    }
+
+
+    .table-scroll {
+
+        max-height: 450px;
+
+    }
+
+}
+
+
+/* =========================================================
+   STAGE 2
+   SAP DASHBOARD ENHANCEMENTS
+   ========================================================= */
+
+
+/* =========================================================
+   STATUS FILTER
+   ========================================================= */
+
+#statusFilter {
+
+    height: 42px;
+
+    min-width: 150px;
+
+    padding: 0 32px 0 12px;
+
+    background: #FFFFFF;
+
+    border: 1px solid #D9D9D9;
+
+    border-radius: 7px;
+
+    color: #32363A;
+
+    font-family: Poppins, sans-serif;
+
+    font-size: 12px;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+
+#statusFilter:focus {
+
+    border-color: #0A6ED1;
+
+    box-shadow:
+        0 0 0 2px
+        rgba(10, 110, 209, 0.10);
+}
+
+
+/* =========================================================
+   PROJECT SUMMARY
+   ========================================================= */
+
+#projectSummary {
+
+    margin-left: auto;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    font-size: 11px;
+
+    color: #6A6D70;
+}
+
+
+.summary-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+}
+
+
+.summary-item strong {
+
+    font-size: 14px;
+
+    color: #32363A;
+
+    font-weight: 600;
+}
+
+
+.summary-process strong {
+
+    color: #0A6ED1;
+}
+
+
+.summary-completed strong {
+
+    color: #107E3E;
+}
+
+
+.summary-waiting strong {
+
+    color: #E9730C;
+}
+
+
+/* =========================================================
+   PROGRESS COLORS
+   ========================================================= */
+
+.bar.progress-low {
+
+    background: #D32F2F;
+}
+
+
+.bar.progress-medium {
+
+    background: #E9730C;
+}
+
+
+.bar.progress-high {
+
+    background: #107E3E;
+}
+
+
+.progress-number {
+
+    font-size: 10px;
+
+    color: #6A6D70;
+}
+
+
+/* =========================================================
+   STATUS DOT
+   ========================================================= */
+
+.status-dot {
+
+    width: 6px;
+
+    height: 6px;
+
+    border-radius: 50%;
+
+    display: inline-block;
+
+    margin-right: 5px;
+
+    background: currentColor;
+}
+
+
+/* =========================================================
+   SELECTED PROJECT
+   ========================================================= */
+
+tbody tr.selected-project {
+
+    background: #EAF3FC;
+
+    box-shadow:
+        inset 3px 0 0 #0A6ED1;
+}
+
+
+tbody tr.selected-project td {
+
+    border-bottom-color: #D1E3F5;
+}
+
+
+/* =========================================================
+   SORTABLE HEADERS
+   ========================================================= */
+
+thead th {
+
+    user-select: none;
+
+    transition:
+        background 0.15s ease;
+}
+
+
+thead th:not(:last-child):hover {
+
+    background: #2D4052;
+
+}
+
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+
+#pagination {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding-top: 16px;
+}
+
+
+.page-btn {
+
+    width: 32px;
+
+    height: 32px;
+
+    padding: 0;
+
+    border-radius: 6px;
+
+    border: 1px solid #D9D9D9;
+
+    background: #FFFFFF;
+
+    color: #56616B;
+
+    font-size: 11px;
+
+    font-weight: 500;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    box-shadow: none;
+}
+
+
+.page-btn:hover {
+
+    background: #E8F2FC;
+
+    border-color: #B7D4F2;
+
+    color: #0A6ED1;
+
+    transform: none;
+
+    box-shadow: none;
+}
+
+
+.page-btn.active {
+
+    background: #0A6ED1;
+
+    border-color: #0A6ED1;
+
+    color: #FFFFFF;
+
+}
+
+
+.page-btn:disabled {
+
+    opacity: 0.4;
+
+    cursor: not-allowed;
+
+}
+
+
+/* =========================================================
+   VIEW BUTTON
+   ========================================================= */
+
+.view {
+
+    transition:
+        all 0.2s ease;
+}
+
+
+.view:hover {
+
+    transform: translateY(-1px);
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    #statusFilter {
+
+        width: 100%;
+
+    }
+
+
+    #projectSummary {
+
+        margin-left: 0;
+
+        width: 100%;
+
+        justify-content: space-between;
+
+        flex-wrap: wrap;
+
+        gap: 8px;
+
+    }
+
+
+    .table-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 10px;
+
+    }
+
+
+    .toolbar {
+
+        gap: 10px;
+
+    }
+
+
+    #pagination {
+
+        flex-wrap: wrap;
+
+    }
+
+}

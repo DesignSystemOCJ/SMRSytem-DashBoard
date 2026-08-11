@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SMRC Project Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="Projectss.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-layer-group"></i>
+            <h1>SMRC Project Management</h1>
+        </div>
+        <div class="right">
+            <button class="header-btn" onclick="exportarExcel()">
+                <i class="fa-solid fa-file-excel"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="cards">
+            <div class="card">
+                <h4>Total Projects</h4>
+                <h1 id="totalProjects">0</h1>
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+
+            <div class="card">
+                <h4>In Process</h4>
+                <h1 id="processProjects">0</h1>
+                <i class="fa-solid fa-spinner"></i>
+            </div>
+
+            <div class="card">
+                <h4>Completed</h4>
+                <h1 id="completeProjects">0</h1>
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div class="card">
+                <h4>Waiting</h4>
+                <h1 id="waitingProjects">0</h1>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+
+            <div class="card">
+                <h4>Average Completion</h4>
+                <h1 id="averageProgress">0%</h1>
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <div class="search">
+                <i class="fa fa-search"></i>
+                <input id="buscar" type="text" placeholder="Buscar proyecto...">
+            </div>
+            <button onclick="window.location.href='Projects_Agregar.html'">
+                <i class="fa-solid fa-plus"></i> + New Project
+            </button>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <h3>
+                    <i class="fa-solid fa-diagram-project"></i>
+                    Project Database
+                </h3>
+            </div>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Folio</th>
+                            <th>Project Name</th>
+                            <th>Type</th>
+                            <th>Lead</th>
+                            <th>Date Start</th>
+                            <th>Date End</th>
+                            <th>Progress</th>
+                            <th>Approved</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaProjects">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="Projects.js"></script>
+</body>
+</html>
