@@ -1,82 +1,128 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js";
-
 const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
 const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const { createClient } = supabase;
+const _supabase = createClient(supabaseUrl, supabaseKey);
 
-async function guardar() {
-    document.getElementById("resultado").innerHTML = "⏳ Guardando información...";
+const form = document.getElementById('ehsForm');
+const submitBtn = document.getElementById('submitBtn');
+const legend = document.getElementById('legend');
 
-    let pdfURL = "";
-    const archivo = document.getElementById("pdf").files[0];
+ 
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    if (archivo) {
-        const folio = document.getElementById("folio").value;
-        const extension = archivo.name.split(".").pop();
-        const nombreArchivo = folio + "_" + Date.now() + "." + extension;
-        
-        const { error: uploadError } = await supabase.storage
-            .from("pdfs")
-            .upload(nombreArchivo, archivo);
+    const folio = document.getElementById('folio').value;
+    const plant = document.getElementById('plant').value;
+    const shift = document.getElementById('shift').value;
+    const area = document.getElementById('area').value;
+    const ehsName = document.getElementById('EHSName').value;
+    const gerente = document.getElementById('gerente').value;
+    const fecha = document.getElementById('Fecha').value;
+    const status = document.getElementById('status').value;
+    const co = document.getElementById('co').value;
+    const description = document.getElementById('description').value;
+    const pdfFile = document.getElementById('pdfFile').files[0];
 
-        if (uploadError) {
-            document.getElementById("resultado").innerHTML = "❌ Error PDF: " + uploadError.message;
-            return;
-        }
+    if (!folio || !shift || !ehsName || !fecha || !pdfFile) {
+        legend.textContent = "Llenar los campos vacíos";
+        legend.style.color = "#d97706";
+        legend.classList.add('animate-pulse');
+        return;
+    }
 
-        const { data: urlData } = supabase.storage
-            .from("pdfs")
-            .getPublicUrl(nombreArchivo);
+    try {
+        submitBtn.disabled = true;
+        legend.textContent = "Guardando datos...";
+        legend.style.color = "#0d9488";
+        legend.classList.add('animate-pulse');
+
+        const timestamp = Date.now();
+        const fileExt = pdfFile.name.split('.').pop();
+        const fileName = `${timestamp}_${Math.random().toString(36).substring(2, 11)}.${fileExt}`;
+
+        const { error: uploadError } = await _supabase.storage
+            .from('pdfs')
+            .upload(fileName, pdfFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = _supabase.storage
+            .from('pdfs')
+            .getPublicUrl(fileName);
+
+        const pdfPublicUrl = publicUrlData.publicUrl;
+
+        const { error: insertError } = await _supabase
+            .from('Auditorias_Gestion_EHS')
+            .insert([
+                {
+                    Folio: parseInt(folio),
+                    Plant: plant,
+                    Shift: shift,
+                    Area: area,
+                    EHSName: ehsName,
+                    Gerente: gerente,
+                    Fecha: fecha,
+                    Status: status,
+                    "C/O": co,
+                    Description: description,
+                    PDF: pdfPublicUrl
+                }
+            ]);
+
+        if (insertError) throw insertError;
+
+        legend.textContent = "Datos guardados";
+        legend.style.color = "#059669";
+        legend.classList.remove('animate-pulse');
+
+        setTimeout(() => {
+            form.reset();
             
-        pdfURL = urlData.publicUrl;
+            
+            legend.textContent = "Ready...";
+            legend.style.color = "#4b5563";
+            submitBtn.disabled = false;
+        }, 2500);
+
+    } catch (error) {
+        console.error("Error detallado:", error);
+        legend.textContent = "Error al guardar";
+        legend.style.color = "#dc2626";
+        legend.classList.remove('animate-pulse');
+        submitBtn.disabled = false;
     }
+});
 
-    const { error } = await supabase
-        .from("Auditorias_Gestion_EHS")
-        .insert([{
-            Folio: document.getElementById("folio").value,
-            Plant: document.getElementById("plant").value,
-            Shift: document.getElementById("shift").value,
-            Area: document.getElementById("area").value,
-            EHSName: document.getElementById("ehs").value,
-            Gerente: document.getElementById("gerente").value,
-            Fecha: document.getElementById("fecha").value,
-            Status: document.getElementById("status").value,
-            "C/O": document.getElementById("co").value,
-            Description: document.getElementById("descripcion").value,
-            PDF: pdfURL
-        }]);
+// =====================================================
+// NAVEGACIÓN PERSONALIZADA CON ENTER Y TAB
+// =====================================================
 
-    if (error) {
-        document.getElementById("resultado").innerHTML = "❌ Error: " + error.message;
-    } else {
-        document.getElementById("resultado").innerHTML = "✅ Auditoría guardada correctamente";
-        limpiarFormulario();
-    }
-}
+const navigationFields = [
+    document.getElementById('folio'),
+    document.getElementById('shift'),
+    document.getElementById('EHSName'),
+    document.getElementById('Fecha'),
+    document.getElementById('description'),
+    document.getElementById('pdfFile'),
+    document.getElementById('submitBtn')
+];
 
-function limpiarFormulario() {
-    setTimeout(() => {
-        document.getElementById("folio").value = "";
-        document.getElementById("plant").value = "Plant1";
-        document.getElementById("shift").value = "";
-        document.getElementById("area").value = "Rough Cut";
-        document.getElementById("ehs").value = "";
-        document.getElementById("gerente").value = "Ernesto Guerrero";
-        document.getElementById("fecha").value = "";
-        document.getElementById("status").value = "In Process";
-        document.getElementById("co").value = "Open";
-        document.getElementById("descripcion").value = "";
-        document.getElementById("pdf").value = "";
-        document.getElementById("resultado").innerHTML = "🟢 Ready for new audit...";
-    }, 2000);
-}
+navigationFields.forEach((field, index) => {
 
-// Asignar el evento al botón de manera segura al cargar el módulo
-document.addEventListener("DOMContentLoaded", () => {
-    const btnGuardar = document.querySelector("button");
-    if (btnGuardar) {
-        btnGuardar.addEventListener("click", guardar);
-    }
+    field.addEventListener('keydown', (e) => {
+
+        if (e.key === 'Enter' || e.key === 'Tab') {
+
+            e.preventDefault();
+
+            const nextField = navigationFields[index + 1];
+
+            if (nextField) {
+                nextField.focus();
+            }
+        }
+    });
+
 });
