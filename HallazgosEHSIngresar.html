@@ -1,63 +1,111 @@
 <!DOCTYPE html>
-<html lang="es" translate="no">
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>EHS Audit Form</title>
-<link rel="stylesheet" href="HallazgosEHSIngresars.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EHS Audit Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="HallazgosEHSIngresars.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+<body class="bg-teal-custom flex items-center justify-center min-h-screen p-6 font-sans antialiased">
 
-<body>
+    <div class="main-card-box w-full max-w-5xl bg-white rounded-3xl shadow-2xl p-8 md:p-10">    
+    <div class="flex items-center gap-4 mb-10">
+    <div class="bg-teal-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-3xl shadow-inner">
+        E
+    </div>
 
-<div class="contenedor">
-<div class="header">
-<div class="logo">
-E
-</div>
-<div>
-<h1>EHS Audit Management</h1>
-<div class="subtitulo">
-Environmental Health & Safety Platform
-</div>
-</div>
-</div>
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">EHS Audit Management</h1>
+        <p class="text-slate-500 text-sm">Environmental Health & Safety Platform</p>
+    </div>
 
-<div class="form-grid">
-<input id="folio" placeholder="📌 Folio Auditoría">
-<input id="plant" value="Plant1" placeholder="🏭 Plant" readonly>
-<input id="shift" placeholder="⏱ Shift">
-<input id="area" value="Rough Cut" placeholder="📍 Area" readonly>
-<input id="ehs" placeholder="👷 EHS Responsible">
-<input id="gerente" value="Ernesto Guerrero" placeholder="👔 Manager" readonly>
-<input id="fecha" type="date">
-<input id="status" value="In Process" placeholder="📊 Status" readonly>
-<input id="co" value="Open" placeholder="⚠ C/O" readonly>
+    <div class="ml-auto w-[60px]"></div>
 </div>
 
-<textarea 
-id="descripcion"
-placeholder="📝 Audit Description">
-</textarea>
+        <form id="ehsForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            <div class="relative input-group">
+                <span class="absolute left-4 top-3 text-slate-400">📌</span>
+                <input type="number" id="folio" placeholder="Folio Auditoría" required class="w-full pl-12 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition">
+            </div>
 
-<div class="file-box">
-<label>📄 Upload Audit PDF</label>
-<input 
-type="file" 
-id="pdf"
-accept=".pdf">
+            <div class="input-group">
+    <input type="text" id="plant" value="Plant1" readonly class="system-field">
 </div>
 
-<button id="btnGuardar">🚀 Save Audit Record</button>
-
-<div id="resultado">
-Ready...
+            <div class="relative input-group">
+                <span class="absolute left-4 top-3 text-slate-400">🕒</span>
+                <select id="shift" required class="w-full pl-12 pr-4 py-3 border rounded-lg appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 transition text-slate-700">
+                    <option value="" disabled selected>Shift</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="L-V">L-V</option>
+                </select>
+            </div>
+            <div class="input-group">
+    <input type="text" id="area" value="Rough Cut" readonly class="system-field">
 </div>
 
-<div class="footer">
-Disign LAOM System 
-</div>
+<div class="relative input-group">
+    <span class="absolute left-4 top-3 text-slate-400">👤</span>
+    <select id="EHSName" required class="w-full pl-12 pr-4 py-3 border rounded-lg appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 transition text-slate-700">
+        <option value="" disabled selected>EHS Responsible</option>
+        <option value="Saul Ahumada">Saul Ahumada</option>
+        <option value="Perla Murillo">Perla Murillo</option>
+    </select>
 </div>
 
-<script type="module" src="HallazgosEHSIngresar.js"></script>
+            <div class="input-group">
+    <input type="text" id="gerente" value="Ernesto Guerrero" readonly class="system-field">
+</div>
+
+            <div class="relative input-group">
+                <input type="date" id="Fecha" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition text-slate-700">
+            </div>
+
+            <div class="input-group">
+    <input type="text" id="status" value="In Process" readonly class="system-field">
+</div>
+
+            <div class="md:col-span-2 input-group">
+    <input type="text" id="co" value="Open" readonly class="system-field">
+</div>
+
+            <div class="md:col-span-2 input-group">
+                <textarea id="description" placeholder="Audit Description" rows="4" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition resize-none"></textarea>
+            </div>
+
+            <div class="md:col-span-2 border-2 border-dashed border-teal-300 rounded-2xl p-6 bg-slate-50 mt-2">
+                <label class="block text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+                    📄 Upload Audit PDF
+                </label>
+                <div class="relative">
+                    <input type="file" id="pdfFile" accept="application/pdf" required 
+                           class="block w-full text-sm text-slate-600 bg-white border border-slate-200 rounded-lg file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 transition cursor-pointer">
+                </div>
+            </div>
+
+            <div class="md:col-span-2 mt-8 flex flex-col items-center">
+                <button type="submit" id="submitBtn" 
+                        class="w-full max-w-3xl btn-teal font-bold py-4 px-8 rounded-xl shadow-md transition duration-150 flex items-center justify-center gap-2 text-lg active:scale-[0.98] text-white">
+                    🚀 Save Audit Record
+                </button>
+                
+                <p id="legend" class="text-sm font-medium text-slate-600 mt-5 transition-opacity duration-300">
+                    Ready...
+                </p>
+            </div>
+
+        </form>
+
+        <div class="text-center text-xs text-slate-400 mt-16 pt-6 border-t border-slate-100">
+            Design LAOM System
+        </div>
+    </div>
+
+    <script src="HallazgosEHSIngresars.js"></script>
 </body>
 </html>
