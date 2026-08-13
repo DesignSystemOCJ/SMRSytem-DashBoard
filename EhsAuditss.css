@@ -7,13 +7,13 @@
     --white:#ffffff;
 }
 
-*{
-    box-sizing:border-box;
+* {
+    box-sizing: border-box;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
 }
 
 body{
-    margin:0;
-    font-family:"Segoe UI",Arial,sans-serif;
+    margin: 0;
     height:100vh;
     overflow:hidden; 
     background: linear-gradient(135deg, #041d38, #073763, #0a6ed1);
@@ -47,14 +47,16 @@ body{
     gap:10px;
 }
 
-.titulo-modulo{
-    margin:0;
-    font-size:22px;
-    font-weight:700;
-    color:#0a3d62;
-    display:flex;
-    align-items:center;
-    gap:10px;
+.titulo-modulo {
+    margin: 0;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0a3d62;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1;
 }
 
 .toolbar{
@@ -237,17 +239,22 @@ body{
 
 .card h3 {
     margin: 0;
-    font-size: 11px;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 900;
     color: var(--sap-gray);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    line-height: 1;
 }
 
 .card .card-value {
     margin: 4px 0 0 0;
-    font-size: 20px;
-    font-weight: 700;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 24px;
+    font-weight: 850;
     color: var(--sap-dark);
+    line-height: 1;
 }
 
 .card-icon {
@@ -287,9 +294,13 @@ body{
 }
 
 .chart-card h4 {
-    margin: 0 0 2px 0; 
+    margin: 0 0 4px 0;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 800;
     color: var(--sap-dark);
-    font-size: 12px; 
+    line-height: 1.1;
+    letter-spacing: 0.2px;
 }
 
 .chart-container {
@@ -299,15 +310,17 @@ body{
     min-height: 0;
 }
 
-#mensaje{
-    padding: 6px; 
+#mensaje {
+    padding: 6px;
     border-radius: 8px;
     background: #eef6ff;
     color: var(--sap-blue);
-    font-weight: 600;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
     text-align: center;
-    font-size: 11px; 
     margin: 0;
+    line-height: 1;
 }
 
 .modal-overlay {
