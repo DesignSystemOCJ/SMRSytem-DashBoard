@@ -1,2154 +1,625 @@
-:root {
+<!DOCTYPE html><html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Maintenance Intelligence Dashboard</title>
 
---primary: #0A6ED1;
---primary-dark: #0756A5;
---cyan: #00B8D9;
---teal: #00A6A6;
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
---purple: #7C3AED;
---orange: #F59E0B;
---red: #EF4444;
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
---dark: #07111F;
---dark-2: #0B1728;
---dark-3: #122033;
+<link rel="stylesheet" href="ManttoIssuess.css">
 
---white: #FFFFFF;
---text: #172033;
---muted: #718096;
+</head><body><div class="app-shell">
+<header class="topbar">
 
---border: rgba(148,163,184,.20);
+    <div class="brand-section">
+        <div>
+            <div class="brand-subtitle">
+                Manufacturing Performance Dashboard
+            </div>
+        </div>
+    </div>
 
---background:
-    radial-gradient(circle at 15% 10%, rgba(10,110,209,.10), transparent 30%),
-    radial-gradient(circle at 85% 20%, rgba(0,166,166,.08), transparent 30%),
-    linear-gradient(135deg,#F3F7FB,#EAF1F7 50%,#F7FAFC);
+    <div class="header-controls">
 
---shadow:
-    0 15px 45px rgba(15,23,42,.07);
+        <div class="period-selector" id="filterBox"
+             onclick="toggleMonthDropdown(event)">
 
---radius: 20px;
+            <div class="period-icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
 
-}
+            <div class="period-info">
 
-/* ================= RESET ================= */
+                <span class="period-label">
+                    MAINTENANCE PERIOD
+                </span>
 
-* {
-  box-sizing: border-box;
-  font-family:
-  "Segoe UI",
-  Inter,
-  Arial,
-  sans-serif;
-  }
+                <div class="period-value">
+                    <span id="selectedMonthText">Loading...</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
 
-html {
-scroll-behavior: smooth;
-}
+            </div>
 
-body {
-margin: 0;
-min-height: 100vh;
-background: var(--background);
-background-attachment: fixed;
-color: var(--text);
-overflow-x: hidden;
-}
+            <div class="custom-dropdown" id="monthDropdown">
 
-button,
-select {
-font-family: inherit;
-}
+                <div class="dropdown-title">
+                    Select Maintenance Period
+                </div>
 
-/* ================= SHELL ================= */
+                <div class="custom-option" onclick="selectMonth('January', event)">January</div>
+                <div class="custom-option" onclick="selectMonth('February', event)">February</div>
+                <div class="custom-option" onclick="selectMonth('March', event)">March</div>
+                <div class="custom-option" onclick="selectMonth('April', event)">April</div>
+                <div class="custom-option" onclick="selectMonth('May', event)">May</div>
+                <div class="custom-option" onclick="selectMonth('June', event)">June</div>
+                <div class="custom-option" onclick="selectMonth('July', event)">July</div>
+                <div class="custom-option" onclick="selectMonth('August', event)">August</div>
+                <div class="custom-option" onclick="selectMonth('September', event)">September</div>
+                <div class="custom-option" onclick="selectMonth('October', event)">October</div>
+                <div class="custom-option" onclick="selectMonth('November', event)">November</div>
+                <div class="custom-option" onclick="selectMonth('December', event)">December</div>
 
-.app-shell {
-min-height: 100vh;
-}
+            </div>
 
-/* ================= TOP BAR ================= */
+        </div>
 
-.topbar {
+        <button class="records-button"
+                title="View Maintenance Records"
+                onclick="openRecordsModal()">
 
-position: sticky;
-top: 0;
-z-index: 1000;
+            <i class="fa-solid fa-table-list"></i>
 
-min-height: 78px;
+            <span>Records</span>
 
-padding:
-    12px
-    clamp(16px,3vw,40px);
+        </button>
 
-display: flex;
-align-items: center;
-justify-content: space-between;
+    </div>
 
-gap: 25px;
+</header>
 
-background:
-    rgba(255,255,255,.88);
 
-backdrop-filter:
-    blur(22px);
 
--webkit-backdrop-filter:
-    blur(22px);
 
-border-bottom:
-    1px solid rgba(148,163,184,.18);
+<main class="dashboard-container">
 
-box-shadow:
-    0 8px 35px rgba(15,23,42,.06);
+    
 
-}
+    <section class="kpi-grid">
 
-/* ================= BRAND ================= */
+        <article class="kpi-card">
 
-.brand-section {
+            <div class="kpi-icon danger">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
 
-display: flex;
-align-items: center;
-gap: 13px;
+            <div class="kpi-content">
 
-min-width: 0;
+                <span class="kpi-label">
+                    TOTAL ISSUES
+                </span>
 
-}
+                <strong id="totalIssues">
+                    0
+                </strong>
 
-.brand-icon {
+                <small>
+                    Maintenance events
+                </small>
 
-width: 48px;
-height: 48px;
+            </div>
 
-flex-shrink: 0;
+        </article>
 
-display: flex;
-align-items: center;
-justify-content: center;
 
-border-radius: 15px;
+        <article class="kpi-card">
 
-color: white;
+            <div class="kpi-icon blue">
+                <i class="fa-solid fa-industry"></i>
+            </div>
 
-background:
-    linear-gradient(
-        135deg,
-        #0A6ED1,
-        #00A6A6
-    );
+            <div class="kpi-content">
 
-box-shadow:
-    0 8px 22px rgba(10,110,209,.25);
+                <span class="kpi-label">
+                    TOP CELL
+                </span>
 
-font-size: 20px;
+                <strong id="topCell">
+                    --
+                </strong>
 
-}
+                <small>
+                    Highest affected cell
+                </small>
 
-.brand-title {
+            </div>
 
-font-size: 18px;
-font-weight: 800;
-color: var(--dark);
+        </article>
 
-letter-spacing: -.3px;
 
-}
+        <article class="kpi-card">
 
-.brand-subtitle {
+            <div class="kpi-icon orange">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
 
-margin-top: 2px;
+            <div class="kpi-content">
 
-color: var(--muted);
+                <span class="kpi-label">
+                    TOP ISSUE
+                </span>
 
-font-size: 11px;
+                <strong id="topIssue">
+                    --
+                </strong>
 
-text-transform: uppercase;
+                <small>
+                    Most frequent failure
+                </small>
 
-letter-spacing: 1.3px;
+            </div>
 
-font-weight: 700;
+        </article>
 
-}
 
-/* ================= HEADER CONTROLS ================= */
+        <article class="kpi-card">
 
-.header-controls {
+            <div class="kpi-icon purple">
+                <i class="fa-solid fa-gears"></i>
+            </div>
 
-display: flex;
-align-items: center;
-gap: 12px;
+            <div class="kpi-content">
 
-}
+                <span class="kpi-label">
+                    TOP OPERATION
+                </span>
 
-.status-indicator {
+                <strong id="topOperation">
+                    --
+                </strong>
 
-height: 43px;
+                <small>
+                    Main affected operation
+                </small>
 
-padding: 0 13px;
+            </div>
 
-display: flex;
-align-items: center;
-gap: 7px;
+        </article>
 
-border-radius: 13px;
+    </section>
 
-background: #F0FDF4;
 
-border: 1px solid #DCFCE7;
+    
 
-color: #15803D;
+    <section class="analytics-grid">
 
-font-size: 10px;
-font-weight: 800;
+        <!-- Issues by Operation -->
+        <article class="dashboard-panel">
 
-letter-spacing: .8px;
+            <div class="panel-header">
 
-}
+                <div>
+                    <span class="panel-kicker">
+                        OPERATIONS
+                    </span>
 
-.status-dot {
+                    <h2>
+                        <i class="fa-solid fa-gears"></i>
+                        Issues by Operation
+                    </h2>
+                </div>
 
-width: 7px;
-height: 7px;
+                <div class="panel-badge">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Distribution
+                </div>
 
-border-radius: 50%;
+            </div>
 
-background: #22C55E;
+            <div class="chart-container">
+                <canvas id="operationChart"></canvas>
+            </div>
 
-box-shadow:
-    0 0 0 4px rgba(34,197,94,.12);
+        </article>
 
-animation: pulse 2s infinite;
 
-}
+        <!-- Issues by Month (Independiente) -->
+        <article class="dashboard-panel">
 
-@keyframes pulse {
+            <div class="panel-header">
 
-0%,100% {
-    box-shadow:
-        0 0 0 3px rgba(34,197,94,.12);
-}
+                <div>
+                    <span class="panel-kicker">
+                        YEARLY OVERVIEW
+                    </span>
 
-50% {
-    box-shadow:
-        0 0 0 7px rgba(34,197,94,.03);
-}
+                    <h2>
+                        <i class="fa-regular fa-calendar-days"></i>
+                        Issues by Month
+                    </h2>
+                </div>
 
-}
+                <div class="panel-badge">
+                    <i class="fa-solid fa-globe"></i>
+                    Independent
+                </div>
 
-/* ================= PERIOD ================= */
+            </div>
 
-.period-selector {
+            <div class="chart-container">
+                <canvas id="monthlyIssuesChart"></canvas>
+            </div>
 
-position: relative;
+        </article>
 
-min-width: 205px;
+<!-- Issues - Last 15 Days -->
+<article class="dashboard-panel">
 
-height: 52px;
+    <div class="panel-header">
 
-display: flex;
-align-items: center;
+        <div>
+            <span class="panel-kicker">
+                DAILY TREND
+            </span>
 
-gap: 10px;
+            <h2>
+                <i class="fa-solid fa-chart-line"></i>
+                Issues - Last 15 Days
+            </h2>
+        </div>
 
-padding: 6px 12px;
+        <div class="panel-badge">
+            Daily Issues
+        </div>
 
-cursor: pointer;
+    </div>
 
-background:
-    rgba(248,250,252,.9);
+    <div class="chart-container">
+        <canvas id="last15DaysChart"></canvas>
+    </div>
 
-border:
-    1px solid #E2E8F0;
+</article>
 
-border-radius: 14px;
 
-transition: .25s ease;
+<!-- Issue Detail -->
+<article class="dashboard-panel">
 
-}
+    <div class="panel-header">
 
-.period-selector:hover {
+        <div>
+            <span class="panel-kicker">
+                FAILURE ANALYSIS
+            </span>
 
-border-color: var(--primary);
+            <h2>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Issue Detail
+            </h2>
+        </div>
 
-box-shadow:
-    0 8px 25px rgba(10,110,209,.10);
+        <div class="panel-badge">
+            Frequency
+        </div>
 
-}
+    </div>
 
-.period-icon {
+    <div class="chart-container">
+        <canvas id="issueChart"></canvas>
+    </div>
 
-width: 36px;
-height: 36px;
+</article>
 
-display: flex;
-align-items: center;
-justify-content: center;
 
-border-radius: 10px;
+    
 
-color: white;
+    <section class="dashboard-panel machine-panel">
 
-background:
-    linear-gradient(
-        135deg,
-        var(--primary),
-        var(--teal)
-    );
+        <div class="panel-header">
 
-}
+            <div>
+                <span class="panel-kicker">
+                    MACHINE PERFORMANCE
+                </span>
 
-.period-info {
-display: flex;
-flex-direction: column;
-}
+                <h2>
+                    <i class="fa-solid fa-robot"></i>
+                    Issues by Machine
+                </h2>
+            </div>
 
-.period-label {
+            <div class="panel-badge live">
+                <span></span>
+                Live Analysis
+            </div>
 
-font-size: 8px;
+        </div>
 
-color: var(--muted);
+        <div class="machine-chart-container">
+            <canvas id="machineChart"></canvas>
+        </div>
 
-font-weight: 800;
+    </section>
 
-letter-spacing: 1px;
 
-}
+    
 
-.period-value {
+    <section class="lower-grid">
 
-margin-top: 2px;
+        <!-- TOP CELLS -->
 
-display: flex;
-align-items: center;
-gap: 8px;
+        <article class="dashboard-panel ranking-panel">
 
-color: var(--dark);
+            <div class="panel-header">
 
-font-size: 14px;
-font-weight: 800;
+                <div>
+                    <span class="panel-kicker">
+                        PERFORMANCE RANKING
+                    </span>
 
-}
+                    <h2>
+                        <i class="fa-solid fa-ranking-star"></i>
+                        Top 10 Cells
+                    </h2>
+                </div>
 
-.period-value i {
+            </div>
 
-color: var(--primary);
+            <div class="ranking-header">
+                <span>RANK</span>
+                <span>CELL</span>
+                <span>ISSUES</span>
+            </div>
 
-font-size: 10px;
+            <div class="ranking-table">
+                <table>
 
-transition: transform .25s;
+                    <tbody id="top10Table"></tbody>
 
-}
+                </table>
+            </div>
 
-.period-selector.active
-.period-value i {
+        </article>
 
-transform: rotate(180deg);
 
-}
+        <!-- CELL ANALYSIS -->
 
-/* ================= DROPDOWN ================= */
+        <article class="dashboard-panel selected-analysis-panel">
 
-.custom-dropdown {
+            <div class="panel-header">
 
-position: absolute;
+                <div>
+                    <span class="panel-kicker">
+                        DEEP ANALYSIS
+                    </span>
 
-top: calc(100% + 9px);
-right: 0;
+                    <h2>
+                        <i class="fa-solid fa-chart-line"></i>
+                        Selected Cell Analysis
+                    </h2>
+                </div>
 
-width: 225px;
+                <div class="selected-cell-badge">
+                    <span>SELECTED</span>
+                    <strong id="selectedCell">ALL</strong>
+                </div>
 
-padding: 8px;
+            </div>
 
-display: none;
 
-background:
-    rgba(255,255,255,.97);
+            <div class="analysis-grid">
 
-backdrop-filter:
-    blur(20px);
+                <div class="mini-analysis-card">
 
-border:
-    1px solid rgba(148,163,184,.22);
+                    <div class="mini-card-header">
+                        <span>MD</span>
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
 
-border-radius: 16px;
+                    <div class="mini-chart">
+                        <canvas id="mdChart"></canvas>
+                    </div>
 
-box-shadow:
-    0 25px 60px rgba(15,23,42,.16);
+                </div>
 
-z-index: 1200;
 
-max-height: 320px;
+                <div class="mini-analysis-card">
 
-overflow-y: auto;
+                    <div class="mini-card-header">
+                        <span>OP1</span>
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
 
-animation:
-    dropdownIn .2s ease;
+                    <div class="mini-chart">
+                        <canvas id="op1Chart"></canvas>
+                    </div>
 
-}
+                </div>
 
-@keyframes dropdownIn {
 
-from {
-    opacity: 0;
-    transform: translateY(-8px) scale(.98);
-}
+                <div class="mini-analysis-card">
 
-to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
+                    <div class="mini-card-header">
+                        <span>OP2</span>
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
 
-}
+                    <div class="mini-chart">
+                        <canvas id="op2Chart"></canvas>
+                    </div>
 
-.dropdown-title {
+                </div>
 
-padding:
-    9px 12px;
 
-color: var(--muted);
+                <div class="mini-analysis-card">
 
-font-size: 9px;
+                    <div class="mini-card-header">
+                        <span>CHIRON</span>
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
 
-text-transform: uppercase;
+                    <div class="mini-chart">
+                        <canvas id="chironChart"></canvas>
+                    </div>
 
-letter-spacing: 1px;
+                </div>
 
-font-weight: 800;
+            </div>
 
-}
+        </article>
 
-.custom-option {
+    </section>
 
-padding:
-    10px 12px;
+</main>
 
-border-radius: 9px;
+</div><div class="loading-screen" id="loadingScreen"><div class="loader-box">
 
-cursor: pointer;
+    <div class="loader-logo">
+        <i class="fa-solid fa-screwdriver-wrench"></i>
+    </div>
 
-font-size: 13px;
+    <div class="loader-spinner"></div>
 
-font-weight: 650;
+    <h3>
+        Loading Maintenance Data
+    </h3>
 
-transition: .2s;
+    <p>
+        Connecting to Supabase...
+    </p>
 
-}
+</div>
 
-.custom-option:hover {
+</div><div class="modal-overlay" id="recordsModal"><div class="records-modal">
 
-background: #EFF6FF;
+    <div class="modal-topbar">
 
-color: var(--primary);
+        <div class="modal-title">
 
-transform: translateX(2px);
+            <div class="modal-title-icon">
+                <i class="fa-solid fa-table-list"></i>
+            </div>
 
-}
+            <div>
+                <span>MAINTENANCE DATABASE</span>
+                <h2>Maintenance Records</h2>
+            </div>
 
-.custom-option.selected {
+        </div>
 
-color: white;
+        <button class="modal-close"
+                onclick="closeRecordsModal()">
 
-background:
-    linear-gradient(
-        135deg,
-        var(--primary),
-        var(--teal)
-    );
+            <i class="fa-solid fa-xmark"></i>
 
-box-shadow:
-    0 5px 15px rgba(10,110,209,.18);
+        </button>
 
-}
+    </div>
 
-/* ================= RECORD BUTTON ================= */
 
-.records-button {
+    <div class="modal-filters">
 
-height: 45px;
+        <div class="filter-control">
 
-padding:
-    0 15px;
+            <label>
+                <i class="fa-regular fa-calendar"></i>
+                Month
+            </label>
 
-display: flex;
-align-items: center;
-gap: 8px;
+            <select id="modalMonthFilter"
+                    onchange="loadModalRecords()">
 
-border: none;
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
 
-border-radius: 13px;
+            </select>
 
-color: white;
+        </div>
 
-background:
-    linear-gradient(
-        135deg,
-        #0A6ED1,
-        #0756A5
-    );
 
-cursor: pointer;
+        <div class="filter-control">
 
-font-size: 12px;
-font-weight: 800;
+            <label>
+                <i class="fa-solid fa-industry"></i>
+                Cell
+            </label>
 
-box-shadow:
-    0 7px 20px rgba(10,110,209,.22);
+            <select id="modalCellFilter"
+                    onchange="filterModalTable()">
 
-transition: .25s;
+                <option value="">
+                    All Cells
+                </option>
 
-}
+            </select>
 
-.records-button:hover {
+        </div>
 
-transform: translateY(-2px);
 
-box-shadow:
-    0 12px 28px rgba(10,110,209,.30);
+        <button class="clear-filter"
+                onclick="clearCellFilter()">
 
-}
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            Clear Filters
 
-/* ================= MAIN ================= */
+        </button>
 
-.dashboard-container {
+    </div>
 
-width: min(1700px, 100%);
 
-margin: auto;
+    <div class="records-info">
 
-padding:
-    28px
-    clamp(14px,3vw,40px)
-    50px;
+        <div>
+            <i class="fa-solid fa-database"></i>
+            <span id="recordsCount">
+                Loading records...
+            </span>
+        </div>
 
-}
+    </div>
 
-/* ================= INTRO ================= */
 
-.dashboard-intro {
+    <div class="modal-body">
 
-display: flex;
+        <div class="modal-table-container">
 
-justify-content: space-between;
+            <table id="modalTable">
 
-align-items: center;
+                <thead>
+                    <tr id="modalTableHeaders"></tr>
+                </thead>
 
-gap: 20px;
+                <tbody id="modalTableBody">
 
-margin-bottom: 25px;
+                    <tr>
+                        <td colspan="100" class="loading-table">
+                            <div class="table-loader"></div>
+                            Loading data...
+                        </td>
+                    </tr>
 
-}
+                </tbody>
 
-.eyebrow {
+            </table>
 
-display: inline-flex;
+        </div>
 
-align-items: center;
+    </div>
 
-gap: 7px;
+</div>
 
-color: var(--primary);
-
-font-size: 10px;
-
-font-weight: 900;
-
-letter-spacing: 1.5px;
-
-}
-
-.dashboard-intro h1 {
-
-margin:
-    5px 0 3px;
-
-font-size:
-    clamp(25px,3vw,34px);
-
-letter-spacing:
-    -1.2px;
-
-color: var(--dark);
-
-}
-
-.dashboard-intro p {
-
-margin: 0;
-
-color: var(--muted);
-
-font-size: 13px;
-
-}
-
-.data-status {
-
-display: flex;
-
-align-items: center;
-
-gap: 10px;
-
-padding: 10px 14px;
-
-background:
-    rgba(255,255,255,.72);
-
-border:
-    1px solid var(--border);
-
-border-radius: 14px;
-
-}
-
-.status-icon {
-
-width: 35px;
-height: 35px;
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-border-radius: 10px;
-
-color: var(--teal);
-
-background:
-    #ECFEFF;
-
-}
-
-.data-status span {
-
-display: block;
-
-color: var(--muted);
-
-font-size: 8px;
-
-font-weight: 800;
-
-letter-spacing: 1px;
-
-}
-
-.data-status strong {
-
-display: block;
-
-margin-top: 2px;
-
-color: var(--dark);
-
-font-size: 11px;
-
-}
-
-/* ================= KPI ================= */
-
-.kpi-grid {
-
-display: grid;
-
-grid-template-columns:
-    repeat(4,minmax(0,1fr));
-
-gap: 16px;
-
-margin-bottom: 20px;
-
-}
-
-.kpi-card {
-
-position: relative;
-
-min-height: 145px;
-
-padding: 20px;
-
-display: flex;
-
-align-items: center;
-
-gap: 14px;
-
-overflow: hidden;
-
-background:
-    rgba(255,255,255,.90);
-
-border:
-    1px solid rgba(148,163,184,.18);
-
-border-radius: var(--radius);
-
-box-shadow: var(--shadow);
-
-transition:
-    transform .3s,
-    box-shadow .3s;
-
-}
-
-.kpi-card:hover {
-
-transform:
-    translateY(-5px);
-
-box-shadow:
-    0 22px 50px rgba(15,23,42,.11);
-
-}
-
-.kpi-glow {
-
-position: absolute;
-
-width: 120px;
-height: 120px;
-
-right: -55px;
-top: -55px;
-
-border-radius: 50%;
-
-background:
-    rgba(10,110,209,.07);
-
-filter: blur(4px);
-
-}
-
-.kpi-icon {
-
-width: 52px;
-height: 52px;
-
-flex-shrink: 0;
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-border-radius: 15px;
-
-font-size: 19px;
-
-}
-
-.kpi-icon.danger {
-
-color: #DC2626;
-background: #FEF2F2;
-
-}
-
-.kpi-icon.blue {
-
-color: var(--primary);
-background: #EFF6FF;
-
-}
-
-.kpi-icon.orange {
-
-color: #D97706;
-background: #FFFBEB;
-
-}
-
-.kpi-icon.purple {
-
-color: var(--purple);
-background: #F5F3FF;
-
-}
-
-.kpi-content {
-
-min-width: 0;
-
-display: flex;
-flex-direction: column;
-
-}
-
-.kpi-label {
-
-color: var(--muted);
-
-font-size: 9px;
-
-font-weight: 900;
-
-letter-spacing: 1px;
-
-}
-
-.kpi-content strong {
-
-margin:
-    4px 0;
-
-max-width: 210px;
-
-overflow: hidden;
-
-text-overflow: ellipsis;
-
-white-space: nowrap;
-
-color: var(--dark);
-
-font-size: 24px;
-
-font-weight: 850;
-
-line-height: 1.1;
-
-}
-
-.kpi-content small {
-
-color: #94A3B8;
-
-font-size: 10px;
-
-}
-
-.kpi-decoration {
-
-position: absolute;
-
-right: 16px;
-bottom: 12px;
-
-color: #E8EEF5;
-
-font-size: 45px;
-
-}
-
-/* ================= PANELS ================= */
-
-.analytics-grid {
-
-display: grid;
-
-grid-template-columns:
-    repeat(2,minmax(0,1fr));
-
-gap: 18px;
-
-}
-
-.dashboard-panel {
-
-position: relative;
-
-min-width: 0;
-
-padding: 21px;
-
-background:
-    rgba(255,255,255,.91);
-
-border:
-    1px solid rgba(148,163,184,.18);
-
-border-radius: var(--radius);
-
-box-shadow: var(--shadow);
-
-overflow: hidden;
-
-}
-
-.dashboard-panel::before {
-
-content: "";
-
-position: absolute;
-
-top: 0;
-left: 0;
-
-width: 100%;
-height: 3px;
-
-background:
-    linear-gradient(
-        90deg,
-        var(--primary),
-        var(--teal),
-        var(--cyan)
-    );
-
-opacity: .8;
-
-}
-
-.large-panel {
-
-grid-column: span 2;
-
-}
-
-/* ================= PANEL HEADER ================= */
-
-.panel-header {
-
-min-height: 45px;
-
-display: flex;
-
-justify-content: space-between;
-
-align-items: flex-start;
-
-gap: 15px;
-
-margin-bottom: 10px;
-
-}
-
-.panel-kicker {
-
-display: block;
-
-color: #94A3B8;
-
-font-size: 8px;
-
-font-weight: 900;
-
-letter-spacing: 1.3px;
-
-margin-bottom: 3px;
-
-}
-
-.panel-header h2 {
-
-margin: 0;
-
-display: flex;
-
-align-items: center;
-
-gap: 8px;
-
-color: var(--dark);
-
-font-size: 16px;
-
-font-weight: 800;
-
-}
-
-.panel-header h2 i {
-
-color: var(--primary);
-
-font-size: 14px;
-
-}
-
-.panel-badge {
-
-padding:
-    6px 9px;
-
-border-radius: 8px;
-
-background: #F1F5F9;
-
-color: var(--muted);
-
-font-size: 9px;
-
-font-weight: 800;
-
-white-space: nowrap;
-
-}
-
-.panel-badge.live {
-
-display: flex;
-
-align-items: center;
-
-gap: 6px;
-
-color: #15803D;
-
-background: #F0FDF4;
-
-}
-
-.panel-badge.live span {
-
-width: 6px;
-height: 6px;
-
-border-radius: 50%;
-
-background: #22C55E;
-
-}
-
-/* ================= CHARTS ================= */
-
-.chart-container {
-
-position: relative;
-
-width: 100%;
-
-height: 350px;
-
-}
-
-.machine-panel {
-
-margin-top: 18px;
-
-}
-
-.machine-chart-container {
-
-position: relative;
-
-height: 430px;
-
-width: 100%;
-
-}
-
-/* ================= LOWER ================= */
-
-.lower-grid {
-
-display: grid;
-
-grid-template-columns:
-    330px minmax(0,1fr);
-
-gap: 18px;
-
-margin-top: 18px;
-
-}
-
-/* ================= RANKING ================= */
-
-.ranking-header {
-
-display: grid;
-
-grid-template-columns:
-    60px 1fr 70px;
-
-padding:
-    10px 12px;
-
-color: #94A3B8;
-
-font-size: 8px;
-
-font-weight: 900;
-
-letter-spacing: 1px;
-
-border-bottom:
-    1px solid #E8EEF5;
-
-}
-
-.ranking-table {
-
-overflow: hidden;
-
-}
-
-.ranking-table table {
-
-width: 100%;
-
-border-collapse: collapse;
-
-}
-
-.ranking-table tr {
-
-display: grid;
-
-grid-template-columns:
-    60px 1fr 70px;
-
-align-items: center;
-
-min-height: 43px;
-
-border-bottom:
-    1px solid #F1F5F9;
-
-cursor: pointer;
-
-transition: .2s;
-
-}
-
-.ranking-table tr:hover {
-
-background:
-    linear-gradient(
-        90deg,
-        #EFF6FF,
-        transparent
-    );
-
-transform: translateX(3px);
-
-}
-
-.ranking-table td {
-
-padding:
-    7px 12px;
-
-font-size: 12px;
-
-}
-
-.ranking-table td:first-child {
-
-color: var(--primary);
-
-font-weight: 900;
-
-}
-
-.ranking-table td:nth-child(2) {
-
-color: var(--dark);
-
-font-weight: 750;
-
-}
-
-.ranking-table td:last-child {
-
-text-align: right;
-
-color: var(--dark);
-
-font-weight: 900;
-
-}
-
-/* ================= SELECTED CELL ================= */
-
-.selected-cell-badge {
-
-display: flex;
-
-flex-direction: column;
-
-align-items: flex-end;
-
-}
-
-.selected-cell-badge span {
-
-color: #94A3B8;
-
-font-size: 7px;
-
-font-weight: 900;
-
-letter-spacing: 1px;
-
-}
-
-.selected-cell-badge strong {
-
-margin-top: 3px;
-
-padding:
-    5px 10px;
-
-color: white;
-
-background:
-    linear-gradient(
-        135deg,
-        var(--primary),
-        var(--teal)
-    );
-
-border-radius: 8px;
-
-font-size: 11px;
-
-box-shadow:
-    0 5px 15px rgba(10,110,209,.16);
-
-}
-
-.analysis-grid {
-
-display: grid;
-
-grid-template-columns:
-    repeat(2,minmax(0,1fr));
-
-gap: 14px;
-
-}
-
-.mini-analysis-card {
-
-padding: 12px;
-
-background:
-    linear-gradient(
-        145deg,
-        #F8FAFC,
-        #FFFFFF
-    );
-
-border:
-    1px solid #E7EDF4;
-
-border-radius: 15px;
-
-transition: .25s;
-
-}
-
-.mini-analysis-card:hover {
-
-border-color:
-    rgba(10,110,209,.25);
-
-box-shadow:
-    0 10px 25px rgba(15,23,42,.06);
-
-}
-
-.mini-card-header {
-
-display: flex;
-
-justify-content: space-between;
-
-align-items: center;
-
-margin-bottom: 5px;
-
-color: var(--dark);
-
-font-size: 11px;
-
-font-weight: 900;
-
-}
-
-.mini-card-header i {
-
-color: var(--primary);
-
-font-size: 11px;
-
-}
-
-.mini-chart {
-
-height: 190px;
-
-position: relative;
-
-}
-
-/* ================= MODAL ================= */
-
-.modal-overlay {
-
-position: fixed;
-
-inset: 0;
-
-z-index: 3000;
-
-display: none;
-
-align-items: center;
-
-justify-content: center;
-
-padding: 20px;
-
-background:
-    rgba(4,12,24,.68);
-
-backdrop-filter:
-    blur(12px);
-
-animation:
-    fadeIn .2s ease;
-
-}
-
-@keyframes fadeIn {
-
-from {
-    opacity: 0;
-}
-
-to {
-    opacity: 1;
-}
-
-}
-
-.records-modal {
-
-width:
-    min(1500px,96vw);
-
-height:
-    min(900px,92vh);
-
-display: flex;
-
-flex-direction: column;
-
-overflow: hidden;
-
-background:
-    rgba(255,255,255,.98);
-
-border:
-    1px solid rgba(255,255,255,.25);
-
-border-radius: 22px;
-
-box-shadow:
-    0 40px 100px rgba(0,0,0,.35);
-
-animation:
-    modalIn .25s ease;
-
-}
-
-@keyframes modalIn {
-
-from {
-    opacity: 0;
-    transform:
-        translateY(15px)
-        scale(.98);
-}
-
-to {
-    opacity: 1;
-    transform:
-        translateY(0)
-        scale(1);
-}
-
-}
-
-.modal-topbar {
-
-padding:
-    17px 22px;
-
-display: flex;
-
-align-items: center;
-
-justify-content: space-between;
-
-background:
-    linear-gradient(
-        135deg,
-        #07111F,
-        #10243A
-    );
-
-color: white;
-
-}
-
-.modal-title {
-
-display: flex;
-
-align-items: center;
-
-gap: 11px;
-
-}
-
-.modal-title-icon {
-
-width: 40px;
-height: 40px;
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-border-radius: 11px;
-
-background:
-    rgba(255,255,255,.1);
-
-color: #7DD3FC;
-
-}
-
-.modal-title span {
-
-display: block;
-
-color: #94A3B8;
-
-font-size: 8px;
-
-font-weight: 900;
-
-letter-spacing: 1.3px;
-
-}
-
-.modal-title h2 {
-
-margin: 2px 0 0;
-
-font-size: 17px;
-
-}
-
-.modal-close {
-
-width: 38px;
-height: 38px;
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-border: none;
-
-border-radius: 10px;
-
-color: #CBD5E1;
-
-background:
-    rgba(255,255,255,.08);
-
-cursor: pointer;
-
-font-size: 16px;
-
-transition: .2s;
-
-}
-
-.modal-close:hover {
-
-color: white;
-
-background:
-    rgba(239,68,68,.8);
-
-}
-
-/* ================= MODAL FILTERS ================= */
-
-.modal-filters {
-
-padding:
-    13px 20px;
-
-display: flex;
-
-align-items: flex-end;
-
-gap: 12px;
-
-flex-wrap: wrap;
-
-background:
-    #F8FAFC;
-
-border-bottom:
-    1px solid #E2E8F0;
-
-}
-
-.filter-control {
-
-display: flex;
-
-flex-direction: column;
-
-gap: 5px;
-
-}
-
-.filter-control label {
-
-color: #64748B;
-
-font-size: 9px;
-
-font-weight: 900;
-
-text-transform: uppercase;
-
-letter-spacing: .8px;
-
-}
-
-.filter-control label i {
-
-color: var(--primary);
-
-margin-right: 3px;
-
-}
-
-.filter-control select {
-
-min-width: 160px;
-
-padding:
-    9px 12px;
-
-border:
-    1px solid #DDE5EE;
-
-border-radius: 9px;
-
-background: white;
-
-color: var(--dark);
-
-outline: none;
-
-font-size: 12px;
-
-font-weight: 700;
-
-}
-
-.filter-control select:focus {
-
-border-color: var(--primary);
-
-box-shadow:
-    0 0 0 3px rgba(10,110,209,.08);
-
-}
-
-.clear-filter {
-
-height: 37px;
-
-padding:
-    0 13px;
-
-border: none;
-
-border-radius: 9px;
-
-background:
-    #E2E8F0;
-
-color: #475569;
-
-cursor: pointer;
-
-font-size: 11px;
-
-font-weight: 800;
-
-transition: .2s;
-
-}
-
-.clear-filter:hover {
-
-background: #CBD5E1;
-
-transform: translateY(-1px);
-
-}
-
-/* ================= RECORD INFO ================= */
-
-.records-info {
-
-min-height: 35px;
-
-padding:
-    7px 20px;
-
-display: flex;
-
-align-items: center;
-
-color: #64748B;
-
-background: white;
-
-border-bottom:
-    1px solid #EDF2F7;
-
-font-size: 10px;
-
-font-weight: 700;
-
-}
-
-.records-info i {
-
-margin-right: 6px;
-
-color: var(--primary);
-
-}
-
-/* ================= MODAL TABLE ================= */
-
-.modal-body {
-
-flex: 1;
-
-min-height: 0;
-
-overflow: hidden;
-
-}
-
-.modal-table-container {
-
-width: 100%;
-height: 100%;
-
-overflow: auto;
-
-}
-
-.modal-table-container table {
-
-width: 100%;
-
-border-collapse: separate;
-
-border-spacing: 0;
-
-white-space: nowrap;
-
-}
-
-.modal-table-container th {
-
-position: sticky;
-
-top: 0;
-
-z-index: 10;
-
-padding:
-    11px 14px;
-
-text-align: left;
-
-background:
-    #F1F5F9;
-
-color: #334155;
-
-border-bottom:
-    2px solid #CBD5E1;
-
-font-size: 10px;
-
-font-weight: 900;
-
-text-transform: uppercase;
-
-letter-spacing: .5px;
-
-}
-
-.modal-table-container td {
-
-padding:
-    9px 14px;
-
-border-bottom:
-    1px solid #EDF2F7;
-
-color: #475569;
-
-background: white;
-
-font-size: 11px;
-
-}
-
-.modal-table-container tbody tr:hover td {
-
-background:
-    #F8FBFF;
-
-}
-
-/* ================= LOADERS ================= */
-
-.loading-screen {
-
-position: fixed;
-
-inset: 0;
-
-z-index: 5000;
-
-display: flex;
-
-align-items: center;
-
-justify-content: center;
-
-background:
-    linear-gradient(
-        135deg,
-        #07111F,
-        #0B1728
-    );
-
-transition:
-    opacity .35s,
-    visibility .35s;
-
-}
-
-.loading-screen.hidden {
-
-opacity: 0;
-
-visibility: hidden;
-
-pointer-events: none;
-
-}
-
-.loader-box {
-
-text-align: center;
-
-color: white;
-
-}
-
-.loader-logo {
-
-width: 70px;
-height: 70px;
-
-margin:
-    0 auto 20px;
-
-display: flex;
-
-align-items: center;
-justify-content: center;
-
-border-radius: 20px;
-
-color: white;
-
-background:
-    linear-gradient(
-        135deg,
-        var(--primary),
-        var(--teal)
-    );
-
-box-shadow:
-    0 20px 50px rgba(0,166,166,.2);
-
-font-size: 28px;
-
-}
-
-.loader-spinner {
-
-width: 28px;
-height: 28px;
-
-margin: 0 auto 15px;
-
-border:
-    3px solid rgba(255,255,255,.15);
-
-border-top-color:
-    #38BDF8;
-
-border-radius: 50%;
-
-animation:
-    spin .8s linear infinite;
-
-}
-
-@keyframes spin {
-
-to {
-    transform: rotate(360deg);
-}
-
-}
-
-.loader-box h3 {
-
-margin: 0;
-
-font-size: 16px;
-
-}
-
-.loader-box p {
-
-margin:
-    5px 0 0;
-
-color: #94A3B8;
-
-font-size: 11px;
-
-}
-
-.loading-table {
-
-padding: 35px !important;
-
-text-align: center;
-
-color: #64748B;
-
-}
-
-.table-loader {
-
-width: 22px;
-height: 22px;
-
-margin:
-    0 auto 10px;
-
-border:
-    2px solid #E2E8F0;
-
-border-top-color:
-    var(--primary);
-
-border-radius: 50%;
-
-animation:
-    spin .7s linear infinite;
-
-}
-
-/* ================= SCROLLBARS ================= */
-
-::-webkit-scrollbar {
-
-width: 7px;
-height: 7px;
-
-}
-
-::-webkit-scrollbar-track {
-
-background: transparent;
-
-}
-
-::-webkit-scrollbar-thumb {
-
-background:
-    #CBD5E1;
-
-border-radius: 20px;
-
-}
-
-::-webkit-scrollbar-thumb:hover {
-
-background:
-    #94A3B8;
-
-}
-
-/* ================= RESPONSIVE ================= */
-
-@media(max-width:1200px) {
-
-.kpi-grid {
-
-    grid-template-columns:
-        repeat(2,1fr);
-}
-
-.lower-grid {
-
-    grid-template-columns:
-        1fr;
-}
-
-}
-
-@media(max-width:900px) {
-
-.topbar {
-
-    align-items: flex-start;
-
-    flex-direction: column;
-}
-
-.header-controls {
-
-    width: 100%;
-}
-
-.period-selector {
-
-    flex: 1;
-}
-
-.analytics-grid {
-
-    grid-template-columns: 1fr;
-}
-
-.large-panel {
-
-    grid-column: auto;
-}
-
-.machine-chart-container {
-
-    height: 360px;
-}
-
-}
-
-@media(max-width:650px) {
-
-.topbar {
-
-    padding: 12px;
-}
-
-.brand-subtitle {
-
-    display: none;
-}
-
-.brand-title {
-
-    font-size: 15px;
-}
-
-.brand-icon {
-
-    width: 42px;
-    height: 42px;
-
-    border-radius: 12px;
-}
-
-.status-indicator {
-
-    display: none;
-}
-
-.header-controls {
-
-    gap: 7px;
-}
-
-.period-selector {
-
-    min-width: 0;
-
-    height: 46px;
-}
-
-.records-button {
-
-    width: 46px;
-
-    padding: 0;
-
-    justify-content: center;
-}
-
-.records-button span {
-
-    display: none;
-}
-
-.dashboard-container {
-
-    padding:
-        18px 11px 35px;
-}
-
-.dashboard-intro {
-
-    align-items: flex-start;
-
-    flex-direction: column;
-}
-
-.data-status {
-
-    width: 100%;
-}
-
-.kpi-grid {
-
-    grid-template-columns:
-        repeat(2,1fr);
-
-    gap: 9px;
-}
-
-.kpi-card {
-
-    min-height: 125px;
-
-    padding: 13px;
-
-    gap: 9px;
-
-    border-radius: 16px;
-}
-
-.kpi-icon {
-
-    width: 38px;
-    height: 38px;
-
-    border-radius: 11px;
-
-    font-size: 15px;
-}
-
-.kpi-label {
-
-    font-size: 7px;
-}
-
-.kpi-content strong {
-
-    font-size: 17px;
-
-    max-width: 110px;
-}
-
-.kpi-content small {
-
-    font-size: 8px;
-}
-
-.kpi-decoration {
-
-    display: none;
-}
-
-.dashboard-panel {
-
-    padding: 15px;
-
-    border-radius: 16px;
-}
-
-.chart-container {
-
-    height: 290px;
-}
-
-.machine-chart-container {
-
-    height: 330px;
-}
-
-.analysis-grid {
-
-    grid-template-columns: 1fr;
-}
-
-.mini-chart {
-
-    height: 220px;
-}
-
-.modal-overlay {
-
-    padding: 7px;
-}
-
-.records-modal {
-
-    width: 100%;
-
-    height: 96vh;
-
-    border-radius: 17px;
-}
-
-.modal-filters {
-
-    padding: 10px;
-
-    gap: 8px;
-}
-
-.filter-control {
-
-    flex: 1;
-
-    min-width: 120px;
-}
-
-.filter-control select {
-
-    width: 100%;
-
-    min-width: 0;
-}
-
-.clear-filter {
-
-    width: 100%;
-}
-
-.modal-title h2 {
-
-    font-size: 14px;
-}
-
-}
+</div><script src="ManttoIssues.js"></script></body>
+</html>
