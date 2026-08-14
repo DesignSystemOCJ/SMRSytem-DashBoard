@@ -1372,3 +1372,55 @@ thead th:not(:last-child):hover {
     }
 
 }
+
+/* =========================================================
+   STATUS COLORS (8 ESTATUS)
+   ========================================================= */
+
+/* New */
+.status-new {
+    background: #E8F2FC;
+    color: #0A6ED1;
+}
+
+/* Under Review */
+.status-review {
+    background: #FFF8E1;
+    color: #B77900;
+}
+
+/* Approved */
+.status-approved {
+    background: #E8F5EE;
+    color: #107E3E;
+}
+
+/* In Process */
+.status-progress {
+    background: #E3F2FD;
+    color: #1565C0;
+}
+
+/* On Hold */
+.status-hold {
+    background: #FFF2E8;
+    color: #E9730C;
+}
+
+/* Cancelled */
+.status-cancelled {
+    background: #FDECEC;
+    color: #D32F2F;
+}
+
+/* Complete / Completed */
+.status-completed {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+/* Closed */
+.status-closed {
+    background: #ECEFF1;
+    color: #546E7A;
+}
