@@ -625,7 +625,7 @@ function updateDashboard() {
 calculateKPIs();
 createOperationChart();
 loadIndependentMonthlyChart();
-createCellChart();
+loadLast15DaysChart();
 createIssueChart();
 createMachineChart();
 createTop10Table();
@@ -979,71 +979,377 @@ async function loadIndependentMonthlyChart() {
 }
 
 /* =========================================================
-CELL CHART
+LAST 15 DAYS ISSUES CHART
 ========================================================= */
 
-function createCellChart() {
-const count = {};
+async function loadLast15DaysChart() {
 
-maintenanceData.forEach(row => {
-    if (row.Maq) {
-        count[row.Maq] =
-            (count[row.Maq] || 0) + 1;
+    try {
+
+        /*
+        =====================================================
+        CALCULATE LAST 15 DAYS
+
+        If today is August 14, 2026:
+
+        30-Jul-2026
+        31-Jul-2026
+        01-Aug-2026
+        ...
+        13-Aug-2026
+
+        Today is NOT included.
+        =====================================================
+        */
+
+        const today = new Date();
+
+        today.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+        const dates = [];
+
+        for (let i = 15; i >= 1; i--) {
+
+            const date =
+                new Date(today);
+
+            date.setDate(
+                today.getDate() - i
+            );
+
+            dates.push(date);
+        }
+
+
+        /*
+        =====================================================
+        DATE RANGE FOR SUPABASE
+
+        Start = 15 days ago
+        End   = yesterday
+        =====================================================
+        */
+
+        const startDate =
+            dates[0];
+
+        const endDate =
+            dates[dates.length - 1];
+
+
+        /*
+        =====================================================
+        FORMAT DATE AS YYYY-MM-DD
+
+        This is used to compare with the Supabase Date field.
+        =====================================================
+        */
+
+        function formatDate(date) {
+
+            const year =
+                date.getFullYear();
+
+            const month =
+                String(
+                    date.getMonth() + 1
+                ).padStart(2, "0");
+
+            const day =
+                String(
+                    date.getDate()
+                ).padStart(2, "0");
+
+            return `${year}-${month}-${day}`;
+        }
+
+
+        const start =
+            formatDate(
+                startDate
+            );
+
+        const end =
+            formatDate(
+                endDate
+            );
+
+
+        /*
+        =====================================================
+        LOAD DATA FROM SUPABASE
+
+        IMPORTANT:
+        This query DOES NOT use Month.
+
+        It uses Date so the chart is independent
+        from the Maintenance Period selector.
+        =====================================================
+        */
+
+        let allData = [];
+
+        const pageSize = 1000;
+
+        let from = 0;
+
+        let moreData = true;
+
+
+        while (moreData) {
+
+            const {
+                data,
+                error
+            } = await supabaseClient
+                .from("ManttoIssues")
+                .select("Date")
+                .gte(
+                    "Date",
+                    start
+                )
+                .lte(
+                    "Date",
+                    end
+                )
+                .range(
+                    from,
+                    from + pageSize - 1
+                );
+
+
+            if (error) {
+
+                console.error(
+                    "Error loading last 15 days:",
+                    error
+                );
+
+                return;
+            }
+
+
+            if (
+                data &&
+                data.length > 0
+            ) {
+
+                allData =
+                    allData.concat(
+                        data
+                    );
+
+                from += pageSize;
+
+            } else {
+
+                moreData = false;
+
+            }
+
+        }
+
+
+        /*
+        =====================================================
+        COUNT ISSUES PER DAY
+        =====================================================
+        */
+
+        const dailyCount = {};
+
+
+        dates.forEach(date => {
+
+            const key =
+                formatDate(date);
+
+            dailyCount[key] = 0;
+
+        });
+
+
+        allData.forEach(row => {
+
+            if (!row.Date) return;
+
+
+            /*
+            Handle:
+
+            2026-08-13
+            2026-08-13T00:00:00
+            2026-08-13T15:30:00
+            */
+
+            const dateValue =
+                String(row.Date)
+                    .substring(
+                        0,
+                        10
+                    );
+
+
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    dailyCount,
+                    dateValue
+                )
+            ) {
+
+                dailyCount[dateValue]++;
+
+            }
+
+        });
+
+
+        /*
+        =====================================================
+        CHART LABELS
+        =====================================================
+        */
+
+        const labels =
+            dates.map(date => {
+
+                return date.toLocaleDateString(
+                    "en-US",
+                    {
+                        month: "short",
+                        day: "numeric"
+                    }
+                );
+
+            });
+
+
+        const values =
+            dates.map(date => {
+
+                return dailyCount[
+                    formatDate(date)
+                ];
+
+            });
+
+
+        /*
+        =====================================================
+        CHART OPTIONS
+        =====================================================
+        */
+
+        const options =
+            baseChartOptions();
+
+
+        options.scales.x.ticks.maxRotation =
+            45;
+
+        options.scales.x.ticks.minRotation =
+            45;
+
+        options.scales.x.ticks.autoSkip =
+            false;
+
+
+        /*
+        =====================================================
+        CREATE CHART
+        =====================================================
+        */
+
+        renderChart(
+            "last15DaysChart",
+            {
+                type: "line",
+
+                data: {
+
+                    labels,
+
+                    datasets: [
+
+                        {
+                            label:
+                                "Issues",
+
+                            data:
+                                values,
+
+                            borderColor:
+                                "#0A6ED1",
+
+                            backgroundColor:
+                                "rgba(10,110,209,.10)",
+
+                            hoverBackgroundColor:
+                                "#00A6A6",
+
+                            borderWidth:
+                                3,
+
+                            pointRadius:
+                                5,
+
+                            pointHoverRadius:
+                                7,
+
+                            pointBackgroundColor:
+                                "#0A6ED1",
+
+                            pointBorderColor:
+                                "#FFFFFF",
+
+                            pointBorderWidth:
+                                2,
+
+                            tension:
+                                0.35,
+
+                            fill:
+                                true
+                        }
+
+                    ]
+
+                },
+
+                options,
+
+                plugins: [
+                    ChartDataLabels
+                ]
+
+            }
+        );
+
+
+        console.log(
+            "Last 15 Days:",
+            {
+                start,
+                end,
+                data: dailyCount
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Unexpected error loading last 15 days chart:",
+            error
+        );
+
     }
-});
 
-const result =
-    Object.entries(count)
-        .sort(
-            (a,b) =>
-                b[1] - a[1]
-        )
-        .slice(0,10);
-
-const colors =
-    result.map(
-        (_,i) =>
-            i === 0
-                ? "#00A6A6"
-                : "#0A6ED1"
-    );
-
-const options =
-    baseChartOptions();
-
-options.scales.x.ticks.maxRotation =
-    0;
-
-renderChart(
-    "cellChart",
-    {
-        type: "bar",
-        data: {
-            labels:
-                result.map(x => x[0]),
-            datasets: [
-                {
-                    label:
-                        "Issues",
-                    data:
-                        result.map(x => x[1]),
-                    backgroundColor:
-                        colors,
-                    borderRadius:
-                        7,
-                    borderSkipped:
-                        false,
-                    barPercentage:
-                        .7
-                }
-            ]
-        },
-        options,
-        plugins: [
-            ChartDataLabels
-        ]
-    }
-);
 }
 
 /* =========================================================
