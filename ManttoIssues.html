@@ -203,14 +203,14 @@
             <div class="panel-header">
 
                 <div>
-                    <span class="panel-kicker">
-                        OPERATIONS
-                    </span>
+                   <span class="panel-kicker">
+    DAILY PERFORMANCE
+</span>
 
-                    <h2>
-                        <i class="fa-solid fa-gears"></i>
-                        Issues by Operation
-                    </h2>
+<h2>
+    <i class="fa-solid fa-chart-column"></i>
+    Issues per day - Last 15 Days
+</h2>
                 </div>
 
                 <div class="panel-badge">
@@ -256,62 +256,63 @@
 
         </article>
 
-<!-- Issues - Last 15 Days -->
-<article class="dashboard-panel">
 
-    <div class="panel-header">
+        <article class="dashboard-panel">
 
-        <div>
-            <span class="panel-kicker">
-                DAILY TREND
-            </span>
+            <div class="panel-header">
 
-            <h2>
-                <i class="fa-solid fa-chart-line"></i>
-                Issues - Last 15 Days
-            </h2>
-        </div>
+                <div>
+                    <span class="panel-kicker">
+                        PRODUCTION CELLS
+                    </span>
 
-        <div class="panel-badge">
-            Daily Issues
-        </div>
+                    <h2>
+                        <i class="fa-solid fa-industry"></i>
+                        Issues by Cell
+                    </h2>
+                </div>
 
-    </div>
+                <div class="panel-badge">
+                    Top 10
+                </div>
 
-    <div class="chart-container">
-        <canvas id="last15DaysChart"></canvas>
-    </div>
+            </div>
 
-</article>
+            <div class="chart-container">
+                <canvas id="cellChart"></canvas>
+            </div>
+
+        </article>
 
 
-<!-- Issue Detail -->
-<article class="dashboard-panel">
+        <article class="dashboard-panel">
 
-    <div class="panel-header">
+            <div class="panel-header">
 
-        <div>
-            <span class="panel-kicker">
-                FAILURE ANALYSIS
-            </span>
+                <div>
+                    <span class="panel-kicker">
+                        FAILURE ANALYSIS
+                    </span>
 
-            <h2>
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                Issue Detail
-            </h2>
-        </div>
+                    <h2>
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Issue Detail
+                    </h2>
+                </div>
 
-        <div class="panel-badge">
-            Frequency
-        </div>
+                <div class="panel-badge">
+                    Frequency
+                </div>
 
-    </div>
+            </div>
 
-    <div class="chart-container">
-        <canvas id="issueChart"></canvas>
-    </div>
+            <div class="chart-container">
+                <canvas id="issueChart"></canvas>
+            </div>
 
-</article>
+        </article>
+
+    </section>
 
 
     
