@@ -978,43 +978,130 @@ async function loadIndependentMonthlyChart() {
     }
 }
 
+
 /* =========================================================
-ISSUES PER DAY - LAST 15 DAYS
+ISSUES BY CELL - LAST 15 COMPLETE DAYS
 ========================================================= */
 
 async function createCellChart() {
 
     try {
 
+        // =====================================================
+        // 1. TODAY
+        // =====================================================
+
         const today = new Date();
 
-        today.setHours(
-            23,
-            59,
-            59,
-            999
+
+        // =====================================================
+        // 2. YESTERDAY
+        // =====================================================
+
+        const endDate = new Date(today);
+
+        endDate.setDate(
+            endDate.getDate() - 1
         );
 
-        const startDate = new Date(today);
+
+        // =====================================================
+        // 3. START DATE
+        // =====================================================
+
+        const startDate = new Date(endDate);
 
         startDate.setDate(
-            today.getDate() - 14
-        );
-
-        startDate.setHours(
-            0,
-            0,
-            0,
-            0
+            startDate.getDate() - 14
         );
 
 
-        const startDateString =
-            startDate.toISOString();
+        // =====================================================
+        // 4. CREATE YYYY-MM-DD VALUES
+        // =====================================================
 
-        const endDateString =
-            today.toISOString();
+        const formatDate = (date) => {
 
+            const year =
+                date.getFullYear();
+
+            const month =
+                String(
+                    date.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            const day =
+                String(
+                    date.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            return `${year}-${month}-${day}`;
+
+        };
+
+
+        const startDateKey =
+            formatDate(startDate);
+
+        const endDateKey =
+            formatDate(endDate);
+
+
+        /*
+        IMPORTANT:
+
+        We use the NEXT day as the upper limit.
+
+        Example:
+
+        Start = 2026-07-30
+        End   = 2026-08-13
+
+        Query:
+
+        >= 2026-07-30
+        <  2026-08-14
+
+        This guarantees that ALL records
+        from August 13 are included.
+        */
+
+        const nextDay =
+            new Date(endDate);
+
+        nextDay.setDate(
+            nextDay.getDate() + 1
+        );
+
+        const nextDayKey =
+            formatDate(nextDay);
+
+
+        console.log(
+            "Chart START:",
+            startDateKey
+        );
+
+        console.log(
+            "Chart END:",
+            endDateKey
+        );
+
+        console.log(
+            "Chart NEXT DAY:",
+            nextDayKey
+        );
+
+
+        // =====================================================
+        // 5. LOAD DATA FROM SUPABASE
+        // =====================================================
 
         const {
             data,
@@ -1024,11 +1111,11 @@ async function createCellChart() {
             .select("Date")
             .gte(
                 "Date",
-                startDateString
+                startDateKey
             )
-            .lte(
+            .lt(
                 "Date",
-                endDateString
+                nextDayKey
             );
 
 
@@ -1043,9 +1130,21 @@ async function createCellChart() {
         }
 
 
+        console.log(
+            "Records returned:",
+            data ? data.length : 0
+        );
+
+
+        // =====================================================
+        // 6. CREATE 15 DAYS
+        // =====================================================
+
         const dailyCount = {};
 
         const labels = [];
+
+        const dateKeys = [];
 
 
         for (
@@ -1062,8 +1161,20 @@ async function createCellChart() {
             );
 
 
-            const year =
-                currentDate.getFullYear();
+            const dateKey =
+                formatDate(
+                    currentDate
+                );
+
+
+            dailyCount[dateKey] = 0;
+
+            dateKeys.push(
+                dateKey
+            );
+
+
+            // Label for chart
 
             const month =
                 String(
@@ -1082,18 +1193,16 @@ async function createCellChart() {
                 );
 
 
-            const dateKey =
-                `${year}-${month}-${day}`;
-
-
-            dailyCount[dateKey] = 0;
-
-
             labels.push(
                 `${month}/${day}`
             );
+
         }
 
+
+        // =====================================================
+        // 7. COUNT RECORDS
+        // =====================================================
 
         if (
             data &&
@@ -1107,42 +1216,93 @@ async function createCellChart() {
                 }
 
 
-                const dateValue =
-                    new Date(row.Date);
+                /*
+                IMPORTANT FIX:
+
+                We do NOT use:
+
+                    new Date(row.Date)
+
+                because that can change
+                2026-08-13 into 2026-08-12
+                depending on timezone.
+
+                Instead we take the date directly
+                from the Supabase value.
+                */
+
+                let dateKey = "";
 
 
                 if (
-                    isNaN(
-                        dateValue.getTime()
-                    )
+                    typeof row.Date === "string"
                 ) {
-                    return;
+
+                    /*
+                    If Date is:
+
+                    2026-08-13
+
+                    or:
+
+                    2026-08-13 14:30:00
+
+                    or:
+
+                    2026-08-13T14:30:00
+
+                    we take only:
+
+                    2026-08-13
+                    */
+
+                    const match =
+                        row.Date.match(
+                            /^(\d{4})-(\d{2})-(\d{2})/
+                        );
+
+
+                    if (match) {
+
+                        dateKey =
+                            `${match[1]}-${match[2]}-${match[3]}`;
+
+                    }
+
                 }
 
 
-                const year =
-                    dateValue.getFullYear();
+                /*
+                Fallback if Date is not a string
+                */
 
-                const month =
-                    String(
-                        dateValue.getMonth() + 1
-                    ).padStart(
-                        2,
-                        "0"
-                    );
+                if (!dateKey) {
 
-                const day =
-                    String(
-                        dateValue.getDate()
-                    ).padStart(
-                        2,
-                        "0"
-                    );
+                    const dateValue =
+                        new Date(row.Date);
 
 
-                const dateKey =
-                    `${year}-${month}-${day}`;
+                    if (
+                        isNaN(
+                            dateValue.getTime()
+                        )
+                    ) {
+                        return;
+                    }
 
+
+                    dateKey =
+                        formatDate(
+                            dateValue
+                        );
+
+                }
+
+
+                /*
+                Add one issue to the
+                corresponding date.
+                */
 
                 if (
                     Object.prototype.hasOwnProperty.call(
@@ -1160,11 +1320,31 @@ async function createCellChart() {
         }
 
 
+        // =====================================================
+        // 8. CREATE VALUES
+        // =====================================================
+
         const values =
-            Object.values(
-                dailyCount
+            dateKeys.map(
+                dateKey =>
+                    dailyCount[dateKey]
             );
 
+
+        console.log(
+            "Chart dates:",
+            dateKeys
+        );
+
+        console.log(
+            "Chart values:",
+            values
+        );
+
+
+        // =====================================================
+        // 9. CHART OPTIONS
+        // =====================================================
 
         const options =
             baseChartOptions();
@@ -1179,6 +1359,10 @@ async function createCellChart() {
         options.scales.x.ticks.autoSkip =
             false;
 
+
+        // =====================================================
+        // 10. RENDER CHART
+        // =====================================================
 
         renderChart(
             "cellChart",
@@ -1210,7 +1394,7 @@ async function createCellChart() {
                                 false,
 
                             barPercentage:
-                                .68
+                                0.68
                         }
                     ]
                 },
@@ -1227,13 +1411,15 @@ async function createCellChart() {
     } catch (error) {
 
         console.error(
-            "Unexpected error creating daily issues chart:",
+            "Unexpected error creating Issues by Cell chart:",
             error
         );
 
     }
 
 }
+
+
 
 /* =========================================================
 ISSUE CHART
