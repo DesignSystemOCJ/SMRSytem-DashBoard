@@ -1165,7 +1165,7 @@ async function eliminarProyecto() {
 
     if (
         !confirm(
-            "¿Eliminar proyecto?"
+            "¿Delete Project?"
         )
     ) {
 
@@ -1199,7 +1199,7 @@ async function eliminarProyecto() {
     else {
 
         alert(
-            "Proyecto eliminado"
+            "Project Deleted"
         );
 
 
