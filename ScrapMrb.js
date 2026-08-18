@@ -110,50 +110,255 @@ async function loadKPIs() {
 }
 
 async function loadMonthlyChart() {
-    const { data, error } = await supabaseClient.rpc("scrap_por_mes");
-    if (error) {
-        console.error(error);
-        return;
+
+    try {
+
+        // ============================================================
+        // OBTENER DATOS DE PRODUCTION
+        //
+        // Month  = Mes
+        // %Aveg  = Valor decimal
+        //
+        // Ejemplo:
+        // 0.00500 + 0.00400 + 0.01090 = 0.01990
+        // 0.01990 * 100 = 1.99%
+        // ============================================================
+
+        const allData = await fetchAllRecords(
+            "Production",
+            q => q.select('Month, "%Aveg"')
+        );
+
+        console.log("=================================");
+        console.log("PRODUCTION - SCRAP PER MONTH");
+        console.log("TOTAL REGISTROS:", allData.length);
+        console.log(allData);
+        console.log("=================================");
+
+
+        // ============================================================
+        // CREAR MAPA DE MESES
+        // January → December
+        // ============================================================
+
+        let totals = {};
+
+        MONTH_NAMES.forEach(month => {
+            totals[month] = 0;
+        });
+
+
+        // ============================================================
+        // SUMAR %AVEG POR MES
+        // ============================================================
+
+        allData.forEach(row => {
+
+            if (!row.Month) return;
+
+            const monthDB =
+                String(row.Month).trim().toLowerCase();
+
+            const valor =
+                Number(row["%Aveg"]);
+
+            if (isNaN(valor)) return;
+
+
+            MONTH_NAMES.forEach(month => {
+
+                if (month.toLowerCase() === monthDB) {
+
+                    totals[month] += valor;
+
+                }
+
+            });
+
+        });
+
+
+        // ============================================================
+        // CONVERTIR A PORCENTAJE
+        //
+        // Ejemplo:
+        // 0.01990 → 1.99
+        // ============================================================
+
+        const valoresPorcentaje =
+            MONTH_NAMES.map(month => {
+
+                return Number(
+                    (totals[month] * 100).toFixed(2)
+                );
+
+            });
+
+
+        // ============================================================
+        // DEBUG
+        // ============================================================
+
+        console.log("=================================");
+        console.log("SUMA DECIMAL POR MES:");
+        console.log(totals);
+
+        console.log("PORCENTAJE POR MES:");
+        console.log(valoresPorcentaje);
+
+        console.log("=================================");
+
+
+        // ============================================================
+        // CREAR GRÁFICA
+        // ============================================================
+
+        renderManagedChart("monthlyChart", {
+
+            type: "bar",
+
+            plugins: [ChartDataLabels],
+
+            data: {
+
+                // ====================================================
+                // MESES
+                // ====================================================
+
+                labels: MONTH_NAMES,
+
+                datasets: [{
+
+                    label: "%Aveg",
+
+                    data: valoresPorcentaje,
+
+                    backgroundColor:
+                        "rgba(10, 110, 209, 0.75)",
+
+                    borderColor:
+                        "#0A6ED1",
+
+                    borderWidth: 1,
+
+                    borderRadius: 4
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    // =================================================
+                    // OCULTAR LEYENDA
+                    // =================================================
+
+                    legend: {
+                        display: false
+                    },
+
+
+                    // =================================================
+                    // PORCENTAJE DENTRO DE LA BARRA
+                    // =================================================
+
+                    datalabels: {
+
+                        anchor: "center",
+
+                        align: "center",
+
+                        font: {
+                            weight: "bold",
+                            size: 10
+                        },
+
+                        // Texto blanco dentro de la barra
+                        color: "#000000",
+
+                        formatter: function(value) {
+
+                            return value > 0
+                                ? value.toFixed(2) + "%"
+                                : "";
+
+                        }
+
+                    },
+
+
+                    // =================================================
+                    // TOOLTIP
+                    // =================================================
+
+                    tooltip: {
+
+                        callbacks: {
+
+                            label: function(context) {
+
+                                return "%Aveg: " +
+                                    Number(context.raw).toFixed(2) +
+                                    "%";
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+
+                // ====================================================
+                // EJE Y
+                // ====================================================
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        title: {
+
+                            display: true,
+
+                            text: "%Aveg"
+
+                        },
+
+                        ticks: {
+
+                            callback: function(value) {
+
+                                return value + "%";
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    } catch (err) {
+
+        console.error(
+            "Error al cargar Scrap Per Month:",
+            err
+        );
+
     }
 
-    let totals = {};
-    MONTH_NAMES.forEach(m => totals[m] = 0);
-
-    data.forEach(row => {
-        let monthDB = row.month.trim().toLowerCase();
-        MONTH_NAMES.forEach(m => {
-            if (m.toLowerCase() === monthDB) {
-                totals[m] = Number(row.total_scrap) || 0;
-            }
-        });
-    });
-
-    renderManagedChart("monthlyChart", {
-        type: "bar",
-        plugins: [ChartDataLabels],
-        data: {
-            labels: MONTH_NAMES,
-            datasets: [{
-                label: "Total Scrap",
-                data: MONTH_NAMES.map(m => totals[m]),
-                backgroundColor: MONTH_NAMES.map(m => m === selectedMonth ? "#00a3a3" : "rgba(10, 110, 209, 0.75)")
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    anchor: "end",
-                    align: "top",
-                    font: { weight: "bold", size: 10 },
-                    color: "#003b5c",
-                    formatter: val => val > 0 ? val : ""
-                }
-            },
-            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-        }
-    });
 }
 
 async function loadModelChart() {
@@ -245,69 +450,577 @@ function cambiarDiasRangoMain(dias) {
     loadLast14Days();
 }
 
+
 async function loadLast14Days() {
+
     const hoy = new Date();
+
     let fechas = [];
-    for (let i = 14 + offsetDiasMain; i >= 1 + offsetDiasMain; i--) {
-        let fecha = new Date();
+
+    // ============================================================
+    // GENERAR 15 DÍAS
+    //
+    // Ejemplo si hoy es 18-Aug-2026:
+    //
+    // 03-Aug-2026 hasta 17-Aug-2026
+    //
+    // NO incluye el día actual.
+    // ============================================================
+
+    for (
+        let i = (TREND_DAYS - 1) + offsetDiasMain;
+        i >= 1 + offsetDiasMain;
+        i--
+    ) {
+
+        const fecha = new Date(hoy);
+
         fecha.setDate(hoy.getDate() - i);
-        let formato = fecha.getFullYear() + "-" +
+
+        const formato =
+            fecha.getFullYear() + "-" +
             String(fecha.getMonth() + 1).padStart(2, "0") + "-" +
             String(fecha.getDate()).padStart(2, "0");
+
         fechas.push(formato);
     }
-    
-    let fechaInicio = fechas[0];
-    let fechaFin = fechas[13];
 
-    let fInicioTxt = fechas[0].split("-").reverse().join("/");
-    let fFinTxt = fechas[13].split("-").reverse().join("/");
-    document.getElementById("last14DaysTitle").textContent = `Tendencia Diaria (${fInicioTxt} al ${fFinTxt})`;
+    const fechaInicio = fechas[0];
+    const fechaFin = fechas[fechas.length - 1];
 
-    const allData = await fetchAllRecords("Scrap", q => q.select("Date, Stripp").gte("Date", fechaInicio).lte("Date", fechaFin));
+    // ============================================================
+    // MESES CORTOS
+    // ============================================================
 
-    let totales = {};
-    fechas.forEach(f => totales[f] = 0);
+    const mesesCortos = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
 
-    allData.forEach(row => {
-        if (totales[row.Date] !== undefined) {
-            totales[row.Date] += Number(row.Stripp) || 0;
-        }
-    });
+    // ============================================================
+    // TÍTULO
+    // ============================================================
 
-    let valores = fechas.map(f => totales[f]);
-    let etiquetas = fechas.map(f => {
-        let p = f.split("-");
-        return p[2] + "-" + p[1] + "-" + p[0].slice(2);
-    });
+    const fechaInicioObj =
+        new Date(fechaInicio + "T00:00:00");
 
-    renderManagedChart("last7Chart", {
-        type: "bar",
-        plugins: [ChartDataLabels],
-        data: {
-            labels: etiquetas,
-            datasets: [{
-                label: "Scrap por Día",
-                data: valores,
-                backgroundColor: "rgba(10, 110, 209, 0.75)"
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    anchor: "end",
-                    align: "top",
-                    font: { weight: "bold" },
-                    color: "#003b5c",
-                    formatter: val => val > 0 ? val : ""
+    const fechaFinObj =
+        new Date(fechaFin + "T00:00:00");
+
+    const fInicioTxt =
+        String(fechaInicioObj.getDate()).padStart(2, "0") +
+        "-" +
+        mesesCortos[fechaInicioObj.getMonth()];
+
+    const fFinTxt =
+        String(fechaFinObj.getDate()).padStart(2, "0") +
+        "-" +
+        mesesCortos[fechaFinObj.getMonth()];
+
+    document.getElementById("last14DaysTitle").textContent =
+        `Daily Trend (${fInicioTxt} to ${fFinTxt})`;
+
+    try {
+
+        // ============================================================
+        // FECHA FINAL EXCLUSIVA
+        //
+        // Ejemplo:
+        //
+        // fechaFin = 2026-08-17
+        //
+        // fechaFinExclusiva = 2026-08-18
+        //
+        // Así incluimos TODO el día 17.
+        // ============================================================
+
+        const fechaFinExclusivaObj =
+            new Date(fechaFin + "T00:00:00");
+
+        fechaFinExclusivaObj.setDate(
+            fechaFinExclusivaObj.getDate() + 1
+        );
+
+        const fechaFinExclusiva =
+            fechaFinExclusivaObj.getFullYear() + "-" +
+            String(
+                fechaFinExclusivaObj.getMonth() + 1
+            ).padStart(2, "0") + "-" +
+            String(
+                fechaFinExclusivaObj.getDate()
+            ).padStart(2, "0");
+
+        // ============================================================
+        // OBTENER DATOS DE PRODUCTION
+        //
+        // Date  = Fecha
+        // Scrap = Barras
+        // %Aveg = Línea
+        // ============================================================
+
+        const allData = await fetchAllRecords(
+            "Production",
+            q =>
+                q.select('Date, Scrap, "%Aveg"')
+                 .gte("Date", fechaInicio)
+                 .lt("Date", fechaFinExclusiva)
+        );
+
+        console.log("=================================");
+        console.log("DATOS PRODUCTION:");
+        console.log(allData);
+        console.log("TOTAL REGISTROS:", allData.length);
+        console.log("=================================");
+
+        // ============================================================
+        // CREAR MAPAS POR DÍA
+        // ============================================================
+
+        let scrapPorDia = {};
+        let sumaAvegPorDia = {};
+        let cantidadAvegPorDia = {};
+
+        fechas.forEach(fecha => {
+
+            scrapPorDia[fecha] = 0;
+
+            sumaAvegPorDia[fecha] = 0;
+
+            cantidadAvegPorDia[fecha] = 0;
+
+        });
+
+        // ============================================================
+        // PROCESAR DATOS
+        // ============================================================
+
+        allData.forEach(row => {
+
+            if (!row.Date) return;
+
+            // Tomamos solamente YYYY-MM-DD
+            const fecha =
+                String(row.Date).substring(0, 10);
+
+            // Ignorar registros fuera del rango
+            if (scrapPorDia[fecha] === undefined) {
+                return;
+            }
+
+            // ========================================================
+            // BARRAS = SCRAP
+            // ========================================================
+
+            scrapPorDia[fecha] +=
+                Number(row.Scrap) || 0;
+
+            // ========================================================
+            // LÍNEA = %AVEG
+            // ========================================================
+
+            const aveg =
+                Number(row["%Aveg"]);
+
+            if (!isNaN(aveg)) {
+
+                sumaAvegPorDia[fecha] += aveg;
+
+                cantidadAvegPorDia[fecha]++;
+
+            }
+
+        });
+
+        // ============================================================
+        // CALCULAR PROMEDIO DIARIO %AVEG
+        // ============================================================
+
+        let porcentajePorDia = {};
+
+        fechas.forEach(fecha => {
+
+            if (cantidadAvegPorDia[fecha] > 0) {
+
+                const promedio =
+                    sumaAvegPorDia[fecha] /
+                    cantidadAvegPorDia[fecha];
+
+                porcentajePorDia[fecha] =
+                    Number(
+                        (promedio * 100).toFixed(2)
+                    );
+
+            } else {
+
+                porcentajePorDia[fecha] = 0;
+
+            }
+
+        });
+
+        // ============================================================
+        // DATOS PARA CHART.JS
+        // ============================================================
+
+        const valoresScrap = fechas.map(
+            fecha => scrapPorDia[fecha]
+        );
+
+        const valoresAveg = fechas.map(
+            fecha => porcentajePorDia[fecha]
+        );
+
+        // ============================================================
+        // ETIQUETAS
+        //
+        // Ejemplo:
+        //
+        // 2026-08-03 → 03-Aug
+        // ============================================================
+
+        const etiquetas = fechas.map(fecha => {
+
+            const partes = fecha.split("-");
+
+            const dia = partes[2];
+
+            const mes =
+                Number(partes[1]) - 1;
+
+            return `${dia}-${mesesCortos[mes]}`;
+
+        });
+
+        // ============================================================
+        // DEBUG
+        // ============================================================
+
+        console.log("=================================");
+        console.log("FECHAS:", fechas);
+        console.log("ETIQUETAS:", etiquetas);
+        console.log("SCRAP:", valoresScrap);
+        console.log("%AVEG:", valoresAveg);
+        console.log("=================================");
+
+        // ============================================================
+        // PLUGIN PARA MOSTRAR SOLO LOS % DE LA LÍNEA
+        //
+        // IMPORTANTE:
+        //
+        // NO MOSTRAMOS NÚMEROS SOBRE LAS BARRAS.
+        // ============================================================
+
+        const linePercentageLabelsPlugin = {
+
+            id: "linePercentageLabels",
+
+            afterDatasetsDraw(chart) {
+
+                const ctx = chart.ctx;
+
+                // Dataset 1 = línea %Aveg
+                const meta =
+                    chart.getDatasetMeta(1);
+
+                if (!meta || !meta.data) {
+                    return;
                 }
+
+                const dataset =
+                    chart.data.datasets[1];
+
+                if (!dataset || !dataset.data) {
+                    return;
+                }
+
+                ctx.save();
+
+                ctx.font =
+                    "bold 11px Arial";
+
+                ctx.fillStyle =
+                    "#000000";
+
+                ctx.textAlign =
+                    "center";
+
+                ctx.textBaseline =
+                    "bottom";
+
+                meta.data.forEach((point, index) => {
+
+                    const value =
+                        dataset.data[index];
+
+                    // No mostrar ceros
+                    if (
+                        value === null ||
+                        value === undefined ||
+                        Number(value) === 0
+                    ) {
+                        return;
+                    }
+
+                    const x = point.x;
+
+                    const y = point.y;
+
+                    const texto =
+                        Number(value).toFixed(1) + "%";
+
+                    ctx.fillText(
+                        texto,
+                        x,
+                        y - 10
+                    );
+
+                });
+
+                ctx.restore();
+
+            }
+
+        };
+
+        // ============================================================
+        // CREAR GRÁFICA
+        // ============================================================
+
+        renderManagedChart("last7Chart", {
+
+            data: {
+
+                labels: etiquetas,
+
+                datasets: [
+
+                    // =================================================
+                    // DATASET 0
+                    // BARRAS = SCRAP
+                    // =================================================
+
+                    {
+                        type: "bar",
+
+                        label: "Scrap",
+
+                        data: valoresScrap,
+
+                        backgroundColor:
+                            "rgba(10, 110, 209, 0.75)",
+
+                        borderColor:
+                            "#0A6ED1",
+
+                        borderWidth: 1,
+
+                        borderRadius: 4,
+
+                        yAxisID: "y"
+
+                    },
+
+                    // =================================================
+                    // DATASET 1
+                    // LÍNEA = %AVEG
+                    // =================================================
+
+                    {
+                        type: "line",
+
+                        label: "%Aveg",
+
+                        data: valoresAveg,
+
+                        borderColor:
+                            "#e74c3c",
+
+                        backgroundColor:
+                            "#e74c3c",
+
+                        borderWidth: 2,
+
+                        pointRadius: 4,
+
+                        pointHoverRadius: 6,
+
+                        pointBackgroundColor:
+                            "#e74c3c",
+
+                        pointBorderColor:
+                            "#e74c3c",
+
+                        pointHoverBackgroundColor:
+                            "#e74c3c",
+
+                        pointHoverBorderColor:
+                            "#e74c3c",
+
+                        fill: false,
+
+                        tension: 0.2,
+
+                        yAxisID: "y1"
+
+                    }
+
+                ]
+
             },
-            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-        }
-    });
+
+            // ========================================================
+            // OPCIONES
+            // ========================================================
+
+            options: {
+
+                responsive: true,
+
+                interaction: {
+
+                    mode: "index",
+
+                    intersect: false
+
+                },
+
+                plugins: {
+
+                    legend: {
+
+                        display: true,
+
+                        position: "top"
+
+                    },
+
+                    // =================================================
+                    // IMPORTANTE
+                    //
+                    // DESACTIVAMOS ChartDataLabels COMPLETAMENTE
+                    //
+                    // Esto evita que aparezcan números sobre las
+                    // barras.
+                    // =================================================
+
+                    datalabels: {
+
+                        display: false
+
+                    },
+
+                    tooltip: {
+
+                        enabled: true
+
+                    }
+
+                },
+
+                scales: {
+
+                    // =================================================
+                    // EJE IZQUIERDO
+                    // SCRAP
+                    // =================================================
+
+                    y: {
+
+                        type: "linear",
+
+                        display: true,
+
+                        position: "left",
+
+                        beginAtZero: true,
+
+                        title: {
+
+                            display: true,
+
+                            text: "Scrap"
+
+                        },
+
+                        ticks: {
+
+                            precision: 0
+
+                        }
+
+                    },
+
+                    // =================================================
+                    // EJE DERECHO
+                    // %AVEG
+                    // =================================================
+
+                    y1: {
+
+                        type: "linear",
+
+                        display: true,
+
+                        position: "right",
+
+                        beginAtZero: true,
+
+                        grid: {
+
+                            drawOnChartArea: false
+
+                        },
+
+                        title: {
+
+                            display: true,
+
+                            text: "%Aveg"
+
+                        },
+
+                        ticks: {
+
+                            callback: function(value) {
+
+                                return value + "%";
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            },
+
+            // ========================================================
+            // SOLO NUESTRO PLUGIN
+            //
+            // ChartDataLabels NO SE USA AQUÍ.
+            // ========================================================
+
+            plugins: [
+
+                linePercentageLabelsPlugin
+
+            ]
+
+        });
+
+    } catch (err) {
+
+        console.error(
+            "Error al cargar Tendencia Diaria:",
+            err
+        );
+
+    }
+
 }
+
+
 
 async function loadTop10DefectsTable() {
     const data = await fetchAllRecords("Scrap", q => q.select("Defect_Desc, Stripp").eq("Month", selectedMonth));
@@ -496,27 +1209,37 @@ function cambiarDiasTrend(index, dias) {
 
 // Carga datos para la gráfica mixta (Barras = Cantidad, Línea con puntos = Porcentaje del total diario)
 async function loadTrendChartDataSingle(index) {
+
     const defect = selectedDefects[index];
+
     if (!defect || !trendCharts[index]) return;
 
     const offset = trendOffsets[index] || 0;
     const hoy = new Date();
-    
+
     let fechasISO = [];
     let fechasLabels = [];
 
+    // ============================================================
+    // GENERAR LOS 15 DÍAS
+    // ============================================================
+
     for (let i = (TREND_DAYS - 1) + offset; i >= offset; i--) {
-        let fecha = new Date();
+
+        const fecha = new Date(hoy);
+
         fecha.setDate(hoy.getDate() - i);
-        
-        let iso = fecha.getFullYear() + "-" +
+
+        const iso =
+            fecha.getFullYear() + "-" +
             String(fecha.getMonth() + 1).padStart(2, "0") + "-" +
             String(fecha.getDate()).padStart(2, "0");
-        
-        let label = String(fecha.getDate()).padStart(2, "0") + "/" + 
-                    String(fecha.getMonth() + 1).padStart(2, "0") + "/" + 
-                    String(fecha.getFullYear()).slice(2);
-                    
+
+        const label =
+            String(fecha.getDate()).padStart(2, "0") + "/" +
+            String(fecha.getMonth() + 1).padStart(2, "0") + "/" +
+            String(fecha.getFullYear()).slice(2);
+
         fechasISO.push(iso);
         fechasLabels.push(label);
     }
@@ -524,196 +1247,614 @@ async function loadTrendChartDataSingle(index) {
     const fechaInicio = fechasISO[0];
     const fechaFin = fechasISO[fechasISO.length - 1];
 
+    // ============================================================
+    // FECHA FINAL EXCLUSIVA
+    // Esto permite incluir TODO el último día aunque Date tenga hora
+    // ============================================================
+
+    const fechaFinObj = new Date(fechaFin + "T00:00:00");
+    fechaFinObj.setDate(fechaFinObj.getDate() + 1);
+
+    const fechaFinExclusiva =
+        fechaFinObj.getFullYear() + "-" +
+        String(fechaFinObj.getMonth() + 1).padStart(2, "0") + "-" +
+        String(fechaFinObj.getDate()).padStart(2, "0");
+
     try {
-        // Traer scrap total por día para calcular el porcentaje relativo diario
-        const totalScrapByDate = await fetchAllRecords("Scrap", q =>
-            q.select("Date, Stripp")
-             .gte("Date", fechaInicio)
-             .lte("Date", fechaFin)
+
+        // ============================================================
+        // TOTAL SCRAP POR DÍA
+        // ============================================================
+
+        const totalScrapByDate = await fetchAllRecords(
+            "Scrap",
+            q =>
+                q.select("Date, Stripp")
+                 .gte("Date", fechaInicio)
+                 .lt("Date", fechaFinExclusiva)
         );
 
-        // Traer scrap del defecto seleccionado
-        const defectData = await fetchAllRecords("Scrap", q => 
-            q.select("Date, Stripp, Defect_Desc")
-             .eq("Defect_Desc", defect)
-             .gte("Date", fechaInicio)
-             .lte("Date", fechaFin)
+        // ============================================================
+        // SCRAP DEL DEFECTO SELECCIONADO
+        // ============================================================
+
+        const defectData = await fetchAllRecords(
+            "Scrap",
+            q =>
+                q.select("Date, Stripp, Defect_Desc")
+                 .eq("Defect_Desc", defect)
+                 .gte("Date", fechaInicio)
+                 .lt("Date", fechaFinExclusiva)
         );
+
+        // ============================================================
+        // MAPAS
+        // ============================================================
 
         let mapTotalesDia = {};
         let mapDefectosDia = {};
-        fechasISO.forEach(f => {
-            mapTotalesDia[f] = 0;
-            mapDefectosDia[f] = 0;
+
+        fechasISO.forEach(fecha => {
+
+            mapTotalesDia[fecha] = 0;
+            mapDefectosDia[fecha] = 0;
+
         });
+
+        // ============================================================
+        // TOTAL SCRAP
+        // IMPORTANTE:
+        // Normalizamos Date para obtener solamente YYYY-MM-DD
+        // ============================================================
 
         totalScrapByDate.forEach(row => {
-            if (mapTotalesDia[row.Date] !== undefined) {
-                mapTotalesDia[row.Date] += Number(row.Stripp) || 0;
+
+            if (!row.Date) return;
+
+            const fecha = String(row.Date).substring(0, 10);
+
+            if (mapTotalesDia[fecha] !== undefined) {
+
+                mapTotalesDia[fecha] += Number(row.Stripp) || 0;
+
             }
+
         });
+
+        // ============================================================
+        // SCRAP DEL DEFECTO
+        // ============================================================
 
         defectData.forEach(row => {
-            if (mapDefectosDia[row.Date] !== undefined) {
-                mapDefectosDia[row.Date] += Number(row.Stripp) || 0;
+
+            if (!row.Date) return;
+
+            const fecha = String(row.Date).substring(0, 10);
+
+            if (mapDefectosDia[fecha] !== undefined) {
+
+                mapDefectosDia[fecha] += Number(row.Stripp) || 0;
+
             }
+
         });
 
-        const cantidades = fechasISO.map(f => mapDefectosDia[f]);
-        const porcentajes = fechasISO.map(f => {
-            const tot = mapTotalesDia[f];
-            const def = mapDefectosDia[f];
-            return tot > 0 ? parseFloat(((def / tot) * 100).toFixed(1)) : 0;
+        // ============================================================
+        // DATOS PARA LA GRÁFICA
+        // ============================================================
+
+        const cantidades = fechasISO.map(
+            fecha => mapDefectosDia[fecha]
+        );
+
+        const porcentajes = fechasISO.map(fecha => {
+
+            const total = mapTotalesDia[fecha];
+            const defecto = mapDefectosDia[fecha];
+
+            if (total > 0) {
+
+                return Number(
+                    ((defecto / total) * 100).toFixed(1)
+                );
+
+            }
+
+            return 0;
+
         });
+
+        // ============================================================
+        // DEBUG
+        // Puedes dejar esto temporalmente para verificar
+        // ============================================================
+
+        console.log("======================================");
+        console.log("DEFECTO:", defect);
+        console.log("FECHAS:", fechasISO);
+        console.log("TOTAL SCRAP:", mapTotalesDia);
+        console.log("DEFECTO:", mapDefectosDia);
+        console.log("CANTIDADES:", cantidades);
+        console.log("PORCENTAJES:", porcentajes);
+        console.log("======================================");
+
+        // ============================================================
+        // ACTUALIZAR GRÁFICA
+        // ============================================================
 
         const chart = trendCharts[index];
+
         chart.data.labels = fechasLabels;
-        chart.data.datasets[0].data = cantidades;    // Barras (Cantidad)
-        chart.data.datasets[1].data = porcentajes;   // Línea (%)
+
+        chart.data.datasets[0].data = cantidades;
+
+        chart.data.datasets[1].data = porcentajes;
+
         chart.update();
+
     } catch (err) {
-        console.error("Error al cargar tendencia mixta:", defect, err);
+
+        console.error(
+            "Error al cargar tendencia mixta:",
+            defect,
+            err
+        );
+
     }
 }
 
 function renderTrendCharts() {
+
     const container = document.getElementById("trendChartsContainer");
+
+    if (!container) return;
+
     container.innerHTML = "";
 
+    // ============================================================
+    // SIN DEFECTOS SELECCIONADOS
+    // ============================================================
+
     if (selectedDefects.length === 0) {
+
         container.innerHTML = `
             <div class="text-center mt-5">
                 <h3>Selecciona hasta 5 defectos</h3>
-                <p>Las gráficas combinadas de barras (Cantidad) y líneas (%) aparecerán aquí.</p>
+                <p>
+                    Las gráficas combinadas de barras (Cantidad)
+                    y líneas (%) aparecerán aquí.
+                </p>
             </div>
         `;
+
         return;
     }
 
+    // ============================================================
+    // DESTRUIR GRÁFICAS ANTERIORES
+    // ============================================================
+
+    trendCharts.forEach(chart => {
+
+        if (chart) {
+            try {
+                chart.destroy();
+            } catch (error) {
+                console.warn("Error destruyendo gráfica:", error);
+            }
+        }
+
+    });
+
+    trendCharts = [];
+
+    // ============================================================
+    // CREAR HTML
+    // ============================================================
+
     selectedDefects.forEach((defect, index) => {
+
         container.innerHTML += `
             <div class="trend-chart-card">
+
                 <div class="d-flex justify-content-between align-items-center mb-2">
+
                     <h5 class="mb-0" id="trendTitle${index}">
-                        <i class="fa-solid fa-bug text-danger"></i> ${defect}
+                        <i class="fa-solid fa-bug text-danger"></i>
+                        ${defect}
                     </h5>
-                    <div class="btn-group" role="group" aria-label="Navegación trend">
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, 7)">
-                            <i class="fa-solid fa-angles-left"></i> +7D
+
+                    <div class="btn-group"
+                         role="group"
+                         aria-label="Navegación trend">
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm px-2 py-1"
+                            style="font-size:11px;"
+                            onclick="cambiarDiasTrend(${index}, 7)">
+                            <i class="fa-solid fa-angles-left"></i>
+                            +7D
                         </button>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, 1)">
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm px-2 py-1"
+                            style="font-size:11px;"
+                            onclick="cambiarDiasTrend(${index}, 1)">
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, 0)">
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm px-2 py-1"
+                            style="font-size:11px;"
+                            onclick="cambiarDiasTrend(${index}, 0)">
                             Today
                         </button>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, -1)">
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm px-2 py-1"
+                            style="font-size:11px;"
+                            onclick="cambiarDiasTrend(${index}, -1)">
                             <i class="fa-solid fa-chevron-right"></i>
                         </button>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;" onclick="cambiarDiasTrend(${index}, -7)">
-                            -7D <i class="fa-solid fa-angles-right"></i>
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm px-2 py-1"
+                            style="font-size:11px;"
+                            onclick="cambiarDiasTrend(${index}, -7)">
+                            -7D
+                            <i class="fa-solid fa-angles-right"></i>
                         </button>
+
                     </div>
+
                 </div>
+
                 <canvas id="trendChart${index}"></canvas>
+
             </div>
         `;
     });
 
-    trendCharts.forEach(chart => chart.destroy());
-    trendCharts = [];
+    // ============================================================
+    // PLUGIN PERSONALIZADO
+    //
+    // IMPORTANTE:
+    // NO USA ChartDataLabels
+    //
+    // DIBUJA ÚNICAMENTE LOS PORCENTAJES
+    // DE LA LÍNEA.
+    // ============================================================
+
+    const trendLineLabelsPlugin = {
+
+        id: "trendLineLabels",
+
+        afterDatasetsDraw: function(chart) {
+
+            const ctx = chart.ctx;
+
+            // Dataset 1 = línea
+            const meta = chart.getDatasetMeta(1);
+
+            if (!meta || !meta.data) return;
+
+            const dataset = chart.data.datasets[1];
+
+            if (!dataset || !dataset.data) return;
+
+            ctx.save();
+
+            // ========================================================
+            // CONFIGURACIÓN DEL TEXTO
+            // ========================================================
+
+            ctx.font = "bold 11px Arial";
+
+            ctx.fillStyle = "#000000";
+
+            ctx.textAlign = "center";
+
+            ctx.textBaseline = "bottom";
+
+            // ========================================================
+            // RECORRER LOS PUNTOS DE LA LÍNEA
+            // ========================================================
+
+            meta.data.forEach((point, index) => {
+
+                const value = dataset.data[index];
+
+                // No mostrar si no hay valor
+                if (
+                    value === null ||
+                    value === undefined ||
+                    Number(value) === 0
+                ) {
+                    return;
+                }
+
+                // ====================================================
+                // POSICIÓN DEL PUNTO
+                // ====================================================
+
+                const x = point.x;
+
+                const y = point.y;
+
+                // ====================================================
+                // TEXTO
+                // ====================================================
+
+                const texto =
+                    Number(value).toFixed(1) + "%";
+
+                // ====================================================
+                // DIBUJAR TEXTO ARRIBA DEL PUNTO
+                // ====================================================
+
+                ctx.fillText(
+                    texto,
+                    x,
+                    y - 10
+                );
+
+            });
+
+            ctx.restore();
+        }
+    };
+
+    // ============================================================
+    // CREAR GRÁFICAS
+    // ============================================================
 
     selectedDefects.forEach((defect, index) => {
-        const ctx = document.getElementById(`trendChart${index}`).getContext("2d");
-        
-        // Gráfica mixta (Combo Chart: Barras + Línea con marcadores)
-        let chart = new Chart(ctx, {
+
+        const canvas =
+            document.getElementById(`trendChart${index}`);
+
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+
+        // ========================================================
+        // CREAR CHART
+        // ========================================================
+
+        const chart = new Chart(ctx, {
+
+            type: "bar",
+
             data: {
+
                 labels: [],
+
                 datasets: [
+
+                    // =================================================
+                    // DATASET 0
+                    // BARRAS
+                    // =================================================
+
                     {
                         type: "bar",
+
                         label: "Quantity (Scrap)",
+
                         data: [],
-                        backgroundColor: "rgba(10, 110, 209, 0.75)",
-                        borderColor: "#0A6ED1",
+
+                        backgroundColor:
+                            "rgba(10, 110, 209, 0.75)",
+
+                        borderColor:
+                            "#0A6ED1",
+
                         borderWidth: 1,
+
                         borderRadius: 4,
+
                         yAxisID: "y"
+
                     },
+
+                    // =================================================
+                    // DATASET 1
+                    // LÍNEA
+                    // =================================================
+
                     {
                         type: "line",
+
                         label: "% of Daily Scrap",
+
                         data: [],
-                        borderColor: "#e74c3c",
-                        backgroundColor: "#e74c3c",
+
+                        borderColor:
+                            "#e74c3c",
+
+                        backgroundColor:
+                            "#e74c3c",
+
                         borderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: "#e74c3c",
+
+                        pointRadius: 5,
+
+                        pointHoverRadius: 7,
+
+                        pointBackgroundColor:
+                            "#e74c3c",
+
+                        pointBorderColor:
+                            "#ffffff",
+
+                        pointBorderWidth: 2,
+
+                        pointHoverBackgroundColor:
+                            "#e74c3c",
+
+                        pointHoverBorderColor:
+                            "#ffffff",
+
                         fill: false,
+
                         tension: 0.2,
+
                         yAxisID: "y1"
+
                     }
+
                 ]
+
             },
+
+            // ========================================================
+            // OPCIONES
+            // ========================================================
+
             options: {
+
                 responsive: true,
+
                 interaction: {
+
                     mode: "index",
+
                     intersect: false
+
                 },
+
                 plugins: {
+
                     legend: {
+
                         display: true,
+
                         position: "top"
+
                     },
-                    datalabels: {
-                        display: function(context) {
-                            return context.dataset.type === "bar";
-                        },
-                        anchor: "end",
-                        align: "top",
-                        font: { weight: "bold", size: 10 },
-                        color: "#003b5c",
-                        formatter: val => val > 0 ? val : ""
+
+                    tooltip: {
+
+                        enabled: true
+
                     }
+
                 },
+
                 scales: {
+
+                    // =================================================
+                    // EJE IZQUIERDO
+                    // SCRAP
+                    // =================================================
+
                     y: {
+
                         type: "linear",
+
                         display: true,
+
                         position: "left",
+
                         beginAtZero: true,
+
                         title: {
+
                             display: true,
+
                             text: "Quantity (Pieces)"
+
                         },
-                        ticks: { precision: 0 }
-                    },
-                    y1: {
-                        type: "linear",
-                        display: true,
-                        position: "right",
-                        beginAtZero: true,
-                        max: 100,
-                        grid: {
-                            drawOnChartArea: false
-                        },
-                        title: {
-                            display: true,
-                            text: "% of Total"
-                        },
+
                         ticks: {
-                            callback: value => value + "%"
+
+                            precision: 0
+
                         }
+
+                    },
+
+                    // =================================================
+                    // EJE DERECHO
+                    // PORCENTAJE
+                    // =================================================
+
+                    y1: {
+
+                        type: "linear",
+
+                        display: true,
+
+                        position: "right",
+
+                        beginAtZero: true,
+
+                        max: 100,
+
+                        grid: {
+
+                            drawOnChartArea: false
+
+                        },
+
+                        title: {
+
+                            display: true,
+
+                            text: "% of Total"
+
+                        },
+
+                        ticks: {
+
+                            callback: function(value) {
+
+                                return value + "%";
+
+                            }
+
+                        }
+
                     }
+
                 }
+
             },
-            plugins: [ChartDataLabels]
+
+            // ========================================================
+            // AQUÍ ESTÁ LA DIFERENCIA IMPORTANTE
+            //
+            // NO PONEMOS:
+            //
+            // plugins: [ChartDataLabels]
+            //
+            // ========================================================
+
+            plugins: [
+
+                trendLineLabelsPlugin
+
+            ]
+
         });
 
+        // ============================================================
+        // GUARDAR GRÁFICA
+        // ============================================================
+
         trendCharts.push(chart);
+
+        // ============================================================
+        // CARGAR DATOS
+        // ============================================================
+
         loadTrendChartDataSingle(index);
+
     });
+
 }
