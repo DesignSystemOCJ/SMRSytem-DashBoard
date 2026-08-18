@@ -809,7 +809,7 @@ async function loadLast14Days() {
                     const y = point.y;
 
                     const texto =
-                        Number(value).toFixed(1) + "%";
+                        Number(value).toFixed(2) + "%";
 
                     ctx.fillText(
                         texto,
@@ -1026,7 +1026,7 @@ async function loadLast14Days() {
 
                             callback: function(value) {
 
-                                return value + "%";
+                                return Number(value).toFixed(2) + "%";
 
                             }
 
@@ -1292,11 +1292,13 @@ async function loadTrendChartDataSingle(index) {
 
     // ============================================================
     // FECHA FINAL EXCLUSIVA
-    // Esto permite incluir TODO el último día aunque Date tenga hora
     // ============================================================
 
     const fechaFinObj = new Date(fechaFin + "T00:00:00");
-    fechaFinObj.setDate(fechaFinObj.getDate() + 1);
+
+    fechaFinObj.setDate(
+        fechaFinObj.getDate() + 1
+    );
 
     const fechaFinExclusiva =
         fechaFinObj.getFullYear() + "-" +
@@ -1346,19 +1348,19 @@ async function loadTrendChartDataSingle(index) {
 
         // ============================================================
         // TOTAL SCRAP
-        // IMPORTANTE:
-        // Normalizamos Date para obtener solamente YYYY-MM-DD
         // ============================================================
 
         totalScrapByDate.forEach(row => {
 
             if (!row.Date) return;
 
-            const fecha = String(row.Date).substring(0, 10);
+            const fecha =
+                String(row.Date).substring(0, 10);
 
             if (mapTotalesDia[fecha] !== undefined) {
 
-                mapTotalesDia[fecha] += Number(row.Stripp) || 0;
+                mapTotalesDia[fecha] +=
+                    Number(row.Stripp) || 0;
 
             }
 
@@ -1372,11 +1374,13 @@ async function loadTrendChartDataSingle(index) {
 
             if (!row.Date) return;
 
-            const fecha = String(row.Date).substring(0, 10);
+            const fecha =
+                String(row.Date).substring(0, 10);
 
             if (mapDefectosDia[fecha] !== undefined) {
 
-                mapDefectosDia[fecha] += Number(row.Stripp) || 0;
+                mapDefectosDia[fecha] +=
+                    Number(row.Stripp) || 0;
 
             }
 
@@ -1390,15 +1394,30 @@ async function loadTrendChartDataSingle(index) {
             fecha => mapDefectosDia[fecha]
         );
 
+        // ============================================================
+        // PORCENTAJES
+        //
+        // IMPORTANTE:
+        // Ahora se guardan con 2 DECIMALES
+        //
+        // Ejemplo:
+        // 2.81
+        // 5.27
+        // 10.43
+        // ============================================================
+
         const porcentajes = fechasISO.map(fecha => {
 
-            const total = mapTotalesDia[fecha];
-            const defecto = mapDefectosDia[fecha];
+            const total =
+                mapTotalesDia[fecha];
+
+            const defecto =
+                mapDefectosDia[fecha];
 
             if (total > 0) {
 
                 return Number(
-                    ((defecto / total) * 100).toFixed(1)
+                    ((defecto / total) * 100).toFixed(2)
                 );
 
             }
@@ -1409,7 +1428,6 @@ async function loadTrendChartDataSingle(index) {
 
         // ============================================================
         // DEBUG
-        // Puedes dejar esto temporalmente para verificar
         // ============================================================
 
         console.log("======================================");
@@ -1418,7 +1436,7 @@ async function loadTrendChartDataSingle(index) {
         console.log("TOTAL SCRAP:", mapTotalesDia);
         console.log("DEFECTO:", mapDefectosDia);
         console.log("CANTIDADES:", cantidades);
-        console.log("PORCENTAJES:", porcentajes);
+        console.log("PORCENTAJES CON 2 DECIMALES:", porcentajes);
         console.log("======================================");
 
         // ============================================================
@@ -1427,11 +1445,14 @@ async function loadTrendChartDataSingle(index) {
 
         const chart = trendCharts[index];
 
-        chart.data.labels = fechasLabels;
+        chart.data.labels =
+            fechasLabels;
 
-        chart.data.datasets[0].data = cantidades;
+        chart.data.datasets[0].data =
+            cantidades;
 
-        chart.data.datasets[1].data = porcentajes;
+        chart.data.datasets[1].data =
+            porcentajes;
 
         chart.update();
 
@@ -1448,7 +1469,8 @@ async function loadTrendChartDataSingle(index) {
 
 function renderTrendCharts() {
 
-    const container = document.getElementById("trendChartsContainer");
+    const container =
+        document.getElementById("trendChartsContainer");
 
     if (!container) return;
 
@@ -1480,11 +1502,20 @@ function renderTrendCharts() {
     trendCharts.forEach(chart => {
 
         if (chart) {
+
             try {
+
                 chart.destroy();
+
             } catch (error) {
-                console.warn("Error destruyendo gráfica:", error);
+
+                console.warn(
+                    "Error destruyendo gráfica:",
+                    error
+                );
+
             }
+
         }
 
     });
@@ -1561,16 +1592,20 @@ function renderTrendCharts() {
 
             </div>
         `;
+
     });
 
     // ============================================================
     // PLUGIN PERSONALIZADO
     //
-    // IMPORTANTE:
-    // NO USA ChartDataLabels
+    // MUESTRA LOS PORCENTAJES SOBRE LOS PUNTOS
     //
-    // DIBUJA ÚNICAMENTE LOS PORCENTAJES
-    // DE LA LÍNEA.
+    // AHORA CON 2 DECIMALES
+    //
+    // Ejemplo:
+    // 2.81%
+    // 4.25%
+    // 10.37%
     // ============================================================
 
     const trendLineLabelsPlugin = {
@@ -1582,13 +1617,19 @@ function renderTrendCharts() {
             const ctx = chart.ctx;
 
             // Dataset 1 = línea
-            const meta = chart.getDatasetMeta(1);
+            const meta =
+                chart.getDatasetMeta(1);
 
-            if (!meta || !meta.data) return;
+            if (!meta || !meta.data) {
+                return;
+            }
 
-            const dataset = chart.data.datasets[1];
+            const dataset =
+                chart.data.datasets[1];
 
-            if (!dataset || !dataset.data) return;
+            if (!dataset || !dataset.data) {
+                return;
+            }
 
             ctx.save();
 
@@ -1596,23 +1637,28 @@ function renderTrendCharts() {
             // CONFIGURACIÓN DEL TEXTO
             // ========================================================
 
-            ctx.font = "bold 11px Arial";
+            ctx.font =
+                "bold 11px Arial";
 
-            ctx.fillStyle = "#000000";
+            ctx.fillStyle =
+                "#000000";
 
-            ctx.textAlign = "center";
+            ctx.textAlign =
+                "center";
 
-            ctx.textBaseline = "bottom";
+            ctx.textBaseline =
+                "bottom";
 
             // ========================================================
-            // RECORRER LOS PUNTOS DE LA LÍNEA
+            // RECORRER LOS PUNTOS
             // ========================================================
 
             meta.data.forEach((point, index) => {
 
-                const value = dataset.data[index];
+                const value =
+                    dataset.data[index];
 
-                // No mostrar si no hay valor
+                // No mostrar valores vacíos
                 if (
                     value === null ||
                     value === undefined ||
@@ -1622,22 +1668,32 @@ function renderTrendCharts() {
                 }
 
                 // ====================================================
-                // POSICIÓN DEL PUNTO
+                // POSICIÓN
                 // ====================================================
 
-                const x = point.x;
+                const x =
+                    point.x;
 
-                const y = point.y;
+                const y =
+                    point.y;
 
                 // ====================================================
                 // TEXTO
+                //
+                // AQUÍ ESTÁ EL CAMBIO PRINCIPAL:
+                //
+                // ANTES:
+                // toFixed(1)
+                //
+                // AHORA:
+                // toFixed(2)
                 // ====================================================
 
                 const texto =
-                    Number(value).toFixed(1) + "%";
+                    Number(value).toFixed(2) + "%";
 
                 // ====================================================
-                // DIBUJAR TEXTO ARRIBA DEL PUNTO
+                // DIBUJAR ARRIBA DEL PUNTO
                 // ====================================================
 
                 ctx.fillText(
@@ -1649,7 +1705,9 @@ function renderTrendCharts() {
             });
 
             ctx.restore();
+
         }
+
     };
 
     // ============================================================
@@ -1659,205 +1717,253 @@ function renderTrendCharts() {
     selectedDefects.forEach((defect, index) => {
 
         const canvas =
-            document.getElementById(`trendChart${index}`);
+            document.getElementById(
+                `trendChart${index}`
+            );
 
         if (!canvas) return;
 
-        const ctx = canvas.getContext("2d");
+        const ctx =
+            canvas.getContext("2d");
 
         // ========================================================
         // CREAR CHART
         // ========================================================
 
-        const chart = new Chart(ctx, {
+        const chart =
+            new Chart(ctx, {
 
-            type: "bar",
+                type: "bar",
 
-            data: {
+                data: {
 
-                labels: [],
+                    labels: [],
 
-                datasets: [
+                    datasets: [
 
-                    // =================================================
-                    // DATASET 0
-                    // BARRAS
-                    // =================================================
+                        // =========================================
+                        // DATASET 0
+                        // BARRAS
+                        // =========================================
 
-                    {
-                        type: "bar",
+                        {
+                            type: "bar",
 
-                        label: "Quantity (Scrap)",
+                            label: "Quantity (Scrap)",
 
-                        data: [],
+                            data: [],
 
-                        backgroundColor:
-                            "rgba(10, 110, 209, 0.75)",
+                            backgroundColor:
+                                "rgba(10, 110, 209, 0.75)",
 
-                        borderColor:
-                            "#0A6ED1",
+                            borderColor:
+                                "#0A6ED1",
 
-                        borderWidth: 1,
+                            borderWidth: 1,
 
-                        borderRadius: 4,
+                            borderRadius: 4,
 
-                        yAxisID: "y"
-
-                    },
-
-                    // =================================================
-                    // DATASET 1
-                    // LÍNEA
-                    // =================================================
-
-                    {
-                        type: "line",
-
-                        label: "% of Daily Scrap",
-
-                        data: [],
-
-                        borderColor:
-                            "#e74c3c",
-
-                        backgroundColor:
-                            "#e74c3c",
-
-                        borderWidth: 2,
-
-                        pointRadius: 5,
-
-                        pointHoverRadius: 7,
-
-                        pointBackgroundColor:
-                            "#e74c3c",
-
-                        pointBorderColor:
-                            "#ffffff",
-
-                        pointBorderWidth: 2,
-
-                        pointHoverBackgroundColor:
-                            "#e74c3c",
-
-                        pointHoverBorderColor:
-                            "#ffffff",
-
-                        fill: false,
-
-                        tension: 0.2,
-
-                        yAxisID: "y1"
-
-                    }
-
-                ]
-
-            },
-
-            // ========================================================
-            // OPCIONES
-            // ========================================================
-
-            options: {
-
-                responsive: true,
-
-                interaction: {
-
-                    mode: "index",
-
-                    intersect: false
-
-                },
-
-                plugins: {
-
-                    legend: {
-
-                        display: true,
-
-                        position: "top"
-
-                    },
-
-                    tooltip: {
-
-                        enabled: true
-
-                    }
-
-                },
-
-                scales: {
-
-                    // =================================================
-                    // EJE IZQUIERDO
-                    // SCRAP
-                    // =================================================
-
-                    y: {
-
-                        type: "linear",
-
-                        display: true,
-
-                        position: "left",
-
-                        beginAtZero: true,
-
-                        title: {
-
-                            display: true,
-
-                            text: "Quantity (Pieces)"
+                            yAxisID: "y"
 
                         },
 
-                        ticks: {
+                        // =========================================
+                        // DATASET 1
+                        // LÍNEA
+                        // =========================================
 
-                            precision: 0
+                        {
+                            type: "line",
+
+                            label: "% of Daily Scrap",
+
+                            data: [],
+
+                            borderColor:
+                                "#e74c3c",
+
+                            backgroundColor:
+                                "#e74c3c",
+
+                            borderWidth: 2,
+
+                            pointRadius: 5,
+
+                            pointHoverRadius: 7,
+
+                            pointBackgroundColor:
+                                "#e74c3c",
+
+                            pointBorderColor:
+                                "#ffffff",
+
+                            pointBorderWidth: 2,
+
+                            pointHoverBackgroundColor:
+                                "#e74c3c",
+
+                            pointHoverBorderColor:
+                                "#ffffff",
+
+                            fill: false,
+
+                            tension: 0.2,
+
+                            yAxisID: "y1"
+
+                        }
+
+                    ]
+
+                },
+
+                // ====================================================
+                // OPCIONES
+                // ====================================================
+
+                options: {
+
+                    responsive: true,
+
+                    interaction: {
+
+                        mode: "index",
+
+                        intersect: false
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+
+                            display: true,
+
+                            position: "top"
+
+                        },
+
+                        // =================================================
+                        // TOOLTIP
+                        //
+                        // TAMBIÉN MOSTRARÁ 2 DECIMALES
+                        // =================================================
+
+                        tooltip: {
+
+                            enabled: true,
+
+                            callbacks: {
+
+                                label: function(context) {
+
+                                    const datasetIndex =
+                                        context.datasetIndex;
+
+                                    const value =
+                                        Number(context.raw);
+
+                                    // Línea %
+                                    if (datasetIndex === 1) {
+
+                                        return (
+                                            "% of Daily Scrap: " +
+                                            value.toFixed(2) +
+                                            "%"
+                                        );
+
+                                    }
+
+                                    // Barras
+                                    return (
+                                        "Quantity (Scrap): " +
+                                        value.toLocaleString()
+                                    );
+
+                                }
+
+                            }
 
                         }
 
                     },
 
-                    // =================================================
-                    // EJE DERECHO
-                    // PORCENTAJE
-                    // =================================================
+                    scales: {
 
-                    y1: {
+                        // =================================================
+                        // EJE IZQUIERDO
+                        // SCRAP
+                        // =================================================
 
-                        type: "linear",
+                        y: {
 
-                        display: true,
-
-                        position: "right",
-
-                        beginAtZero: true,
-
-                        max: 100,
-
-                        grid: {
-
-                            drawOnChartArea: false
-
-                        },
-
-                        title: {
+                            type: "linear",
 
                             display: true,
 
-                            text: "% of Total"
+                            position: "left",
+
+                            beginAtZero: true,
+
+                            title: {
+
+                                display: true,
+
+                                text:
+                                    "Quantity (Pieces)"
+
+                            },
+
+                            ticks: {
+
+                                precision: 0
+
+                            }
 
                         },
 
-                        ticks: {
+                        // =================================================
+                        // EJE DERECHO
+                        // PORCENTAJE
+                        // =================================================
 
-                            callback: function(value) {
+                        y1: {
 
-                                return value + "%";
+                            type: "linear",
+
+                            display: true,
+
+                            position: "right",
+
+                            beginAtZero: true,
+
+                            max: 100,
+
+                            grid: {
+
+                                drawOnChartArea: false
+
+                            },
+
+                            title: {
+
+                                display: true,
+
+                                text:
+                                    "% of Total"
+
+                            },
+
+                            ticks: {
+
+                                callback: function(value) {
+
+                                    return (
+                                        Number(value).toFixed(2) +
+                                        "%"
+                                    );
+
+                                }
 
                             }
 
@@ -1865,26 +1971,19 @@ function renderTrendCharts() {
 
                     }
 
-                }
+                },
 
-            },
+                // ====================================================
+                // PLUGIN PERSONALIZADO
+                // ====================================================
 
-            // ========================================================
-            // AQUÍ ESTÁ LA DIFERENCIA IMPORTANTE
-            //
-            // NO PONEMOS:
-            //
-            // plugins: [ChartDataLabels]
-            //
-            // ========================================================
+                plugins: [
 
-            plugins: [
+                    trendLineLabelsPlugin
 
-                trendLineLabelsPlugin
+                ]
 
-            ]
-
-        });
+            });
 
         // ============================================================
         // GUARDAR GRÁFICA
