@@ -1090,7 +1090,7 @@ async function guardarProyecto() {
         ) {
 
             alert(
-                "❌ No se encontró el proyecto."
+                "❌ The project was not found."
             );
 
             return;
@@ -1103,7 +1103,7 @@ async function guardarProyecto() {
         ================================================== */
 
         alert(
-            "✅ Proyecto actualizado correctamente"
+            "✅ Project successfully updated"
         );
 
 
