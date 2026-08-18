@@ -119,9 +119,8 @@ async function loadMonthlyChart() {
         // Month  = Mes
         // %Aveg  = Valor decimal
         //
-        // Ejemplo:
-        // 0.00500 + 0.00400 + 0.01090 = 0.01990
-        // 0.01990 * 100 = 1.99%
+        // AHORA NO SUMAMOS LOS VALORES.
+        // CALCULAMOS EL PROMEDIO DE CADA MES.
         // ============================================================
 
         const allData = await fetchAllRecords(
@@ -137,19 +136,28 @@ async function loadMonthlyChart() {
 
 
         // ============================================================
-        // CREAR MAPA DE MESES
-        // January → December
+        // CREAR MAPAS
+        //
+        // sumaAveg:
+        // Guarda la suma de %Aveg de cada mes.
+        //
+        // cantidadAveg:
+        // Guarda cuántos registros válidos tiene cada mes.
         // ============================================================
 
-        let totals = {};
+        let sumaAveg = {};
+        let cantidadAveg = {};
 
         MONTH_NAMES.forEach(month => {
-            totals[month] = 0;
+
+            sumaAveg[month] = 0;
+            cantidadAveg[month] = 0;
+
         });
 
 
         // ============================================================
-        // SUMAR %AVEG POR MES
+        // PROCESAR DATOS
         // ============================================================
 
         allData.forEach(row => {
@@ -162,14 +170,23 @@ async function loadMonthlyChart() {
             const valor =
                 Number(row["%Aveg"]);
 
+            // Ignorar valores que no sean numéricos
             if (isNaN(valor)) return;
 
+
+            // ========================================================
+            // BUSCAR EL MES
+            // ========================================================
 
             MONTH_NAMES.forEach(month => {
 
                 if (month.toLowerCase() === monthDB) {
 
-                    totals[month] += valor;
+                    // Acumular valor
+                    sumaAveg[month] += valor;
+
+                    // Contar registro
+                    cantidadAveg[month]++;
 
                 }
 
@@ -179,17 +196,28 @@ async function loadMonthlyChart() {
 
 
         // ============================================================
-        // CONVERTIR A PORCENTAJE
+        // CALCULAR PROMEDIO DE CADA MES
         //
-        // Ejemplo:
-        // 0.01990 → 1.99
+        // Promedio = suma / cantidad de registros
+        //
+        // Después:
+        //
+        // promedio decimal × 100 = porcentaje
         // ============================================================
 
         const valoresPorcentaje =
             MONTH_NAMES.map(month => {
 
+                if (cantidadAveg[month] === 0) {
+                    return 0;
+                }
+
+                const promedio =
+                    sumaAveg[month] /
+                    cantidadAveg[month];
+
                 return Number(
-                    (totals[month] * 100).toFixed(2)
+                    (promedio * 100).toFixed(2)
                 );
 
             });
@@ -200,10 +228,30 @@ async function loadMonthlyChart() {
         // ============================================================
 
         console.log("=================================");
-        console.log("SUMA DECIMAL POR MES:");
-        console.log(totals);
+        console.log("SUMA %AVEG POR MES:");
+        console.log(sumaAveg);
 
-        console.log("PORCENTAJE POR MES:");
+        console.log("CANTIDAD DE REGISTROS POR MES:");
+        console.log(cantidadAveg);
+
+        console.log("PROMEDIO DECIMAL POR MES:");
+
+        MONTH_NAMES.forEach(month => {
+
+            const promedio =
+                cantidadAveg[month] > 0
+                    ? sumaAveg[month] / cantidadAveg[month]
+                    : 0;
+
+            console.log(
+                month,
+                "→",
+                promedio
+            );
+
+        });
+
+        console.log("PORCENTAJE PROMEDIO POR MES:");
         console.log(valoresPorcentaje);
 
         console.log("=================================");
@@ -221,15 +269,11 @@ async function loadMonthlyChart() {
 
             data: {
 
-                // ====================================================
-                // MESES
-                // ====================================================
-
                 labels: MONTH_NAMES,
 
                 datasets: [{
 
-                    label: "%Aveg",
+                    label: "Average %Aveg",
 
                     data: valoresPorcentaje,
 
@@ -277,7 +321,6 @@ async function loadMonthlyChart() {
                             size: 10
                         },
 
-                        // Texto blanco dentro de la barra
                         color: "#000000",
 
                         formatter: function(value) {
@@ -301,7 +344,7 @@ async function loadMonthlyChart() {
 
                             label: function(context) {
 
-                                return "%Aveg: " +
+                                return "Average %Aveg: " +
                                     Number(context.raw).toFixed(2) +
                                     "%";
 
@@ -328,7 +371,7 @@ async function loadMonthlyChart() {
 
                             display: true,
 
-                            text: "%Aveg"
+                            text: "Average %Aveg"
 
                         },
 
