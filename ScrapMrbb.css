@@ -649,3 +649,427 @@ canvas {
     }
 
 }
+
+
+/* =========================================================
+   TREND CHECKBOX - MODERN SAP STYLE
+   ========================================================= */
+
+.trend-table td:first-child {
+    width: 55px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+/* ---------------------------------------------------------
+   CHECKBOX
+   --------------------------------------------------------- */
+
+.trend-table input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+
+    width: 21px;
+    height: 21px;
+
+    margin: 0;
+
+    border: 2px solid #b7c6d8;
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    cursor: pointer;
+
+    position: relative;
+
+    display: inline-block;
+
+    vertical-align: middle;
+
+    transition:
+        background-color 0.20s ease,
+        border-color 0.20s ease,
+        box-shadow 0.20s ease,
+        transform 0.15s ease;
+}
+
+
+/* ---------------------------------------------------------
+   HOVER
+   --------------------------------------------------------- */
+
+.trend-table input[type="checkbox"]:hover {
+    border-color: #0A6ED1;
+
+    box-shadow:
+        0 0 0 4px rgba(10, 110, 209, 0.10);
+
+    transform: scale(1.08);
+}
+
+
+/* ---------------------------------------------------------
+   SELECCIONADO
+   --------------------------------------------------------- */
+
+.trend-table input[type="checkbox"]:checked {
+
+    background: #0A6ED1;
+
+    border-color: #0A6ED1;
+
+    box-shadow:
+        0 3px 8px rgba(10, 110, 209, 0.25);
+}
+
+
+/* ---------------------------------------------------------
+   CHECK
+   --------------------------------------------------------- */
+
+.trend-table input[type="checkbox"]:checked::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 5px;
+    height: 10px;
+
+    left: 6px;
+    top: 2px;
+
+    border: solid white;
+
+    border-width:
+        0
+        2px
+        2px
+        0;
+
+    transform:
+        rotate(45deg);
+
+    animation:
+        trendCheckAnimation 0.18s ease-out;
+}
+
+
+/* ---------------------------------------------------------
+   ANIMACIÓN DEL CHECK
+   --------------------------------------------------------- */
+
+@keyframes trendCheckAnimation {
+
+    0% {
+        opacity: 0;
+        transform:
+            rotate(45deg)
+            scale(0.5);
+    }
+
+    100% {
+        opacity: 1;
+        transform:
+            rotate(45deg)
+            scale(1);
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   CLICK
+   --------------------------------------------------------- */
+
+.trend-table input[type="checkbox"]:active {
+    transform: scale(0.90);
+}
+
+
+/* ---------------------------------------------------------
+   FOCUS
+   --------------------------------------------------------- */
+
+.trend-table input[type="checkbox"]:focus-visible {
+
+    outline: none;
+
+    box-shadow:
+        0 0 0 4px rgba(10, 110, 209, 0.18);
+}
+
+
+/* =========================================================
+   FILA SELECCIONADA
+   ========================================================= */
+
+.trend-table tbody tr:has(
+    input[type="checkbox"]:checked
+) {
+
+    background:
+        rgba(10, 110, 209, 0.08);
+
+}
+
+
+/* Línea azul muy sutil en la fila seleccionada */
+
+.trend-table tbody tr:has(
+    input[type="checkbox"]:checked
+) td:first-child {
+
+    box-shadow:
+        inset 3px 0 0 #0A6ED1;
+
+}
+
+
+/* Defect seleccionado */
+
+.trend-table tbody tr:has(
+    input[type="checkbox"]:checked
+) td:nth-child(3) {
+
+    color: #003b5c;
+
+    font-weight: 700;
+
+}
+
+
+/* ---------------------------------------------------------
+   TRANSICIÓN DE LAS FILAS
+   --------------------------------------------------------- */
+
+.trend-table tbody tr {
+
+    transition:
+        background-color 0.20s ease,
+        box-shadow 0.20s ease;
+
+}
+
+/* =========================================================
+   TREND SEARCH
+   ========================================================= */
+
+.trend-search-box {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    background: #fafafa;
+
+    padding-bottom: 12px;
+
+    margin-bottom: 8px;
+}
+
+
+/* ---------------------------------------------------------
+   INPUT
+   --------------------------------------------------------- */
+
+.trend-search-input {
+
+    display: flex;
+
+    align-items: center;
+
+    width: 100%;
+
+    background: white;
+
+    border: 1px solid #d5dee8;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.05);
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+/* ---------------------------------------------------------
+   ICONO
+   --------------------------------------------------------- */
+
+.trend-search-input > i {
+
+    color: #0A6ED1;
+
+    font-size: 14px;
+
+    margin-left: 13px;
+
+    flex-shrink: 0;
+
+}
+
+
+/* ---------------------------------------------------------
+   INPUT TEXT
+   --------------------------------------------------------- */
+
+.trend-search-input input {
+
+    flex: 1;
+
+    min-width: 0;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    padding: 11px 10px;
+
+    font-size: 13px;
+
+    color: #003b5c;
+
+}
+
+
+/* PLACEHOLDER */
+
+.trend-search-input input::placeholder {
+
+    color: #94a3b8;
+
+}
+
+
+/* ---------------------------------------------------------
+   FOCUS
+   --------------------------------------------------------- */
+
+.trend-search-input:focus-within {
+
+    border-color: #0A6ED1;
+
+    box-shadow:
+        0 0 0 3px rgba(10, 110, 209, 0.10);
+
+}
+
+
+/* ---------------------------------------------------------
+   BOTÓN X
+   --------------------------------------------------------- */
+
+.trend-search-input button {
+
+    width: 38px;
+
+    height: 38px;
+
+    margin-right: 3px;
+
+    border: none;
+
+    background: transparent;
+
+    color: #94a3b8;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+
+}
+
+
+.trend-search-input button:hover {
+
+    background: #eef6ff;
+
+    color: #0A6ED1;
+
+}
+
+
+/* ---------------------------------------------------------
+   INFORMACIÓN DEL FILTRO
+   --------------------------------------------------------- */
+
+.trend-search-info {
+
+    padding:
+
+        6px
+
+        4px
+
+        0
+
+        4px;
+
+    font-size: 11px;
+
+    color: #64748b;
+
+}
+
+
+/* ---------------------------------------------------------
+   RESULTADO DE BÚSQUEDA
+   --------------------------------------------------------- */
+
+#trendSearchResults {
+
+    font-weight: 600;
+
+}
+
+
+/* =========================================================
+   FILAS OCULTAS POR BÚSQUEDA
+   ========================================================= */
+
+.trend-table tbody tr.trend-search-hidden {
+
+    display: none;
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 576px) {
+
+    .trend-search-box {
+
+        padding-bottom: 8px;
+
+    }
+
+    .trend-search-input input {
+
+        font-size: 12px;
+
+        padding: 10px 8px;
+
+    }
+
+    .trend-search-info {
+
+        font-size: 10px;
+
+    }
+
+}
