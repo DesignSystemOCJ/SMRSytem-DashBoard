@@ -200,19 +200,55 @@
             </div>
             <div class="trend-body">
                 <div class="trend-left">
-                    <table class="trend-table">
-                        <thead>
-                            <tr>
-                                <th>Sel</th>
-                                <th>#</th>
-                                <th>Defect</th>
-                                <th>Qty</th>
-                                <th>%</th>
-                            </tr>
-                        </thead>
-                        <tbody id="trendTableBody"></tbody>
-                    </table>
-                </div>
+
+    <div class="trend-search-box">
+
+        <div class="trend-search-input">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+                type="text"
+                id="trendSearchInput"
+                placeholder="Search defect..."
+                autocomplete="off"
+                oninput="filterTrendTable()"
+            >
+
+            <button
+                type="button"
+                onclick="clearTrendSearch()"
+                title="Clear search">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+        <div class="trend-search-info">
+            <span id="trendSearchResults">
+                Showing Top 20 defects
+            </span>
+        </div>
+
+    </div>
+
+    <table class="trend-table">
+
+        <thead>
+            <tr>
+                <th>Sel</th>
+                <th>#</th>
+                <th>Defect</th>
+                <th>Qty</th>
+                <th>%</th>
+            </tr>
+        </thead>
+
+        <tbody id="trendTableBody"></tbody>
+
+    </table>
+
+</div>
                 <div class="trend-right" id="trendChartsContainer">
                     <div class="text-center mt-5">
                         <h3>Select up to 5 defects</h3>
