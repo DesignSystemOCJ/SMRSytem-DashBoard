@@ -1221,7 +1221,7 @@ async function loadTrendTop20() {
 function toggleTrendDefect(check, defect) {
     if (check.checked) {
         if (selectedDefects.length >= 5) {
-            alert("Máximo 5 defectos simultáneos.");
+            alert("A maximum of 5 defects at the same time..");
             check.checked = false;
             return;
         }
