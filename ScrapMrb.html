@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scrap Quality Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="ScrapMrbb.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+</head>
+
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand-section">
+                <div class="brand-icon-subtle">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+
+                <div>
+                    <span class="brand-subtitle-top">DASHBOARD SYSTEM</span>
+                    <div class="brand-title-main">Scrap Quality Dashboard</div>
+                </div>
+            </div>
+
+            <!-- Controles de la derecha ordenados: Filtro, Trend y PDF -->
+            <div class="header-controls d-flex align-items-center gap-2">
+                <div class="period-selector">
+                    <div class="period-icon">
+                        <i class="fa-regular fa-calendar"></i>
+                    </div>
+                    <div class="period-info">
+                        <span class="period-label">MAINTENANCE PERIOD</span>
+                        <select id="monthSelect" class="form-select form-select-sm month-dropdown" onchange="changeMonth(this.value)">
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-warning" onclick="openTrendModal()" title="Ver Tendencias">
+                    <i class="fa-solid fa-chart-line"></i>
+                </button>
+                
+                <button class="btn btn-success" onclick="window.print()" title="Imprimir / Exportar">
+                    <i class="fa-solid fa-file-pdf"></i> PDF
+                </button>
+            </div>
+        </header>
+
+    <div class="container-fluid p-4">
+         
+        <div class="row g-4">
+            <div class="col-xl col-lg-3 col-md-6">
+                <div class="card-sap">
+                    <div class="card-sap-header">
+                        <i class="fa-solid fa-trash"></i>
+                        <h6>Total Defects</h6>
+                    </div>
+                    <h2 id="totalScrap">0</h2>
+                </div>
+            </div>
+            <div class="col-xl col-lg-3 col-md-6">
+                <div class="card-sap">
+                    <div class="card-sap-header">
+                        <i class="fa-solid fa-cubes"></i>
+                        <h6>Top Model</h6>
+                    </div>
+                    <h2 id="topModel">-</h2>
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-6 col-md-12">
+                <div class="card-sap">
+                    <div class="card-sap-header">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <h6>Top Defects</h6>
+                    </div>
+                    <h2 id="topDefect" style="font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</h2>
+                </div>
+            </div>
+            <div class="col-xl col-lg-6 col-md-6">
+                <div class="card-sap">
+                    <div class="card-sap-header">
+                        <i class="fa-solid fa-percent"></i>
+                        <h6>% Scrap</h6>
+                    </div>
+                    <h2 id="scrapPercent">-</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4">
+       
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="chart-card">
+                    <h5>
+                        <i class="fa-solid fa-chart-line"></i>
+                        Scrap Per Month
+                    </h5>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="chart-card">
+                    <h5>
+                        <i class="fa-solid fa-ranking-star"></i>
+                        Top 10 ( Model )
+                    </h5>
+                    <canvas id="modelChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="chart-card">
+                    <h5>
+                        <i class="fa-solid fa-bug"></i>
+                        Top 10 ( Defects Description)
+                    </h5>
+                    <canvas id="defectChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    
+        <div class="row mt-4 g-4">
+            <div class="col-lg-12">
+                <div class="chart-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-clock"></i>
+                            <span id="last14DaysTitle">Last 14 Days</span>
+                        </h5>
+                        <div class="btn-group" role="group" aria-label="Navegación de días">
+                            <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(7)" title="Avanzar 7 días hacia atrás">
+                                <i class="fa-solid fa-angles-left"></i> +7 D.
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(1)" title="Día anterior">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(0)" title="Ir a Hoy">
+                                Hoy
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(-1)" title="Día siguiente">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="cambiarDiasRangoMain(-7)" title="Avanzar 7 días hacia adelante">
+                                -7 D. <i class="fa-solid fa-angles-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="last7Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4 g-4 mb-5">
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <h5>
+                        <i class="fa-solid fa-list-ol"></i>
+                        Top 10 Defects - Current Month
+                    </h5>
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Defect</th>
+                                <th>Quantity</th>
+                                <th>% Month</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top10DefectsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <h5 id="modelTitle">
+                        <i class="fa-solid fa-cube"></i> Model Top Issues
+                    </h5>
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Model</th>
+                                <th>Quantity</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modelTopIssuesTable">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    Click on a defect in the table on the left to view its models.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <div id="trendModal">
+        <div class="trend-content">
+            <div class="trend-header">
+                <span><i class="fa-solid fa-chart-line"></i> Trend Analysis | Top Defects</span>
+                <button onclick="closeTrendModal()">&times;</button>
+            </div>
+            <div class="trend-body">
+                <div class="trend-left">
+
+                    <div class="trend-search-box">
+                        <div class="trend-search-input">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input
+                                type="text"
+                                id="trendSearchInput"
+                                placeholder="Search defect..."
+                                autocomplete="off"
+                                oninput="filterTrendTable()"
+                            >
+                            <button
+                                type="button"
+                                onclick="clearTrendSearch()"
+                                title="Clear search">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="trend-search-info">
+                            <span id="trendSearchResults">
+                                Showing Top 20 defects
+                            </span>
+                        </div>
+                    </div>
+
+                    <table class="trend-table">
+                        <thead>
+                            <tr>
+                                <th>Sel</th>
+                                <th>#</th>
+                                <th>Defect</th>
+                                <th>Qty</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trendTableBody"></tbody>
+                    </table>
+
+                </div>
+                <div class="trend-right" id="trendChartsContainer">
+                    <div class="text-center mt-5">
+                        <h3>Select up to 5 defects</h3>
+                        <p>The combined bar (Quantity) and line (%) charts will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <script src="ScrapMrb.js"></script>
+</body>
+</html>
