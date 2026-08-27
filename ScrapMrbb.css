@@ -1,0 +1,686 @@
+* {
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #eef5fb, #dceaf5, #f7f9fb);
+    color: #1d2d3e;
+}
+
+.sap-header {
+    height: 75px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(0, 0, 0, .08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0a6ed1;
+}
+
+.header-title i {
+    margin-right: 12px;
+}
+
+.btn {
+    border-radius: 12px !important;
+    padding: 8px 18px !important;
+    font-weight: 600;
+    transition: .3s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, .15);
+}
+
+.btn-primary {
+    background: #0a6ed1 !important;
+    border: none !important;
+}
+
+.btn-success {
+    background: #00a3a3 !important;
+    border: none !important;
+}
+
+.current-month-card {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(10, 110, 209, 0.18);
+    border-radius: 14px;
+    padding: 5px 14px 5px 7px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    gap: 10px;
+    width: 185px;
+    height: 54px;
+    transition: all 0.25s ease;
+}
+
+.current-month-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #0a6ed1, #00a3a3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(10, 110, 209, 0.25);
+    flex-shrink: 0;
+}
+
+.current-month-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 105px;
+    gap: 1px;
+}
+
+.current-month-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.4px;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.month-dropdown {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 800;
+    color: #003b5c;
+    border: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0;
+    cursor: pointer;
+    outline: none;
+    line-height: 20px;
+    box-shadow: none !important;
+}
+
+.month-dropdown:focus {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+.current-month-card:hover {
+    border-color: rgba(10, 110, 209, 0.35);
+    box-shadow: 0 6px 18px rgba(10, 110, 209, 0.10);
+    transform: translateY(-1px);
+}
+
+.card-sap {
+    height: 110px;
+    padding: 18px 22px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .65);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    border: 1px solid rgba(255, 255, 255, .8);
+    transition: .35s;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.card-sap:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .14);
+}
+
+.card-sap-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-sap i {
+    font-size: 22px;
+    color: #0a6ed1;
+}
+
+.card-sap h6 {
+    margin: 0;
+    color: #52616b;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.card-sap h2 {
+    margin: 0;
+    color: #003b5c;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.chart-card {
+    padding: 22px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .75);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    min-height: 350px;
+    border: 1px solid rgba(255, 255, 255, .9);
+}
+
+.chart-card h5 {
+    color: #003b5c;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.chart-card h5 i {
+    color: #0a6ed1;
+    margin-right: 8px;
+}
+
+/* =========================================================
+   MEJORA PRO DE LAS TABLAS (Glassmorphism & Modern UI)
+   ========================================================= */
+
+.chart-card .table-responsive {
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.table {
+    background: transparent !important;
+    margin-bottom: 0 !important;
+    vertical-align: middle;
+}
+
+.table thead {
+    background: linear-gradient(135deg, rgba(10, 110, 209, 0.12), rgba(0, 163, 163, 0.08)) !important;
+}
+
+.table th {
+    color: #003b5c !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 12px !important;
+    border-bottom: 2px solid rgba(10, 110, 209, 0.15) !important;
+}
+
+.table td {
+    padding: 12px 12px !important;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease-in-out;
+}
+
+.table tbody tr:hover {
+    background: rgba(0, 163, 163, 0.08) !important;
+    transform: scale(1.002);
+}
+
+.table tbody tr.table-primary {
+    background: linear-gradient(135deg, rgba(10, 110, 209, 0.18), rgba(10, 110, 209, 0.1)) !important;
+    color: #0a6ed1 !important;
+    font-weight: 700 !important;
+    border-left: 4px solid #0a6ed1;
+}
+
+.table tbody tr.table-primary td {
+    color: #0a6ed1 !important;
+}
+
+canvas {
+    max-height: 280px !important;
+}
+
+.trend-chart-card canvas {
+    height: 310px !important;
+    max-height: 320px !important;
+}
+
+#trendModal {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .6);
+    z-index: 99999;
+    overflow: hidden;
+}
+
+.trend-content {
+    width: 96%;
+    height: 94%;
+    margin: 1.5% auto;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .35);
+}
+
+.trend-header {
+    height: 65px;
+    background: #0A6ED1;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 25px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.trend-header button {
+    border: none;
+    background: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.trend-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.trend-left {
+    width: 35%;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.trend-right {
+    width: 65%;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f4f7f9;
+}
+
+.trend-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.trend-table th {
+    position: sticky;
+    top: 0;
+    background: #0A6ED1;
+    color: white;
+    padding: 10px;
+    font-size: 13px;
+    z-index: 2;
+}
+
+.trend-table td {
+    padding: 8px;
+    font-size: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.trend-table tbody tr:hover {
+    background: #eef6ff;
+}
+
+.trend-chart-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+    padding: 18px;
+    margin-bottom: 20px;
+    border: 1px solid #e1e8ed;
+}
+
+.trend-chart-card h5 {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #003b5c;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+@media (max-width: 1200px) {
+    .sap-header, .topbar { padding: 0 20px; }
+    .header-title { font-size: 21px; }
+    .current-month-card { width: 175px; }
+    .card-sap { padding: 16px 18px; }
+    .chart-card { padding: 18px; }
+}
+
+@media (max-width: 992px) {
+    .sap-header, .topbar {
+        height: auto;
+        min-height: 70px;
+        padding: 12px 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .header-title { font-size: 20px; }
+    .sap-header > div:last-child, .topbar > div:last-child {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .current-month-card { width: 180px; }
+    .card-sap { height: 105px; }
+    .chart-card { min-height: 320px; padding: 18px; }
+    .trend-content { width: 97%; height: 95%; margin: 2% auto; }
+    .trend-body { flex-direction: column; }
+    .trend-left, .trend-right { width: 100%; }
+    .trend-left { height: 40%; border-right: none; border-bottom: 1px solid #ddd; }
+    .trend-right { height: 60%; }
+}
+
+@media (max-width: 576px) {
+    body { overflow-x: hidden; }
+    .sap-header, .topbar {
+        position: relative;
+        padding: 12px;
+        gap: 10px;
+        height: auto;
+        flex-wrap: wrap;
+    }
+    .brand-section { width: 100%; justify-content: center; text-align: center; }
+    .header-title { width: 100%; text-align: center; font-size: 18px; }
+    .sap-header > div:last-child, .topbar > div:last-child {
+        width: 100%;
+        justify-content: center;
+        gap: 8px !important;
+        flex-wrap: wrap;
+    }
+    .current-month-card { width: 170px; height: 50px; }
+    .current-month-icon { width: 36px; height: 36px; }
+    .current-month-label { font-size: 8px; }
+    .month-dropdown { font-size: 13px; }
+    .sap-header .btn, .topbar .btn { padding: 7px 11px !important; font-size: 13px; }
+    .container-fluid { padding-left: 12px !important; padding-right: 12px !important; }
+    .card-sap { height: auto; min-height: 100px; padding: 14px 16px; border-radius: 16px; gap: 5px; }
+    .card-sap-header { gap: 9px; }
+    .card-sap i { font-size: 18px; }
+    .card-sap h6 { font-size: 13px; }
+    .card-sap h2 { font-size: 24px; }
+    .chart-card { padding: 15px; border-radius: 16px; min-height: 300px; }
+    .chart-card h5 { font-size: 15px; margin-bottom: 12px; }
+    canvas { max-height: 240px !important; }
+    .trend-chart-card canvas { height: 240px !important; max-height: 250px !important; }
+    .chart-card .btn-group { width: 100%; display: flex; }
+    .chart-card .btn-group .btn { flex: 1; padding: 6px 4px !important; font-size: 11px; }
+    .table { min-width: 520px; font-size: 12px; }
+    .table th, .table td { padding: 7px 8px; white-space: nowrap; }
+    #trendModal { overflow: hidden; }
+    .trend-content { width: 100%; height: 100%; margin: 0; border-radius: 0; }
+    .trend-header { min-height: 55px; height: auto; padding: 10px 14px; font-size: 15px; }
+    .trend-header button { font-size: 24px; }
+    .trend-body { flex-direction: column; }
+    .trend-left { width: 100%; height: 42%; padding: 10px; border-right: none; border-bottom: 1px solid #ddd; }
+    .trend-right { width: 100%; height: 58%; padding: 10px; }
+    .trend-table { min-width: 500px; }
+    .trend-table th, .trend-table td { padding: 7px 6px; font-size: 11px; }
+    .trend-chart-card { padding: 12px; border-radius: 12px; }
+    .trend-chart-card h5 { font-size: 13px; max-width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trend-chart-card .btn-group .btn { font-size: 9px !important; padding: 4px 5px !important; }
+}
+
+/* =========================================================
+   TREND CHECKBOX - MODERN SAP STYLE
+   ========================================================= */
+.trend-table td:first-child {
+    width: 55px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.trend-table input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 21px;
+    height: 21px;
+    margin: 0;
+    border: 2px solid #b7c6d8;
+    border-radius: 7px;
+    background: #ffffff;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    transition: background-color 0.20s ease, border-color 0.20s ease, box-shadow 0.20s ease, transform 0.15s ease;
+}
+
+.trend-table input[type="checkbox"]:hover {
+    border-color: #0A6ED1;
+    box-shadow: 0 0 0 4px rgba(10, 110, 209, 0.10);
+    transform: scale(1.08);
+}
+
+.trend-table input[type="checkbox"]:checked {
+    background: #0A6ED1;
+    border-color: #0A6ED1;
+    box-shadow: 0 3px 8px rgba(10, 110, 209, 0.25);
+}
+
+.trend-table input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 10px;
+    left: 6px;
+    top: 2px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    animation: trendCheckAnimation 0.18s ease-out;
+}
+
+@keyframes trendCheckAnimation {
+    0% { opacity: 0; transform: rotate(45deg) scale(0.5); }
+    100% { opacity: 1; transform: rotate(45deg) scale(1); }
+}
+
+.trend-table input[type="checkbox"]:active { transform: scale(0.90); }
+.trend-table input[type="checkbox"]:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(10, 110, 209, 0.18); }
+
+.trend-table tbody tr:has(input[type="checkbox"]:checked) {
+    background: rgba(10, 110, 209, 0.08);
+}
+.trend-table tbody tr:has(input[type="checkbox"]:checked) td:first-child {
+    box-shadow: inset 3px 0 0 #0A6ED1;
+}
+.trend-table tbody tr:has(input[type="checkbox"]:checked) td:nth-child(3) {
+    color: #003b5c;
+    font-weight: 700;
+}
+.trend-table tbody tr {
+    transition: background-color 0.20s ease, box-shadow 0.20s ease;
+}
+
+.trend-search-box {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fafafa;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+}
+
+.trend-search-input {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: white;
+    border: 1px solid #d5dee8;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.trend-search-input > i {
+    color: #0A6ED1;
+    font-size: 14px;
+    margin-left: 13px;
+    flex-shrink: 0;
+}
+
+.trend-search-input input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 11px 10px;
+    font-size: 13px;
+    color: #003b5c;
+}
+
+.trend-search-input input::placeholder { color: #94a3b8; }
+.trend-search-input:focus-within {
+    border-color: #0A6ED1;
+    box-shadow: 0 0 0 3px rgba(10, 110, 209, 0.10);
+}
+
+.trend-search-input button {
+    width: 38px;
+    height: 38px;
+    margin-right: 3px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.trend-search-input button:hover { background: #eef6ff; color: #0A6ED1; }
+
+.trend-search-info { padding: 6px 4px 0 4px; font-size: 11px; color: #64748b; }
+#trendSearchResults { font-weight: 600; }
+
+.container-fluid {
+    width: min(1700px, 100%);
+    margin: auto;
+    padding: 8px clamp(10px, 2vw, 20px) 15px;
+}
+
+.topbar {
+    height: 75px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(0, 0, 0, .08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.brand-section { display: flex; align-items: center; gap: 12px; }
+
+.brand-icon-subtle {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, rgba(10, 110, 209, 0.12), rgba(0, 163, 163, 0.12));
+    color: #0a6ed1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(10, 110, 209, 0.08);
+}
+
+.brand-subtitle-top {
+    font-size: 9px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.6px;
+    line-height: 1;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.brand-title-main {
+    font-size: 20px;
+    font-weight: 800;
+    color: #003b5c;
+    line-height: 1.1;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: 0.8fr 0.9fr 1.6fr 0.8fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.kpi-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 22px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: 0.35s;
+}
+
+.kpi-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.14);
+}
+
+.kpi-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.kpi-icon.danger { background: rgba(231, 76, 60, 0.12); color: #e74c3c; }
+.kpi-icon.blue { background: rgba(10, 110, 209, 0.12); color: #0a6ed1; }
+.kpi-icon.orange { background: rgba(243, 156, 18, 0.12); color: #d35400; }
+.kpi-icon.purple { background: rgba(142, 68, 173, 0.12); color: #8e44ad; }
+
+.kpi-content { display: flex; flex-direction: column; overflow: hidden; }
+.kpi-label { font-size: 11px; font-weight: 700; color: #52616b; letter-spacing: 0.5px; }
+.kpi-card strong { font-size: 1.3rem; font-weight: 800; color: #003b5c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-card small { font-size: 11px; color: #8795a1; }
