@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SMRC System | Rough Cut Department</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="Menus.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="Menus.js" defer></script>
+</head>
+<body>
+
+  <div class="background">
+    <div class="grid-overlay"></div>
+    <div class="glow glow-one"></div>
+    <div class="glow glow-two"></div>
+  </div>
+
+  <aside class="sidebar" aria-label="Main Navigation">
+    <div class="sidebar-top">
+
+      <div class="sidebar-header">
+        <div class="brand-mark">
+          <i class="fa-solid fa-cube" aria-hidden="true"></i>
+          <span class="brand-pulse"></span>
+        </div>
+        <div class="brand-info">
+          <h1>SMRC <span>System</span></h1>
+          <p>Rough Cut Department</p>
+        </div>
+      </div>
+
+      <nav class="navigation">
+        <div class="nav-section-title">
+          <span>MAIN</span>
+        </div>
+
+        <ul class="sidebar-menu">
+          <!-- Menú desplegable RoughCut Summarys -->
+          <li class="sidebar-item dropdown-item">
+            <a href="#" class="sidebar-link dropdown-toggle" id="roughcut-toggle">
+              <span class="nav-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+              <span class="nav-label">RoughCut Summarys</span>
+              <span class="nav-arrow"><i class="fa-solid fa-chevron-right dropdown-chevron" aria-hidden="true"></i></span>
+            </a>
+            <ul class="sidebar-submenu">
+              <li class="sidebar-item">
+                <a href="ManttoIssues.html" target="content-frame" class="sidebar-link sub-link">
+                  <span class="nav-label">Maintenance Issues</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
+                <a href="PilotBore.html" target="content-frame" class="sidebar-link sub-link">
+                  <span class="nav-label">Pilot Bore Report</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Opciones restantes -->
+          <li class="sidebar-item">
+            <a href="ScrapMrb.html" target="content-frame" class="sidebar-link">
+              <span class="nav-icon"><i class="fa-solid fa-recycle" aria-hidden="true"></i></span>
+              <span class="nav-label">ScrapMRB</span>
+            </a>
+          </li>
+
+          <li class="sidebar-item">
+            <a href="EhsAudits.html" target="content-frame" class="sidebar-link">
+              <span class="nav-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+              <span class="nav-label">EHS Audits</span>
+            </a>
+          </li>
+
+          <li class="sidebar-item">
+            <a href="Accidents.html" target="content-frame" class="sidebar-link">
+              <span class="nav-icon"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+              <span class="nav-label">Accidents</span>
+            </a>
+          </li>
+
+          <li class="sidebar-item">
+            <a href="bu.html" target="content-frame" class="sidebar-link">
+              <span class="nav-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+              <span class="nav-label">B&amp;U</span>
+            </a>
+          </li>
+
+          <li class="sidebar-item">
+            <a href="Projects.html" target="content-frame" class="sidebar-link">
+              <span class="nav-icon"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></span>
+              <span class="nav-label">Projects</span>
+            </a>
+          </li>
+
+          <!-- Opción Administration -->
+          <li class="sidebar-item settings-item">
+            <a href="login.html" class="sidebar-link" id="settings-link">
+              <span class="nav-icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
+              <span class="nav-label">Administration</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="system-status">
+        <div class="status-indicator">
+          <span></span>
+        </div>
+        <div class="status-info">
+          <strong>System Online</strong>
+        </div>
+      </div>
+
+      <div class="clock-box">
+        <div class="clock-icon">
+          <i class="fa-regular fa-clock" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div id="time">00:00:00</div>
+          <div id="date">Loading date...</div>
+        </div>
+      </div>
+
+      <div class="sidebar-version">
+        <span>SMRC SYSTEM</span>
+        <span>v2.1</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <section class="workspace">
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-content">
+          <div class="welcome-badge">
+            <span class="badge-dot"></span>
+          </div>
+          <img
+            id="welcome-logo"
+            src="https://controlaccesosysistemas.com/wp-content/uploads/2022/03/prime-wheel-980x980.png"
+            alt="Company Logo"
+            loading="lazy">
+          <h3>Rough Cut Department</h3>
+          <div class="welcome-line"></div>
+        </div>
+      </div>
+
+      <iframe
+        name="content-frame"
+        id="main-iframe"
+        class="content-frame"
+        title="SMRC Module Viewer">
+      </iframe>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile Navigation">
+    <a href="#" class="mobile-nav-item active" data-home="true" title="Home" aria-label="Home">
+      <i class="fa-solid fa-house" aria-hidden="true"></i>
+    </a>
+    <a href="ManttoIssues.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Maintenance Issues" aria-label="Maintenance Issues">
+      <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+    </a>
+    <a href="PilotBore.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Pilot Bore Report" aria-label="Pilot Bore Report">
+      <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+    </a>
+    <a href="ScrapMrb.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Scrap" aria-label="Scrap">
+      <i class="fa-solid fa-recycle" aria-hidden="true"></i>
+    </a>
+    <a href="EhsAudits.html" target="content-frame" class="mobile-nav-item" data-module="true" title="EHS Audits" aria-label="EHS Audits">
+      <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+    </a>
+    <a href="Accidents.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Accidents" aria-label="Accidents">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+    </a>
+    <a href="bu.html" target="content-frame" class="mobile-nav-item" data-module="true" title="B&amp;U" aria-label="B&amp;U">
+      <i class="fa-solid fa-building" aria-hidden="true"></i>
+    </a>
+    <a href="Projects.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Projects" aria-label="Projects">
+      <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+    </a>
+    <a href="login.html" id="mobile-settings-link" class="mobile-nav-item" title="Administration" aria-label="Administration">
+      <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+    </a>
+  </nav>
+
+  <!-- VENTANA MODAL DE ADMINISTRACIÓN (LOGIN) - Oculta por defecto -->
+  <dialog id="admin-modal" class="admin-modal-overlay">
+    <div class="admin-modal-container">
+      <button id="close-modal-btn" class="modal-close-btn">&times;</button>
+      <iframe src="login.html" class="modal-iframe"></iframe>
+    </div>
+  </dialog>
+
+</body>
+</html>
