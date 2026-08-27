@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMRC System | Login & Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="Menus.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: var(--bg);
+      font-family: 'Inter', sans-serif;
+      padding: 10px;
+      overflow: hidden;
+    }
+    
+    .modal-box-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+      border-radius: 24px;
+      background: var(--bg);
+      box-shadow: var(--neo-extruded);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    .modal-box-container.expanded-view {
+      max-width: 1800px;
+      height: 95vh;
+    }
+
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    
+    .admin-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: var(--bg);
+      box-shadow: var(--neo-extruded-sm);
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      width: 100%;
+      text-align: left;
+    }
+    
+    .admin-card:hover {
+      box-shadow: var(--neo-inset);
+      color: var(--primary-red);
+    }
+    
+    .admin-card i {
+      color: var(--primary-red);
+      font-size: 16px;
+    }
+
+    .logout-btn {
+      margin-top: 20px;
+      height: 42px;
+      width: 100%;
+      border: none;
+      border-radius: 21px;
+      background: #4a5568;
+      color: white;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 3px 5px 12px rgba(74, 85, 104, 0.3);
+      transition: background 0.2s;
+    }
+    .logout-btn:hover { background: #2d3748; }
+
+    .subpage-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+    
+    .subpage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .btn-back-menu {
+      background: var(--bg);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 12px;
+      box-shadow: var(--neo-extruded-sm);
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-back-menu:hover {
+      box-shadow: var(--neo-inset);
+      color: var(--primary-red);
+    }
+    
+    .subpage-iframe {
+      width: 100%;
+      flex: 1;
+      border: none;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: var(--neo-inset);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+</head>
+<body>
+
+  <div class="modal-box-container" id="mainContainer">
+    
+    <!-- VISTA 1: LOGIN -->
+    <div id="login-section">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <div style="color: var(--primary-red); font-size: 20px;"><i class="fa-solid fa-cube"></i></div>
+        <div><strong>SMRC</strong> <span>System</span></div>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <h3 style="margin: 0; font-size: 18px; color: var(--text-main);">Authentication Required</h3>
+      </div>
+
+      <form id="login-form">
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">USERNAME</label>
+          <div style="position: relative; margin-top: 4px;">
+            <i class="fa-solid fa-user" style="position: absolute; left: 14px; top: 14px; color: var(--text-muted);"></i>
+            <input type="text" id="username-input" placeholder="Enter username" required autocomplete="off" style="width: 100%; height: 42px; padding: 0 15px 0 40px; border-radius: 12px; outline: none; background: var(--bg); box-shadow: var(--neo-inset); border: none; color: var(--text-main); font-size: 13px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">PASSWORD</label>
+          <div style="position: relative; margin-top: 4px;">
+            <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 14px; color: var(--text-muted);"></i>
+            <input type="password" id="password-input" placeholder="Enter password" required style="width: 100%; height: 42px; padding: 0 40px; border-radius: 12px; outline: none; background: var(--bg); box-shadow: var(--neo-inset); border: none; color: var(--text-main); font-size: 13px;">
+            <span id="password-toggle" style="position: absolute; right: 14px; top: 14px; cursor: pointer; color: var(--text-muted);">
+              <i class="fa-solid fa-eye"></i>
+            </span>
+          </div>
+        </div>
+
+        <button type="submit" class="admin-card" style="background: var(--primary-red); color: white; justify-content: center; font-size: 13px;">
+          <span class="login-btn-text">Sign In</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- VISTA 2: MENÚ DE 3 CARDS -->
+    <div id="admin-menu-section" style="display: none;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="color: var(--primary-red); font-size: 18px;"><i class="fa-solid fa-shield-halved"></i></div>
+          <strong style="font-size: 15px; color: var(--text-main);">Admin Dashboard</strong>
+        </div>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">Seleccione una opción:</p>
+
+      <div class="cards-container">
+        <button type="button" class="admin-card" onclick="openSubpage('AccidentesIngresar.html', 'Ingresar Accidents')">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Ingresar Accidents</span>
+        </button>
+
+        <button type="button" class="admin-card" onclick="openSubpage('HallazgosEHSIngresar.html', 'Ingresar Hallazgos')">
+          <i class="fa-solid fa-file-circle-plus"></i>
+          <span>Ingresar Hallazgos</span>
+        </button>
+
+        <button type="button" class="admin-card" onclick="openSubpage('HallazgosEHSEditar.html', 'Editar hallazgos')">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>Editar hallazgos</span>
+        </button>
+      </div>
+
+      <button type="button" id="logout-btn" class="logout-btn">
+        <i class="fa-solid fa-right-from-bracket" style="margin-right: 6px;"></i> Cerrar Sesión
+      </button>
+    </div>
+
+    <!-- VISTA 3: SUBPÁGINA INTERNA -->
+    <div id="subpage-section" style="display: none; height: 100%;" class="subpage-wrapper">
+      <div class="subpage-header">
+        <button type="button" class="btn-back-menu" onclick="returnToCards()">
+          <i class="fa-solid fa-arrow-left"></i> Volver al Menú
+        </button>
+        <span id="subpage-title" style="font-size: 13px; font-weight: 700; color: var(--text-main);"></span>
+      </div>
+      <iframe id="internal-iframe" class="subpage-iframe"></iframe>
+    </div>
+
+  </div>
+
+  <script>
+    window.addEventListener("load", () => {
+      const SUPABASE_URL = "https://mrxtqmvufmlozplszfxc.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+      
+      let db;
+      try {
+        db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (e) {
+        console.error("Error al iniciar Supabase:", e);
+      }
+
+      const mainContainer = document.getElementById("mainContainer");
+      const loginSection = document.getElementById("login-section");
+      const adminMenuSection = document.getElementById("admin-menu-section");
+      const subpageSection = document.getElementById("subpage-section");
+      
+      const usernameInput = document.getElementById("username-input");
+      const passwordInput = document.getElementById("password-input");
+      const passwordToggle = document.getElementById("password-toggle");
+      const loginForm = document.getElementById("login-form");
+      const logoutBtn = document.getElementById("logout-btn");
+      const internalIframe = document.getElementById("internal-iframe");
+      const subpageTitle = document.getElementById("subpage-title");
+      const btnText = document.querySelector(".login-btn-text");
+
+      if (sessionStorage.getItem("adminLogged") === "true") {
+        showAdminMenu();
+      }
+
+      passwordToggle.addEventListener("click", () => {
+        const isPass = passwordInput.type === "password";
+        passwordInput.type = isPass ? "text" : "password";
+        passwordToggle.querySelector("i").className = isPass ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+      });
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const userVal = usernameInput.value.trim();
+        const passVal = passwordInput.value.trim();
+        if (!userVal || !passVal) return;
+
+        btnText.textContent = "Verificando...";
+        console.log("Iniciando búsqueda para el usuario:", userVal); // Útil para depurar en F12
+
+        try {
+          // Asegúrate de cambiar "Usurio" por el nombre exacto de tu columna en Supabase si es diferente
+          const { data, error } = await db
+            .from("Cuentas")
+            .select("id")
+            .eq("Usurio", userVal)
+            .eq("Password", passVal)
+            .maybeSingle();
+
+          if (error) {
+            console.error("Error devuelto por Supabase:", error);
+            alert("Error en la base de datos: " + error.message);
+            btnText.textContent = "Sign In";
+            return;
+          }
+
+          if (data) {
+            console.log("¡Login exitoso!");
+            sessionStorage.setItem("adminLogged", "true");
+            showAdminMenu();
+          } else {
+            console.warn("Credenciales no encontradas.");
+            alert("Usuario o contraseña incorrectos.");
+            btnText.textContent = "Sign In";
+          }
+        } catch (err) {
+          console.error("Error crítico de ejecución:", err);
+          alert("Ocurrió un error inesperado al conectar.");
+          btnText.textContent = "Sign In";
+        }
+      });
+
+      window.showAdminMenu = function() {
+        loginSection.style.display = "none";
+        subpageSection.style.display = "none";
+        adminMenuSection.style.display = "block";
+        mainContainer.classList.remove("expanded-view");
+        btnText.textContent = "Sign In";
+      };
+
+      window.openSubpage = function(pageUrl, titleText) {
+        adminMenuSection.style.display = "none";
+        subpageTitle.textContent = titleText;
+        internalIframe.src = pageUrl;
+        subpageSection.style.display = "flex";
+        mainContainer.classList.add("expanded-view");
+      };
+
+      window.returnToCards = function() {
+        internalIframe.src = "";
+        subpageSection.style.display = "none";
+        adminMenuSection.style.display = "block";
+        mainContainer.classList.remove("expanded-view");
+      };
+
+      logoutBtn.addEventListener("click", () => {
+        sessionStorage.removeItem("adminLogged");
+        usernameInput.value = "";
+        passwordInput.value = "";
+        subpageSection.style.display = "none";
+        adminMenuSection.style.display = "none";
+        loginSection.style.display = "block";
+        mainContainer.classList.remove("expanded-view");
+      });
+    });
+  </script>
+</body>
+</html>
