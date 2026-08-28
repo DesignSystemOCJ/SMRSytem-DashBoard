@@ -5,6 +5,9 @@
     --sap-light:#f4f7fb;
     --sap-gray:#5b6b7a;
     --white:#ffffff;
+    --background: radial-gradient(circle at 15% 10%, rgba(10,110,209,.10), transparent 30%),
+                  radial-gradient(circle at 85% 20%, rgba(0,166,166,.08), transparent 30%),
+                  linear-gradient(135deg,#F3F7FB,#EAF1F7 50%,#F7FAFC);
 }
 
 * {
@@ -12,39 +15,92 @@
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
 }
 
-body{
+body {
     margin: 0;
-    height:100vh;
-    overflow:hidden; 
-    background: linear-gradient(135deg, #041d38, #073763, #0a6ed1);
-    padding:10px;
-    color:#1e293b;
-    display:flex;
-    flex-direction:column;
+    min-height: 100vh;
+    background: var(--background);
+    background-attachment: fixed;
+    color: var(--text, #1E293B);
+    overflow-x: hidden;
 }
 
-.contenedor{
-    width:100%;
-    height:100%;
-    max-width:2200px;
-    margin:auto;
-    background: rgba(255,255,255,.95);
-    backdrop-filter:blur(18px);
-    border-radius:16px;
-    padding:15px;
-    box-shadow: 0 20px 40px rgba(0,0,0,.25);
-    border: 1px solid rgba(255,255,255,.4);
-    display:flex;
-    flex-direction:column;
-    gap:12px;
+/* ================= SHELL & TOPBAR ================= */
+
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.topbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:10px;
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    min-height: 40px;
+    padding: 6px clamp(16px, 3vw, 40px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border-bottom: 1px solid rgba(148,163,184,.18);
+    box-shadow: 0 8px 35px rgba(15,23,42,.06);
+}
+
+.main-content {
+    width: min(1700px, 100%);
+    margin: auto;
+    padding: 28px clamp(14px, 3vw, 40px) 50px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.brand-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.brand-icon-subtle {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: #DC2626;
+    background: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    font-size: 16px;
+}
+
+.brand-subtitle-top {
+    display: block;
+    color: #94A3B8;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 2px;
+}
+
+.brand-title-main {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1E293B;
+    letter-spacing: 1.5px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .titulo-modulo {
@@ -52,7 +108,7 @@ body{
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #0a3d62;
+    color: var(--sap-dark);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -211,96 +267,62 @@ body{
 .btn-pdf{ background:linear-gradient(135deg,#d63031,#ff7675); }
 .btn-refresh{ background:linear-gradient(135deg,#0984e3,#74b9ff); }
 
+#mensaje {
+    padding: 6px 0;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--sap-dark);
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: right;
+    margin: 0 0 12px 0;
+    line-height: 1;
+}
+
 .cards-container {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-}
-
-.card {
-    background: white;
-    padding: 14px 10px; 
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.06);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-left: 4px solid var(--sap-blue);
-    transition: 0.3s;
-    position: relative;
-    min-height: 75px; 
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-}
-
-.card h3 {
-    margin: 0;
-    font-family: "Segoe UI", "Inter", Arial, sans-serif;
-    font-size: 9px;
-    font-weight: 900;
-    color: var(--sap-gray);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1;
-}
-
-.card .card-value {
-    margin: 4px 0 0 0;
-    font-family: "Segoe UI", "Inter", Arial, sans-serif;
-    font-size: 24px;
-    font-weight: 850;
-    color: var(--sap-dark);
-    line-height: 1;
-}
-
-.card-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 18px;
-    opacity: 0.2;
-    color: var(--sap-dark);
-    pointer-events: none;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
 .charts-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 8px;
+    row-gap: 24px;
+    column-gap: 16px;
     flex: 1;
     min-height: 0; 
 }
 
 .chart-card {
-    background: white;
-    padding: 8px 12px; 
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 12px 16px; 
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.06);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
-    min-height: 0;
+    min-height: 260px;
 }
 
 .chart-card.full-width {
     grid-column: 1 / -1;
+    min-height: 280px;
 }
 
 .chart-card h4 {
-    margin: 0 0 4px 0;
+    margin: 0 0 8px 0;
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     color: var(--sap-dark);
     line-height: 1.1;
-    letter-spacing: 0.2px;
+    letter-spacing: 1px;
 }
 
 .chart-container {
@@ -308,19 +330,6 @@ body{
     width: 100%;
     flex: 1;
     min-height: 0;
-}
-
-#mensaje {
-    padding: 6px;
-    border-radius: 8px;
-    background: #eef6ff;
-    color: var(--sap-blue);
-    font-family: "Segoe UI", "Inter", Arial, sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    text-align: center;
-    margin: 0;
-    line-height: 1;
 }
 
 .modal-overlay {
@@ -443,15 +452,11 @@ button:hover{
         height: auto !important;
         overflow: auto !important;
     }
-    .contenedor {
-        height: auto !important;
-    }
     .cards-container {
         grid-template-columns: repeat(3, 1fr) !important;
     }
     .charts-grid {
         grid-template-columns: 1fr !important;
-        grid-template-rows: auto !important;
     }
 }
 
@@ -466,4 +471,85 @@ button:hover{
     .toolbar {
         justify-content: space-between;
     }
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 12px 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    transition: 0.3s;
+    min-height: 75px;
+    overflow: hidden;
+    border-left: none !important;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 5px;
+    background: var(--card-color);
+    border-radius: 0 4px 4px 0;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.card-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-left: 4px;
+    background: color-mix(in srgb, var(--card-color) 8%, transparent);
+    color: var(--card-color);
+    opacity: 0.85;
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card h3 {
+    margin: 0;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--sap-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+.card .card-value {
+    margin: 2px 0;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 850;
+    color: var(--sap-dark);
+    line-height: 1.1;
+}
+
+.card-subtitle {
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+    font-size: 9px;
+    color: var(--sap-gray);
+    font-weight: 600;
+    line-height: 1;
 }
