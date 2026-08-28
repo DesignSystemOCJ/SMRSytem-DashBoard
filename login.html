@@ -140,7 +140,7 @@
 
   <div class="modal-box-container" id="mainContainer">
     
-    <!-- VISTA 1: LOGIN -->
+
     <div id="login-section">
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
         <div style="color: var(--primary-red); font-size: 20px;"><i class="fa-solid fa-cube"></i></div>
@@ -148,7 +148,7 @@
       </div>
 
       <div style="margin-bottom: 15px;">
-        <h3 style="margin: 0; font-size: 18px; color: var(--text-main);">Authentication Required</h3>
+        <h3 style="margin: 0; font-size: 18px; color: var(--text-main);">Authentication</h3>
       </div>
 
       <form id="login-form">
@@ -177,7 +177,7 @@
       </form>
     </div>
 
-    <!-- VISTA 2: MENÚ DE 3 CARDS -->
+
     <div id="admin-menu-section" style="display: none;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -210,7 +210,7 @@
       </button>
     </div>
 
-    <!-- VISTA 3: SUBPÁGINA INTERNA -->
+
     <div id="subpage-section" style="display: none; height: 100%;" class="subpage-wrapper">
       <div class="subpage-header">
         <button type="button" class="btn-back-menu" onclick="returnToCards()">
@@ -222,6 +222,18 @@
     </div>
 
   </div>
+
+ document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+document.addEventListener("keydown", (e) => {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+    (e.ctrlKey && e.key === "U")
+  ) {
+    e.preventDefault();
+  }
+});
 
   <script>
     window.addEventListener("load", () => {
@@ -269,7 +281,7 @@
         console.log("Iniciando búsqueda para el usuario:", userVal); // Útil para depurar en F12
 
         try {
-          // Asegúrate de cambiar "Usurio" por el nombre exacto de tu columna en Supabase si es diferente
+         
           const { data, error } = await db
             .from("Cuentas")
             .select("id")
