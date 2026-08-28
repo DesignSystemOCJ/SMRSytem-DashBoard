@@ -496,7 +496,7 @@ async function cargarProyecto() {
 
 
     /* =====================================================
-       INPUTS
+       INPUTS & SELECTS
     ====================================================== */
 
     setValue(
@@ -719,22 +719,10 @@ async function cargarProyecto() {
    UPLOAD IMAGE
 ========================================================= */
 
-async function subirImagen(
-    file,
-    nombre
-) {
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
+async function subirImagen(file, nombre) {
+    const { data, error } = await supabaseClient
         .storage
-
-        .from(
-            "evidenceproject"
-        )
-
+        .from("evidenceproject")
         .upload(
             nombre,
             file,
@@ -743,18 +731,18 @@ async function subirImagen(
             }
         );
 
-
     if (error) {
         throw error;
     }
 
-
+    const timestamp = new Date().getTime();
     return (
         supabaseUrl +
         "/storage/v1/object/public/evidenceproject/" +
-        nombre
+        nombre +
+        "?t=" +
+        timestamp
     );
-
 }
 
 
@@ -830,10 +818,6 @@ async function guardarProyecto() {
     try {
 
 
-        /* =================================================
-           PROJECT ID
-        ================================================== */
-
         if (!projectId) {
 
             alert(
@@ -844,10 +828,6 @@ async function guardarProyecto() {
 
         }
 
-
-        /* =================================================
-           IMAGE FILES
-        ================================================== */
 
         let evidenceBeforeURL =
             null;
@@ -876,10 +856,6 @@ async function guardarProyecto() {
             afterInput?.files?.[0];
 
 
-        /* =================================================
-           UPLOAD BEFORE
-        ================================================== */
-
         if (beforeFile) {
 
             evidenceBeforeURL =
@@ -893,10 +869,6 @@ async function guardarProyecto() {
         }
 
 
-        /* =================================================
-           UPLOAD AFTER
-        ================================================== */
-
         if (afterFile) {
 
             evidenceAfterURL =
@@ -909,10 +881,6 @@ async function guardarProyecto() {
 
         }
 
-
-        /* =================================================
-           GET DATE VALUES
-        ================================================== */
 
         const dateStartElement =
             document.getElementById(
@@ -937,22 +905,6 @@ async function guardarProyecto() {
                 ? dateEndElement.value
                 : null;
 
-
-        console.log(
-            "DateStart que se enviará:",
-            dateStart
-        );
-
-
-        console.log(
-            "DateEnd que se enviará:",
-            dateEnd
-        );
-
-
-        /* =================================================
-           BUILD UPDATE
-        ================================================== */
 
         const cambios = {
 
@@ -1020,10 +972,6 @@ async function guardarProyecto() {
         };
 
 
-        /* =================================================
-           IMAGE URLS
-        ================================================== */
-
         if (evidenceBeforeURL) {
 
             cambios.EvidenceBefore =
@@ -1039,19 +987,6 @@ async function guardarProyecto() {
 
         }
 
-
-        console.log(
-            "DATOS QUE SE ENVIARÁN A SUPABASE:"
-        );
-
-        console.log(
-            cambios
-        );
-
-
-        /* =================================================
-           UPDATE SUPABASE
-        ================================================== */
 
         const {
             data,
@@ -1074,11 +1009,6 @@ async function guardarProyecto() {
 
         if (error) {
 
-            console.error(
-                "ERROR AL ACTUALIZAR:",
-                error
-            );
-
             throw error;
 
         }
@@ -1097,10 +1027,6 @@ async function guardarProyecto() {
 
         }
 
-
-        /* =================================================
-           SUCCESS
-        ================================================== */
 
         alert(
             "✅ Project successfully updated"
@@ -1165,7 +1091,7 @@ async function eliminarProyecto() {
 
     if (
         !confirm(
-            "¿Delete Project?"
+            "Would you like to remove this project from the list?"
         )
     ) {
 
@@ -1180,8 +1106,7 @@ async function eliminarProyecto() {
 
         .from("Projects")
 
-        .delete()
-
+        .update({ is_active: false })
         .eq(
             "id",
             projectId
@@ -1199,7 +1124,7 @@ async function eliminarProyecto() {
     else {
 
         alert(
-            "Project Deleted"
+            "Project successfully deleted"
         );
 
 
@@ -1217,108 +1142,37 @@ async function eliminarProyecto() {
 
 function activarEdicion() {
 
+    document.querySelectorAll("input").forEach(input => {
+        if (input.type === "file") {
+            input.disabled = false;
+        } else {
+            input.removeAttribute("readonly");
+            input.classList.add("editing");
+        }
+    });
 
-    /* =====================================================
-       INPUTS
-    ====================================================== */
+    document.querySelectorAll("select").forEach(select => {
+        select.disabled = false;
+        select.classList.add("editing");
+    });
 
-    document
-        .querySelectorAll(
-            "input"
-        )
-        .forEach(
-            input => {
+    document.querySelectorAll("textarea").forEach(textarea => {
+        textarea.removeAttribute("readonly");
+        textarea.classList.add("editing");
+    });
 
-                /*
-                   No permitir editar
-                   archivos de forma automática.
-                */
-
-                if (
-                    input.type === "file"
-                ) {
-
-                    input.disabled =
-                        false;
-
-                    return;
-
-                }
-
-
-                input.removeAttribute(
-                    "readonly"
-                );
-
-
-                input.classList.add(
-                    "editing"
-                );
-
-            }
-        );
-
-
-    /* =====================================================
-       TEXTAREAS
-    ====================================================== */
-
-    document
-        .querySelectorAll(
-            "textarea"
-        )
-        .forEach(
-            textarea => {
-
-                textarea.removeAttribute(
-                    "readonly"
-                );
-
-
-                textarea.classList.add(
-                    "editing"
-                );
-
-            }
-        );
-
-
-    /* =====================================================
-       BUTTONS
-    ====================================================== */
-
-    const btnSave =
-        document.getElementById(
-            "btnSave"
-        );
-
-
-    const btnEdit =
-        document.getElementById(
-            "btnEdit"
-        );
-
+    const btnSave = document.getElementById("btnSave");
+    const btnEdit = document.getElementById("btnEdit");
 
     if (btnSave) {
-
-        btnSave.disabled =
-            false;
-
+        btnSave.disabled = false;
     }
-
 
     if (btnEdit) {
-
-        btnEdit.disabled =
-            true;
-
+        btnEdit.disabled = true;
     }
 
-
-    console.log(
-        "Modo edición activado"
-    );
-
+    console.log("Modo edición activado");
 }
 
 
@@ -1328,105 +1182,37 @@ function activarEdicion() {
 
 function modoLectura() {
 
+    document.querySelectorAll("input").forEach(input => {
+        if (input.type === "file") {
+            input.disabled = true;
+            return;
+        }
+        input.setAttribute("readonly", true);
+        input.classList.remove("editing");
+    });
 
-    /* =====================================================
-       INPUTS
-    ====================================================== */
+    document.querySelectorAll("select").forEach(select => {
+        select.disabled = true;
+        select.classList.remove("editing");
+    });
 
-    document
-        .querySelectorAll(
-            "input"
-        )
-        .forEach(
-            input => {
+    document.querySelectorAll("textarea").forEach(textarea => {
+        textarea.setAttribute("readonly", true);
+        textarea.classList.remove("editing");
+    });
 
-                if (
-                    input.type === "file"
-                ) {
-
-                    input.disabled =
-                        true;
-
-                    return;
-
-                }
-
-
-                input.setAttribute(
-                    "readonly",
-                    true
-                );
-
-
-                input.classList.remove(
-                    "editing"
-                );
-
-            }
-        );
-
-
-    /* =====================================================
-       TEXTAREAS
-    ====================================================== */
-
-    document
-        .querySelectorAll(
-            "textarea"
-        )
-        .forEach(
-            textarea => {
-
-                textarea.setAttribute(
-                    "readonly",
-                    true
-                );
-
-
-                textarea.classList.remove(
-                    "editing"
-                );
-
-            }
-        );
-
-
-    /* =====================================================
-       BUTTONS
-    ====================================================== */
-
-    const btnSave =
-        document.getElementById(
-            "btnSave"
-        );
-
-
-    const btnEdit =
-        document.getElementById(
-            "btnEdit"
-        );
-
+    const btnSave = document.getElementById("btnSave");
+    const btnEdit = document.getElementById("btnEdit");
 
     if (btnSave) {
-
-        btnSave.disabled =
-            true;
-
+        btnSave.disabled = true;
     }
-
 
     if (btnEdit) {
-
-        btnEdit.disabled =
-            false;
-
+        btnEdit.disabled = false;
     }
 
-
-    console.log(
-        "Modo lectura activado"
-    );
-
+    console.log("Modo lectura activado");
 }
 
 
@@ -1447,3 +1233,16 @@ document.addEventListener(
 
     }
 );
+
+// --- BLOQUEO DE CLIC DERECHO Y CÓDIGO FUENTE ---
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+document.addEventListener("keydown", (e) => {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+    (e.ctrlKey && e.key === "U")
+  ) {
+    e.preventDefault();
+  }
+});
