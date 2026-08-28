@@ -5,146 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Librerías de Gráficas y Etiquetas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
     <title>Consulta Auditorías EHS</title>
     <link rel="stylesheet" href="EhsAuditss.css">
 </head>
 <body>
 
-<div class="contenedor">
-    <div class="topbar">
-        <h2 class="titulo-modulo">
-        EHS Audit Dashboard
-        </h2>
-
-        <div class="toolbar">
-            <div class="custom-select-wrapper" id="customSelectAnio">
-                <input type="hidden" id="filtroAnio" value="2026">
-                <div class="custom-select-btn" onclick="toggleDropdown(event)">
-                    <div class="custom-select-icon">
-                        <i class="fa-solid fa-calendar-days"></i>
-                    </div>
-                    <div class="custom-select-text">
-                        <span class="custom-select-label">YEAR</span>
-                        <span class="custom-select-value" id="customSelectValue">2026 <i class="fa-solid fa-chevron-down"></i></span>
-                    </div>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand-section">
+                <div class="brand-icon-subtle">
+                    <i class="fa-solid fa-chart-line"></i>
                 </div>
-                <div class="custom-dropdown" id="customDropdownList">
-                    <div class="custom-option" onclick="seleccionarAnio('ALL', 'Todos los Años')">Todos los Años</div>
-                    <div class="custom-option" onclick="seleccionarAnio('2024', '2024')">2024</div>
-                    <div class="custom-option" onclick="seleccionarAnio('2025', '2025')">2025</div>
-                    <div class="custom-option selected" onclick="seleccionarAnio('2026', '2026')">2026</div>
-                    <div class="custom-option" onclick="seleccionarAnio('2027', '2027')">2027</div>
+                <div>
+                    <span class="brand-subtitle-top">DASHBOARD SYSTEM</span>
+                    <div class="brand-title-main">EHS Audits Dashboard</div>
                 </div>
             </div>
 
-            <button class="icon-btn btn-view-table" onclick="abrirModalTabla()" title="View">
-                <i class="fa-solid fa-eye"></i>
-            </button>
+            <div class="toolbar">
+                <div class="custom-select-wrapper" id="customSelectAnio">
+                    <input type="hidden" id="filtroAnio" value="2026">
+                    <div class="custom-select-btn" onclick="toggleDropdown(event)">
+                        <div class="custom-select-icon">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                        <div class="custom-select-text">
+                            <span class="custom-select-label">YEAR</span>
+                            <span class="custom-select-value" id="customSelectValue">2026 <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="custom-dropdown" id="customDropdownList">
+                        <div class="custom-option" onclick="seleccionarAnio('ALL', 'Todos los Años')">Todos los Años</div>
+                        <div class="custom-option" onclick="seleccionarAnio('2024', '2024')">2024</div>
+                        <div class="custom-option" onclick="seleccionarAnio('2025', '2025')">2025</div>
+                        <div class="custom-option selected" onclick="seleccionarAnio('2026', '2026')">2026</div>
+                        <div class="custom-option" onclick="seleccionarAnio('2027', '2027')">2027</div>
+                    </div>
+                </div>
 
-            <button class="icon-btn btn-excel" onclick="exportarExcel()" title="Export Excel">
-                <i class="fa-solid fa-file-excel"></i>
-            </button>
+                <button class="icon-btn btn-view-table" onclick="abrirModalTabla()" title="View">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
 
-            <button class="icon-btn btn-pdf" onclick="exportarPDF()" title="Export PDF">
-                <i class="fa-solid fa-file-pdf"></i>
-            </button>
+                <button class="icon-btn btn-excel" onclick="exportarExcel()" title="Export Excel">
+                    <i class="fa-solid fa-file-excel"></i>
+                </button>
 
-            <button class="icon-btn btn-refresh" onclick="cargarDatos()" title="Actualizar">
-                <i class="fa-solid fa-rotate-right"></i>
-            </button>
-        </div>
-    </div>
+                <button class="icon-btn btn-pdf" onclick="exportarPDF()" title="Export PDF">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </button>
 
-    <div id="mensaje" class="loading">🔄 Connecting to the SAP EHS Database...</div>
+                <button class="icon-btn btn-refresh" onclick="cargarDatos()" title="Actualizar">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </header>
 
-      <div class="cards-container">
-        <div class="card" style="border-left-color: #0a6ed1;">
-            <h3>Total Audits</h3>
-            <p class="card-value" id="cardTotal">0</p>
-            <i class="fa-solid fa-clipboard-list card-icon" style="color: #0a6ed1;"></i>
-        </div>
-        <div class="card" style="border-left-color: #f39c12;">
-            <h3>Open</h3>
-            <p class="card-value" id="cardOpen">0</p>
-            <i class="fa-solid fa-folder-open card-icon" style="color: #f39c12;"></i>
-        </div>
-        <div class="card" style="border-left-color: #27ae60;">
-            <h3>Closed</h3>
-            <p class="card-value" id="cardClosed">0</p>
-            <i class="fa-solid fa-circle-check card-icon" style="color: #27ae60;"></i>
-        </div>
-        <div class="card" style="border-left-color: #00cec9;">
-            <h3>In Process</h3>
-            <p class="card-value" id="cardInProcess">0</p>
-            <i class="fa-solid fa-spinner card-icon" style="color: #00cec9;"></i>
-        </div>
-        <div class="card" style="border-left-color: #6c5ce7;">
-            <h3>% Progress</h3>
-            <p class="card-value" id="cardProgress">0%</p>
-            <i class="fa-solid fa-chart-line card-icon" style="color: #6c5ce7;"></i>
-        </div>
-    </div>
+        <div class="main-content">
+            <div id="mensaje" class="loading">🔄 Connecting to the SAP EHS Database...</div>
+            <div class="cards-container">
+                <div class="card" style="--card-color: #0a6ed1;">
+                    <div class="card-icon-box">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>TOTAL AUDITS</h3>
+                        <p class="card-value" id="cardTotal">0</p>
+                        <span class="card-subtitle">Records Processed</span>
+                    </div>
+                </div>
+                
+                <div class="card" style="--card-color: #f39c12;">
+                    <div class="card-icon-box">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>OPEN</h3>
+                        <p class="card-value" id="cardOpen">0</p>
+                        <span class="card-subtitle">Pending Items</span>
+                    </div>
+                </div>
+                
+                <div class="card" style="--card-color: #27ae60;">
+                    <div class="card-icon-box">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>CLOSED</h3>
+                        <p class="card-value" id="cardClosed">0</p>
+                        <span class="card-subtitle">Finished Audits</span>
+                    </div>
+                </div>
+                
+                <div class="card" style="--card-color: #00cec9;">
+                    <div class="card-icon-box">
+                        <i class="fa-solid fa-spinner"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>IN PROCESS</h3>
+                        <p class="card-value" id="cardInProcess">0</p>
+                        <span class="card-subtitle">Ongoing Tasks</span>
+                    </div>
+                </div>
+                
+                <div class="card" style="--card-color: #6c5ce7;">
+                    <div class="card-icon-box">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>% PROGRESS</h3>
+                        <p class="card-value" id="cardProgress">0%</p>
+                        <span class="card-subtitle">Completion Rate</span>
+                    </div>
+                </div>
+            </div>
 
-    <div class="charts-grid">
-        <div class="chart-card">
-            <h4>Audits by Shift</h4>
-            <div class="chart-container">
-                <canvas id="chartShift"></canvas>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h4>Audits by Shift</h4>
+                    <div class="chart-container">
+                        <canvas id="chartShift"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h4>Audits by Month</h4>
+                    <div class="chart-container">
+                        <canvas id="chartMonth"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card full-width">
+                    <h4>Issues Per Day</h4>
+                    <div class="chart-container">
+                        <canvas id="chartIssuesDay"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="chart-card">
-            <h4>Audits by Month</h4>
-            <div class="chart-container">
-                <canvas id="chartMonth"></canvas>
-            </div>
-        </div>
-        <div class="chart-card full-width">
-            <h4>Issues Per Day</h4>
-            <div class="chart-container">
-                <canvas id="chartIssuesDay"></canvas>
+
+        <div id="tableModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-table"></i> Audit Details EHS</h3>
+                    <button class="close-modal" onclick="cerrarModalTabla()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="table-container">
+                    <table id="tabla">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>Plant</th>
+                                <th>Shift</th>
+                                <th>Area</th>
+                                <th>EHS</th>
+                                <th>Gerente</th>
+                                <th>Fecha</th>
+                                <th>Status</th>
+                                <th>C/O</th>
+                                <th>PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div id="tableModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-table"></i> Audit Details EHS</h3>
-            <button class="close-modal" onclick="cerrarModalTabla()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="table-container">
-            <table id="tabla">
-                <thead>
-                    <tr>
-                        <th>Folio</th>
-                        <th>Plant</th>
-                        <th>Shift</th>
-                        <th>Area</th>
-                        <th>EHS</th>
-                        <th>Gerente</th>
-                        <th>Fecha</th>
-                        <th>Status</th>
-                        <th>C/O</th>
-                        <th>PDF</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="EhsAudits.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="EhsAudits.js"></script>
 
 </body>
 </html>
