@@ -1,4 +1,3 @@
- 
 const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
 const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
 
@@ -169,7 +168,35 @@ function actualizarGraficas(data) {
                     backgroundColor: ['#0a6ed1', '#00a6a6', '#f39c12', '#e74c3c']
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            plugins: [ChartDataLabels],
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    datalabels: {
+                        color: '#ffffff',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+                        formatter: (value) => {
+                            return value > 0 ? value : '';
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return ` ${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -197,10 +224,36 @@ function actualizarGraficas(data) {
                 datasets: [{
                     label: 'Auditorías',
                     data: monthCounts,
-                    backgroundColor: '#0a6ed1'
+                    backgroundColor: '#38a169',
+                    borderRadius: 4
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            plugins: [ChartDataLabels],
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#1e293b',
+                        anchor: 'end',
+                        align: 'top',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        formatter: (value) => {
+                            return value > 0 ? value : '';
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grace: '15%'
+                    }
+                }
+            }
         });
     }
 
@@ -225,13 +278,42 @@ function actualizarGraficas(data) {
                 datasets: [{
                     label: 'Issues / Auditorías',
                     data: sortedValues,
-                    borderColor: '#00a6a6',
-                    backgroundColor: 'rgba(0, 166, 166, 0.1)',
+                    borderColor: '#e74c3c', // Línea en color rojo
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)', // Fondo difuminado rojo suave
                     fill: true,
-                    tension: 0.3
+                    tension: 0.3,
+                    pointBackgroundColor: '#e74c3c', // Relleno de los puntos en rojo
+                    pointBorderColor: '#ffffff', // Borde blanco para resaltar los puntos
+                    pointBorderWidth: 2,
+                    pointRadius: 4
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            plugins: [ChartDataLabels],
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#1e293b',
+                        anchor: 'end',
+                        align: 'top',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        formatter: (value) => {
+                            return value > 0 ? value : '';
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grace: '15%' // Espacio extra arriba para que los números no se corten
+                    }
+                }
+            }
         });
     }
 }
@@ -269,4 +351,17 @@ window.exportarPDF = function(){
 document.addEventListener("DOMContentLoaded", () => {
     establecerAnioActual();
     window.cargarDatos();
+});
+
+// --- BLOQUEO DE CLIC DERECHO Y CÓDIGO FUENTE ---
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+document.addEventListener("keydown", (e) => {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+    (e.ctrlKey && e.key === "U")
+  ) {
+    e.preventDefault();
+  }
 });
