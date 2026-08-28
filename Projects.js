@@ -38,8 +38,10 @@ async function cargarProjects() {
             DateEnd,
             Progress,
             Approved,
-            Status
+            Status,
+            is_active
         `)
+        .eq("is_active", true) // <-- AQUÍ FILTRAMOS PARA QUE SOLO TRAIGA LOS ACTIVOS
         .order("Folio");
 
     if (error) {
@@ -215,11 +217,9 @@ function actualizarKPIs(data) {
     document.getElementById("processProjects").innerHTML =
         data.filter(p => p.Status === "In Process" || p.Status === "En Proceso").length;
 
-    // Actualizado para buscar Closed o Complete/Completed antiguos
     document.getElementById("completeProjects").innerHTML =
         data.filter(p => p.Status === "Closed" || p.Status === "Complete" || p.Status === "Completed" || p.Status === "Completado").length;
 
-    // Actualizado para buscar On Hold o Waiting antiguo
     document.getElementById("waitingProjects").innerHTML =
         data.filter(p => p.Status === "On Hold" || p.Status === "En Espera" || p.Status === "Waiting").length;
 
@@ -442,3 +442,19 @@ function exportarExcel() {
    ========================================================= */
 
 cargarProjects();
+
+/* =========================================================
+   BLOQUEO DE CLIC DERECHO Y CÓDIGO FUENTE
+   ========================================================= */
+ 
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+document.addEventListener("keydown", (e) => {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+    (e.ctrlKey && e.key === "U")
+  ) {
+    e.preventDefault();
+  }
+});
