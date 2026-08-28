@@ -223,7 +223,9 @@
 
   </div>
 
- document.addEventListener("contextmenu", (e) => e.preventDefault());
+  <script>
+
+document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 document.addEventListener("keydown", (e) => {
   if (
@@ -235,7 +237,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-  <script>
     window.addEventListener("load", () => {
       const SUPABASE_URL = "https://mrxtqmvufmlozplszfxc.supabase.co";
       const SUPABASE_KEY = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
@@ -281,7 +282,7 @@ document.addEventListener("keydown", (e) => {
         console.log("Iniciando búsqueda para el usuario:", userVal); // Útil para depurar en F12
 
         try {
-         
+          // Asegúrate de cambiar "Usurio" por el nombre exacto de tu columna en Supabase si es diferente
           const { data, error } = await db
             .from("Cuentas")
             .select("id")
