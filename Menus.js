@@ -8,16 +8,31 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileNavItems: document.querySelectorAll(".mobile-nav-item")
   };
 
-  DOM.sidebar.addEventListener("mouseenter", () => DOM.sidebar.classList.add("expanded"));
-  DOM.sidebar.addEventListener("mouseleave", () => DOM.sidebar.classList.remove("expanded"));
+  // Manejo adaptativo para Mouse (Desktop) y Touch (Tablets/Móviles grandes)
+  DOM.sidebar.addEventListener("mouseenter", () => {
+    if (window.innerWidth > 900) DOM.sidebar.classList.add("expanded");
+  });
+  
+  DOM.sidebar.addEventListener("mouseleave", () => {
+    if (window.innerWidth > 900) DOM.sidebar.classList.remove("expanded");
+  });
 
   function resetSidebarState() {
     document.querySelectorAll(".dropdown-item").forEach(item => item.classList.remove("open"));
-    DOM.sidebar.classList.remove("expanded");
+    if (window.innerWidth > 900) {
+      DOM.sidebar.classList.remove("expanded");
+    }
   }
 
-  // Delegación de eventos unificada para el menú y submenús
+  // Delegación de eventos unificada para el menú, submenús y soporte táctil
   DOM.sidebar.addEventListener("click", (event) => {
+    // Soporte táctil en tablets para expandir/colapsar el menú al tocar la cabecera
+    const brandHeader = event.target.closest(".sidebar-header");
+    if (brandHeader && window.innerWidth <= 1024) {
+      DOM.sidebar.classList.toggle("expanded");
+      return;
+    }
+
     const subLink = event.target.closest(".sub-link");
     const link = event.target.closest(".sidebar-link");
     if (!link) return;
@@ -100,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function openAdminModal(e) {
     e.preventDefault();
     if (adminModal) {
-      adminModal.showModal(); // Abre el diálogo nativo de forma flotante solo al hacer clic
+      adminModal.showModal(); // Abre el diálogo nativo de forma flotante
     }
     resetSidebarState();
   }
@@ -133,4 +148,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   showHome();
+});
+
+// --- BLOQUEO DE CLIC DERECHO Y CÓDIGO FUENTE ---
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+document.addEventListener("keydown", (e) => {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+    (e.ctrlKey && e.key === "U")
+  ) {
+    e.preventDefault();
+  }
 });
