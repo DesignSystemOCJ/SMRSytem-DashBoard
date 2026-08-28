@@ -86,6 +86,7 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
+  cursor: pointer;
 }
 
 .brand-mark {
@@ -404,9 +405,14 @@ body {
   box-shadow: 0 -5px 15px var(--shadow-dark);
   z-index: 2000;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   overflow-x: auto;
-  padding: 0 5px;
+  padding: 0 10px;
+  scrollbar-width: none;
+}
+
+.mobile-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .mobile-nav-item {
@@ -446,7 +452,7 @@ body {
 .admin-modal-overlay {
   padding: 0;
   border: none;
-  background: rgba(43, 54, 72, 0.75); /* Fondo oscuro más sólido */
+  background: rgba(43, 54, 72, 0.75);
   backdrop-filter: blur(6px);
   width: 100vw;
   height: 100vh;
@@ -465,12 +471,11 @@ body {
   justify-content: center;
 }
 
-/* AQUÍ ESTÁ EL CAMBIO PRINCIPAL: Se hace grande de casi toda la pantalla */
 .admin-modal-container {
   position: relative;
-  width: 92vw;      /* Ocupa el 92% del ancho de tu monitor */
-  height: 90vh;     /* Ocupa el 90% de la altura de tu monitor */
-  max-width: 1400px; /* Límite máximo para pantallas gigantes */
+  width: 92vw;
+  height: 90vh;
+  max-width: 1400px;
   max-height: 900px;
   background: var(--bg);
   border-radius: 20px;
