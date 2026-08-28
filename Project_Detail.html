@@ -1,706 +1,180 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Project Detail</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet">
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="Project_Details.css">
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="Project_Detail.js" defer></script>
 </head>
-
 <body>
-
 <div class="page-shell">
-
-
     <header class="topbar">
-
         <div class="brand-area">
-
-            <button class="back-btn"
-                    onclick="window.location.href='Projects.html'"
-                    title="Back to Projects">
-
-                <i class="fa-solid fa-arrow-left"></i>
-
-            </button>
-
-            <div>
-
-                <div class="eyebrow"></div>
-
-                <h1>Project Details</h1>
-
-            </div>
-
+            <button class="back-btn" onclick="window.location.href='Projects.html'" title="Back to Projects"><i class="fa-solid fa-arrow-left"></i></button>
+            <div><div class="eyebrow"></div><h1>Project Details</h1></div>
         </div>
-
-
         <div class="top-actions">
-
-            <span id="headerStatus" class="status-badge neutral">
-
-                <span class="status-dot"></span>
-
-                <span>Loading</span>
-
-            </span>
-
-
-            <button class="icon-btn"
-                    onclick="window.location.href='Projects.html'"
-                    title="Projects">
-
-                <i class="fa-solid fa-house"></i>
-
-            </button>
-
+            <span id="headerStatus" class="status-badge neutral"><span class="status-dot"></span><span>Loading</span></span>
+            <button class="icon-btn" onclick="window.location.href='Projects.html'" title="Projects"><i class="fa-solid fa-house"></i></button>
         </div>
-
     </header>
 
-
     <main>
-
-
-
         <section class="hero-card">
-
             <div class="hero-main">
-
-                <span class="field-caption">
-                    PROJECT NAME
-                </span>
-
-
+                <span class="field-caption">PROJECT NAME</span>
                 <div class="hero-title-row">
-
-                    <h2 id="ProjectNameDisplay">
-                        Project
-                    </h2>
-
-                    <span id="priorityBadge"
-                          class="priority-badge neutral">
-                        —
-                    </span>
-
+                    <h2 id="ProjectNameDisplay">Project</h2>
+                    <span id="priorityBadge" class="priority-badge neutral">—</span>
                 </div>
-
-
                 <div class="meta-row">
-
-                    <span>
-                        <i class="fa-regular fa-folder-open"></i>
-                        Folio
-                        <strong id="FolioDisplay">—</strong>
-                    </span>
-
-
-                    <span>
-                        <i class="fa-solid fa-hashtag"></i>
-                        ID
-                        <strong id="ProjectIDDisplay">—</strong>
-                    </span>
-
+                    <span><i class="fa-regular fa-folder-open"></i> Folio <strong id="FolioDisplay">—</strong></span>
+                    <span><i class="fa-solid fa-hashtag"></i> ID <strong id="ProjectIDDisplay">—</strong></span>
                 </div>
-
             </div>
-
-
             <div class="hero-progress">
-
-                <div class="progress-ring"
-                     id="progressRing">
-
-                    <div>
-
-                        <strong id="progressDisplay">
-                            0%
-                        </strong>
-
-                        <small>
-                            Progress
-                        </small>
-
-                    </div>
-
+                <div class="progress-ring" id="progressRing">
+                    <div><strong id="progressDisplay">0%</strong><small>Progress</small></div>
                 </div>
-
             </div>
-
         </section>
-
-
-
 
         <section class="info-grid">
-
-
-            <!-- PROJECT TYPE -->
-
+            <div class="info-tile"><span>PROJECT TYPE</span><strong id="TypeDisplay">—</strong><input id="Type" type="text" readonly></div>
+            <div class="info-tile"><span>START DATE</span><strong id="DateStartDisplay">—</strong><input id="DateStart" type="date" readonly></div>
+            <div class="info-tile"><span>END DATE</span><strong id="DateEndDisplay">—</strong><input id="DateEnd" type="date" readonly></div>
             <div class="info-tile">
-
-                <span>
-                    PROJECT TYPE
-                </span>
-
-                <strong id="TypeDisplay">
-                    —
-                </strong>
-
-                <input
-                    id="Type"
-                    type="text"
-                    readonly
-                >
-
+                <span>STATUS</span><strong id="StatusDisplay">—</strong>
+                <div class="select-wrapper">
+                    <select id="Status" disabled>
+                        <option value="">Select status...</option>
+                        <option value="New">New</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Approved">Approved</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="On Hold">On Hold</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
             </div>
-
-
-            <!-- START DATE -->
-
-            <div class="info-tile">
-
-                <span>
-                    START DATE
-                </span>
-
-                <strong id="DateStartDisplay">
-                    —
-                </strong>
-
-                <input
-                    id="DateStart"
-                    type="date"
-                    readonly
-                >
-
-            </div>
-
-
-            <!-- END DATE -->
-
-            <div class="info-tile">
-
-                <span>
-                    END DATE
-                </span>
-
-                <strong id="DateEndDisplay">
-                    —
-                </strong>
-
-                <input
-                    id="DateEnd"
-                    type="date"
-                    readonly
-                >
-
-            </div>
-
-
-            <!-- STATUS -->
-
-            <div class="info-tile">
-
-                <span>
-                    STATUS
-                </span>
-
-                <strong id="StatusDisplay">
-                    —
-                </strong>
-
-                <input
-                    id="Status"
-                    type="text"
-                    readonly
-                >
-
-            </div>
-
         </section>
-
-
-
 
         <section class="content-grid">
-
-
-            <!-- PROBLEM -->
-
             <div class="card problem-card">
-
                 <div class="card-heading">
-
-                    <div class="heading-icon warning">
-
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            PROJECT CONTEXT
-                        </span>
-
-                        <h3>
-                            Problem Description
-                        </h3>
-
-                    </div>
-
+                    <div class="heading-icon warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div><span>PROJECT CONTEXT</span><h3>Problem Description</h3></div>
                 </div>
-
-
-                <textarea
-                    id="ProblemDescription"
-                    readonly
-                    placeholder="No problem description available."
-                ></textarea>
-
+                <textarea id="ProblemDescription" readonly placeholder="No problem description available."></textarea>
             </div>
-
-
-            <!-- RESPONSIBILITY -->
 
             <div class="card responsibility-card">
-
                 <div class="card-heading">
-
-                    <div class="heading-icon people">
-
-                        <i class="fa-solid fa-users"></i>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            OWNERSHIP
-                        </span>
-
-                        <h3>
-                            Responsibility
-                        </h3>
-
-                    </div>
-
+                    <div class="heading-icon people"><i class="fa-solid fa-users"></i></div>
+                    <div><span>OWNERSHIP</span><h3>Responsibility</h3></div>
                 </div>
-
-
                 <div class="person-list">
-
-
-                    <!-- LEAD -->
-
                     <div class="person-row">
-
-                        <div class="avatar">
-
-                            <i class="fa-solid fa-user"></i>
-
-                        </div>
-
-
+                        <div class="avatar"><i class="fa-solid fa-user"></i></div>
                         <div>
-
-                            <span>
-                                Lead
-                            </span>
-
-                            <input
-                                id="Lead"
-                                type="text"
-                                readonly
-                            >
-
+                            <span>Lead</span>
+                            <div class="select-wrapper">
+                                <select id="Lead" disabled>
+                                    <option value="">Select lead...</option>
+                                    <option value="Demetrio Moreno">Demetrio Moreno</option>
+                                    <option value="Armando Osornio">Armando Osornio</option>
+                                    <option value="Demetrio Moreno - Armando Osornio">Demetrio Moreno - Armando Osornio</option>
+                                    <option value="Armando Osornio - Demetrio Moreno">Armando Osornio - Demetrio Moreno</option>
+                                </select>
+                            </div>
                         </div>
-
                     </div>
-
-
-                    <!-- MANAGER -->
-
                     <div class="person-row">
-
-                        <div class="avatar">
-
-                            <i class="fa-solid fa-user-tie"></i>
-
-                        </div>
-
-
+                        <div class="avatar"><i class="fa-solid fa-user-tie"></i></div>
                         <div>
-
-                            <span>
-                                Manager
-                            </span>
-
-                            <input
-                                id="Manager"
-                                type="text"
-                                readonly
-                            >
-
+                            <span>Manager</span>
+                            <div class="select-wrapper">
+                                <select id="Manager" disabled>
+                                    <option value="">Select manager...</option>
+                                    <option value="Ernesto Guerrero">Ernesto Guerrero</option>
+                                    <option value="Jorge Garcia">Jorge Garcia</option>
+                                    <option value="Ervin Morales">Ervin Morales</option>
+                                </select>
+                            </div>
                         </div>
-
                     </div>
-
-
-                    <!-- DEPARTMENT -->
-
                     <div class="person-row">
-
-                        <div class="avatar">
-
-                            <i class="fa-solid fa-building"></i>
-
-                        </div>
-
-
-                        <div>
-
-                            <span>
-                                Department
-                            </span>
-
-                            <input
-                                id="Department"
-                                type="text"
-                                readonly
-                            >
-
-                        </div>
-
+                        <div class="avatar"><i class="fa-solid fa-building"></i></div>
+                        <div><span>Department</span><input id="Department" type="text" readonly></div>
                     </div>
-
                 </div>
-
             </div>
-
         </section>
-
-
-
 
         <section class="card evidence-card">
-
-
             <div class="section-header">
-
-                <div>
-
-                    <span>
-                        VISUAL VERIFICATION
-                    </span>
-
-                    <h3>
-                        Evidence & Progress
-                    </h3>
-
-                </div>
-
-
-                <div class="flow-label">
-
-                    <span>
-                        BEFORE
-                    </span>
-
-                    <i class="fa-solid fa-arrow-right"></i>
-
-                    <span>
-                        AFTER
-                    </span>
-
-                </div>
-
+                <div><span>VISUAL VERIFICATION</span><h3>Evidence & Progress</h3></div>
+                <div class="flow-label"><span>BEFORE</span><i class="fa-solid fa-arrow-right"></i><span>AFTER</span></div>
             </div>
-
-
             <div class="evidence-grid">
-
-
-                <!-- BEFORE -->
-
                 <div class="evidence-panel">
-
                     <div class="evidence-label">
-
-                        <span class="step-number">
-                            01
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Evidence Before
-                            </strong>
-
-                            <small>
-                                Initial condition
-                            </small>
-
-                        </div>
-
+                        <span class="step-number">01</span>
+                        <div><strong>Evidence Before</strong><small>Initial condition</small></div>
                     </div>
-
-
                     <div class="image-frame">
-
-                        <img
-                            id="Evidencebefore"
-                            src=""
-                            alt="Evidence Before"
-                        >
-
-                        <div class="empty-image">
-
-                            <i class="fa-regular fa-image"></i>
-
-                            <span>
-                                No image
-                            </span>
-
-                        </div>
-
+                        <img id="Evidencebefore" src="" alt="Evidence Before">
+                        <div class="empty-image"><i class="fa-regular fa-image"></i><span>No image</span></div>
                     </div>
-
-
-                    <input
-                        type="file"
-                        id="EvidenceBeforeFile"
-                        accept="image/*"
-                        disabled
-                        onchange="previewImage(this,'Evidencebefore')"
-                    >
-
+                    <input type="file" id="EvidenceBeforeFile" accept="image/*" disabled onchange="previewImage(this,'Evidencebefore')">
                 </div>
-
-
-                <!-- PROGRESS -->
 
                 <div class="progress-center">
-
                     <div class="connector"></div>
-
-
-                    <div class="progress-orb">
-
-                        <i class="fa-solid fa-arrow-right"></i>
-
-                    </div>
-
-
-                    <label>
-                        Progress
-                    </label>
-
-
-                    <input
-                        id="Progress"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        readonly
-                        aria-label="Project progress"
-                    >
-
-
-                    <span class="progress-caption">
-                        Completion
-                    </span>
-
+                    <div class="progress-orb"><i class="fa-solid fa-arrow-right"></i></div>
+                    <label>Progress</label>
+                    <input id="Progress" type="number" min="0" max="100" step="1" readonly aria-label="Project progress">
+                    <span class="progress-caption">Completion</span>
                 </div>
-
-
-                <!-- AFTER -->
 
                 <div class="evidence-panel">
-
                     <div class="evidence-label">
-
-                        <span class="step-number">
-                            02
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Evidence After
-                            </strong>
-
-                            <small>
-                                Current condition
-                            </small>
-
-                        </div>
-
+                        <span class="step-number">02</span>
+                        <div><strong>Evidence After</strong><small>Current condition</small></div>
                     </div>
-
-
                     <div class="image-frame">
-
-                        <img
-                            id="EvidenceAfter"
-                            src=""
-                            alt="Evidence After"
-                        >
-
-                        <div class="empty-image">
-
-                            <i class="fa-regular fa-image"></i>
-
-                            <span>
-                                No image
-                            </span>
-
-                        </div>
-
+                        <img id="EvidenceAfter" src="" alt="Evidence After">
+                        <div class="empty-image"><i class="fa-regular fa-image"></i><span>No image</span></div>
                     </div>
-
-
-                    <input
-                        type="file"
-                        id="EvidenceAfterFile"
-                        accept="image/*"
-                        disabled
-                        onchange="previewImage(this,'EvidenceAfter')"
-                    >
-
+                    <input type="file" id="EvidenceAfterFile" accept="image/*" disabled onchange="previewImage(this,'EvidenceAfter')">
                 </div>
-
             </div>
-
         </section>
-
-
-
 
         <section class="card comments-card">
-
             <div class="card-heading">
-
-                <div class="heading-icon comments">
-
-                    <i class="fa-solid fa-comments"></i>
-
-                </div>
-
-
-                <div>
-
-                    <span>
-                        PROJECT NOTES
-                    </span>
-
-                    <h3>
-                        Comments
-                    </h3>
-
-                </div>
-
+                <div class="heading-icon comments"><i class="fa-solid fa-comments"></i></div>
+                <div><span>PROJECT NOTES</span><h3>Comments</h3></div>
             </div>
-
-
-            <textarea
-                id="RemarksComments"
-                readonly
-                placeholder="No comments available."
-            ></textarea>
-
+            <textarea id="RemarksComments" readonly placeholder="No comments available."></textarea>
         </section>
-
-
-
 
         <section class="action-bar">
-
-            <div class="action-hint">
-
-                <i class="fa-solid fa-circle-info"></i>
-
-                <span>
-                    Use Edit to modify project information and evidence.
-                </span>
-
-            </div>
-
-
+            <div class="action-hint"><i class="fa-solid fa-circle-info"></i><span>Use Edit to modify project information and evidence.</span></div>
             <div class="buttons">
-
-
-                <button
-                    id="btnEdit"
-                    onclick="activarEdicion()"
-                >
-
-                    <i class="fa-solid fa-pen"></i>
-
-                    Edit
-
-                </button>
-
-
-                <button
-                    id="btnSave"
-                    onclick="guardarProyecto()"
-                    disabled
-                >
-
-                    <i class="fa-solid fa-floppy-disk"></i>
-
-                    Save
-
-                </button>
-
-
-                <button
-                    class="delete"
-                    onclick="eliminarProyecto()"
-                >
-
-                    <i class="fa-solid fa-trash"></i>
-
-                    Delete
-
-                </button>
-
-
-                <button
-                    class="close-btn"
-                    onclick="window.close()"
-                >
-
-                    <i class="fa-solid fa-xmark"></i>
-
-                    Close
-
-                </button>
-
+                <button id="btnEdit" onclick="activarEdicion()"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button id="btnSave" onclick="guardarProyecto()" disabled><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                <button class="delete" onclick="eliminarProyecto()"><i class="fa-solid fa-trash"></i> Delete</button>
+                <button class="close-btn" onclick="window.close()"><i class="fa-solid fa-xmark"></i> Close</button>
             </div>
-
         </section>
-
     </main>
-
 </div>
-
 </body>
 </html>
