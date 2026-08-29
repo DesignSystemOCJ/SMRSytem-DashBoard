@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LayOut  - CNC-Rough Cut</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        document.addEventListener("keydown", (e) => {
+          if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+            (e.ctrlKey && e.key === "U")
+          ) {
+            e.preventDefault();
+          }
+        });
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-800 overflow-hidden m-0 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const SUPABASE_URL = "https://mrxtqmvufmlozplszfxc.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const CATEGORIES = [
+            { id: 'all', label: 'All', color: '#4f46e5', icon: 'layout-grid' },
+            { id: 'basura', label: 'Trash Bins', color: '#059669', icon: 'trash-2' },
+            { id: 'aluminio', label: 'Aluminum', color: '#0284c7', icon: 'disc' },
+            { id: 'extintores', label: 'Fire Extinguishers', color: '#dc2626', icon: 'flag' },
+            { id: 'alto_voltaje', label: 'High Voltage', color: '#ca8a04', icon: 'zap' },
+            { id: 'hidrantes', label: 'Hydrants', color: '#2563eb', icon: 'droplet' },
+            { id: 'antiderrames', label: 'Spill Kits', color: '#ea580c', icon: 'shield-alert' },
+            { id: 'igloos', label: 'Igloos', color: '#7c3aed', icon: 'home' },
+            { id: 'regaderas', label: 'Eyewash / Showers', color: '#db2777', icon: 'cloud-rain' }
+        ];
+
+        const DEFAULT_PINS = [
+            {
+                id: 'EXT-001',
+                name: 'Zone A - Main Hallway',
+                category: 'extintores',
+                x: 25,
+                y: 40,
+                details: { 
+                    type: 'PQS ABC', 
+                    weight: '9 kg', 
+                    status: 'Operational',
+                    registrationDate: '2026-01-15',
+                    expirationDate: '2027-01-15'
+                }
+            },
+            {
+                id: 'ALT-002',
+                name: 'North Electrical Substation',
+                category: 'alto_voltaje',
+                x: 70,
+                y: 60,
+                details: { type: '440V', status: 'Warning' }
+            }
+        ];
+
+        const INITIAL_NEW_PIN = { 
+            id: '', 
+            name: '', 
+            category: 'extintores', 
+            x: 50, 
+            y: 50, 
+            status: 'Operational', 
+            registrationDate: '',
+            expirationDate: '',
+            extinguisherType: 'PQS ABC',
+            weight: '9 kg'
+        };
+
+        function App() {
+            const [pins, setPins] = useState(DEFAULT_PINS);
+            const [selectedPin, setSelectedPin] = useState(null);
+            const [isExpanded, setIsExpanded] = useState(false);
+            const [filter, setFilter] = useState('all');
+            const [scale, setScale] = useState(1);
+            const [position, setPosition] = useState({ x: 0, y: 0 });
+            const [isDragging, setIsDragging] = useState(false);
+            const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+            const [isAddModeActive, setIsAddModeActive] = useState(false);
+            const [modalOpen, setModalOpen] = useState(false);
+            
+            const [editModalOpen, setEditModalOpen] = useState(false);
+            const [editingPin, setEditingPin] = useState(null);
+            const [repositioningPinId, setRepositioningPinId] = useState(null);
+
+            const [notifications, setNotifications] = useState([]);
+            const [showFloatingNotifs, setShowFloatingNotifs] = useState(false);
+            const [notificationsDropdownOpen, setNotificationsDropdownOpen] = useState(false);
+            const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+            
+            const [newPin, setNewPin] = useState(INITIAL_NEW_PIN);
+            const [syncStatus, setSyncStatus] = useState('Syncing...');
+
+         
+            useEffect(() => {
+                const fetchPins = async () => {
+                    const { data, error } = await supabaseClient.from('pins').select('*');
+                    if (!error && data?.length > 0) {
+                        setPins(data);
+                        setSyncStatus('Online');
+                    } else if (!error && data?.length === 0) {
+                        setSyncStatus('Connected (No records)');
+                    } else {
+                        setSyncStatus('Supabase Connection Error');
+                    }
+                };
+
+                fetchPins();
+
+                const subscription = supabaseClient
+                    .channel('public:pins')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'pins' }, fetchPins)
+                    .subscribe();
+
+                return () => {
+                    supabaseClient.removeChannel(subscription);
+                };
+            }, []);
+
+
+            useEffect(() => {
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+
+                const notifs = [];
+                pins.forEach(pin => {
+                    if (pin.category === 'extintores' && pin.details?.expirationDate) {
+                        const expDate = new Date(pin.details.expirationDate);
+                        expDate.setHours(0, 0, 0, 0);
+
+                        const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+
+                        if (diffDays < 0) {
+                            notifs.push({
+                                id: pin.id,
+                                title: `Extintor Vencido [${pin.id}]`,
+                                message: `El extintor en ${pin.name} ya venció. ¡Acción inmediata requerida!`,
+                                bgClass: 'bg-red-50 hover:bg-red-100 border-red-200 text-red-800'
+                            });
+                        } else if (diffDays === 0) {
+                            notifs.push({
+                                id: pin.id,
+                                title: `Vence Hoy [${pin.id}]`,
+                                message: `Hace falta cambiar el extintor en ${pin.name} hoy mismo.`,
+                                bgClass: 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800'
+                            });
+                        } else if (diffDays <= 7) {
+                            notifs.push({
+                                id: pin.id,
+                                title: `Por Vencer (${diffDays} días) [${pin.id}]`,
+                                message: `Realizar el cambio del extintor en ${pin.name}.`,
+                                bgClass: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200 text-yellow-800'
+                            });
+                        }
+                    }
+                });
+
+                setNotifications(notifs);
+
+                if (notifs.length > 0) {
+                    const timer10s = setTimeout(() => {
+                        setShowFloatingNotifs(true);
+                        const timer60s = setTimeout(() => setShowFloatingNotifs(false), 60000);
+                        return () => clearTimeout(timer60s);
+                    }, 10000);
+                    return () => clearTimeout(timer10s);
+                }
+            }, [pins]);
+
+          
+            useEffect(() => {
+                const timer = setTimeout(() => lucide.createIcons(), 50);
+                return () => clearTimeout(timer);
+            }, [filter, selectedPin, isExpanded, pins, editModalOpen, repositioningPinId, showFloatingNotifs, notificationsDropdownOpen, categoryDropdownOpen]);
+
+            const filteredPins = filter === 'all' ? pins : pins.filter(p => p.category === filter);
+
+          
+            const handleMouseDown = (e) => {
+                if (isAddModeActive || repositioningPinId || e.target.closest('aside, header, .pin-element')) return;
+                setIsDragging(true);
+                setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+            };
+
+            const handleMouseMove = (e) => {
+                if (!isDragging || isAddModeActive || repositioningPinId) return;
+                setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+            };
+
+            const handleMouseUp = () => setIsDragging(false);
+
+            const handleWheel = (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+                setScale(prev => Math.min(Math.max(prev * zoomFactor, 0.5), 3));
+            };
+
+            const updatePinCoordinates = async (pinId, newX, newY) => {
+                const { error } = await supabaseClient.from('pins').update({ x: newX, y: newY }).eq('id', pinId);
+                if (error) {
+                    alert('Error updating position: ' + error.message);
+                    return;
+                }
+
+                setPins(prev => prev.map(p => p.id === pinId ? { ...p, x: newX, y: newY } : p));
+                if (selectedPin?.id === pinId) {
+                    setSelectedPin(prev => ({ ...prev, x: newX, y: newY }));
+                }
+                setRepositioningPinId(null);
+            };
+
+            const handleMapClick = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const xClick = Number((((e.clientX - rect.left) / rect.width) * 100).toFixed(2));
+                const yClick = Number((((e.clientY - rect.top) / rect.height) * 100).toFixed(2));
+
+                if (repositioningPinId) {
+                    updatePinCoordinates(repositioningPinId, xClick, yClick);
+                    return;
+                }
+
+                if (!isAddModeActive || e.target.closest('.pin-element')) return;
+
+                setNewPin(prev => ({ ...prev, x: xClick, y: yClick }));
+                setModalOpen(true);
+                setIsAddModeActive(false);
+            };
+
+            const handleCreatePin = async (e) => {
+                e.preventDefault();
+                if (!newPin.id || !newPin.name) return;
+
+                const pinPayload = {
+                    id: newPin.id,
+                    name: newPin.name,
+                    category: newPin.category,
+                    x: Number(newPin.x),
+                    y: Number(newPin.y),
+                    details: {
+                        status: newPin.status,
+                        ...(newPin.category === 'extintores' ? {
+                            type: newPin.extinguisherType,
+                            weight: newPin.weight,
+                            registrationDate: newPin.registrationDate,
+                            expirationDate: newPin.expirationDate
+                        } : { type: 'General' })
+                    }
+                };
+
+                const { error } = await supabaseClient.from('pins').insert([pinPayload]);
+                if (error) {
+                    alert('Error saving to Supabase: ' + error.message);
+                    return;
+                }
+
+                setModalOpen(false);
+                setNewPin(INITIAL_NEW_PIN);
+            };
+
+            const handleUpdatePin = async (e) => {
+                e.preventDefault();
+                if (!editingPin) return;
+
+                const pinPayload = {
+                    name: editingPin.name,
+                    category: editingPin.category,
+                    details: editingPin.details
+                };
+
+                const { error } = await supabaseClient.from('pins').update(pinPayload).eq('id', editingPin.id);
+                if (error) {
+                    alert('Error updating pin: ' + error.message);
+                    return;
+                }
+
+                setPins(prev => prev.map(p => p.id === editingPin.id ? { ...p, ...pinPayload } : p));
+                if (selectedPin?.id === editingPin.id) {
+                    setSelectedPin(prev => ({ ...prev, ...pinPayload }));
+                }
+
+                setEditModalOpen(false);
+                setEditingPin(null);
+            };
+
+            const handleDeletePin = async (pinId) => {
+                if (!window.confirm(`¿Estás seguro de que deseas eliminar el pin [${pinId}]?`)) return;
+
+                const { error } = await supabaseClient.from('pins').delete().eq('id', pinId);
+                if (error) {
+                    alert('Error deleting pin: ' + error.message);
+                    return;
+                }
+
+                setPins(prev => prev.filter(p => p.id !== pinId));
+                if (selectedPin?.id === pinId) {
+                    setSelectedPin(null);
+                    setIsExpanded(false);
+                }
+                setEditModalOpen(false);
+                setEditingPin(null);
+            };
+
+            const renderPinGraphic = (catColor, size = "w-7 h-7") => (
+                <div className={`relative flex flex-col items-center drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)] ${size}`}>
+                    <div className="w-5 h-5 rounded-full relative z-10 border border-white/80 shadow-sm flex items-start justify-start p-0.5" style={{ backgroundColor: catColor }}>
+                        <div className="w-1.5 h-1.5 bg-white/90 rounded-full"></div>
+                    </div>
+                    <div className="w-1 h-4 -mt-1 bg-gradient-to-r from-slate-400 via-slate-300 to-slate-500 rounded-b-sm"></div>
+                </div>
+            );
+
+            const getCategoryColor = (catId) => CATEGORIES.find(c => c.id === catId)?.color || '#dc2626';
+            const getCategoryLabel = (catId) => CATEGORIES.find(c => c.id === catId)?.label || catId;
+            const currentActiveCategory = CATEGORIES.find(c => c.id === filter) || CATEGORIES[0];
+
+            return (
+                <div className="flex h-screen w-screen overflow-hidden select-none relative bg-slate-100 text-slate-800">
+                    {/* Sidebar Izquierdo */}
+                    <aside className="w-80 bg-white border-r border-slate-200 flex flex-col z-20 shadow-lg">
+                        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-sky-100 text-sky-700 rounded-xl border border-sky-200">
+                                    <i data-lucide="shield" className="w-4 h-4"></i>
+                                </div>
+                                <h1 className="font-bold text-sm tracking-wide text-slate-900">Layout CNC-Rough Cut</h1>
+                            </div>
+                            <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-mono border border-emerald-200">{syncStatus}</span>
+                        </div>
+
+                        <div className="p-4 flex-1 overflow-y-auto space-y-3">
+                            {/* Notificaciones */}
+                            {notifications.length > 0 && (
+                                <div 
+                                    onMouseEnter={() => setNotificationsDropdownOpen(true)}
+                                    onMouseLeave={() => setNotificationsDropdownOpen(false)}
+                                    className="bg-amber-50/70 hover:bg-amber-50 border border-amber-200 rounded-xl p-3 cursor-pointer transition-all shadow-sm"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></div>
+                                            <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                                                Notifications ({notifications.length})
+                                            </span>
+                                        </div>
+                                        <i data-lucide={notificationsDropdownOpen ? "chevron-up" : "chevron-down"} className="w-4 h-4 text-amber-700"></i>
+                                    </div>
+
+                                    {notificationsDropdownOpen && (
+                                        <div className="space-y-2 pt-3 mt-3 border-t border-amber-200/60">
+                                            {notifications.map((notif, idx) => (
+                                                <div key={idx} className={`p-2.5 rounded-lg border text-xs ${notif.bgClass}`}>
+                                                    <div className="font-bold flex items-center gap-1.5 mb-1">
+                                                        <i data-lucide="bell" className="w-3.5 h-3.5"></i>
+                                                        {notif.title}
+                                                    </div>
+                                                    <p className="text-[11px] opacity-90">{notif.message}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {selectedPin ? (
+                                <div 
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className="bg-sky-50/50 border border-sky-100 rounded-2xl p-3.5 relative shadow-sm cursor-pointer hover:border-sky-300 transition-all"
+                                >
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedPin(null);
+                                            setIsExpanded(false);
+                                        }}
+                                        className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200/50 z-10"
+                                    >
+                                        <i data-lucide="x" className="w-4 h-4"></i>
+                                    </button>
+                                    
+                                    <div className="flex items-center gap-3 pr-6">
+                                        <div className="p-1.5 rounded-xl border bg-white border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                                            {renderPinGraphic(getCategoryColor(selectedPin.category), "w-5 h-5")}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono text-sky-700 text-xs font-bold">[{selectedPin.id}]</span>
+                                                <span className="text-[10px] text-slate-500 flex items-center gap-1 ml-auto">
+                                                    {isExpanded ? "Hide" : "View"} 
+                                                    <i data-lucide={isExpanded ? "chevron-up" : "chevron-down"} className="w-3 h-3"></i>
+                                                </span>
+                                            </div>
+                                            <h3 className="font-medium text-xs text-slate-900 truncate">{selectedPin.name}</h3>
+                                        </div>
+                                    </div>
+
+                                    {isExpanded && (
+                                        <div className="space-y-2.5 text-xs border-t border-sky-200/60 pt-3 mt-3">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-500">Category:</span>
+                                                <span className="font-semibold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded text-white shadow-sm" style={{ backgroundColor: getCategoryColor(selectedPin.category) }}>
+                                                    {getCategoryLabel(selectedPin.category)}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-500">Status:</span>
+                                                <span className={`font-semibold px-2 py-0.5 rounded ${selectedPin.details?.status === 'Operational' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                                                    {selectedPin.details?.status || 'N/A'}
+                                                </span>
+                                            </div>
+
+                                            {selectedPin.category === 'extintores' && selectedPin.details && (
+                                                <>
+                                                    <div className="flex justify-between items-center"><span className="text-slate-500">Type:</span><span className="font-semibold text-slate-800">{selectedPin.details.type || 'N/A'}</span></div>
+                                                    <div className="flex justify-between items-center"><span className="text-slate-500">Weight:</span><span className="font-semibold text-slate-800">{selectedPin.details.weight || 'N/A'}</span></div>
+                                                    <div className="flex justify-between items-center"><span className="text-slate-500">Reg. Date:</span><span className="font-semibold text-slate-800">{selectedPin.details.registrationDate || 'N/A'}</span></div>
+                                                    <div className="flex justify-between items-center"><span className="text-slate-500">Exp. Date:</span><span className="font-semibold text-slate-800">{selectedPin.details.expirationDate || 'N/A'}</span></div>
+                                                </>
+                                            )}
+
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingPin(JSON.parse(JSON.stringify(selectedPin)));
+                                                    setEditModalOpen(true);
+                                                }}
+                                                className="w-full mt-2 py-2 bg-sky-100 hover:bg-sky-200 text-sky-800 border border-sky-200 rounded-xl text-xs font-medium flex items-center justify-center gap-2 shadow-sm"
+                                            >
+                                                <i data-lucide="pencil" className="w-3.5 h-3.5"></i> Edit Information
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            All Active Items ({filteredPins.length})
+                                        </span>
+                                    </div>
+
+                                    {filteredPins.length > 0 ? (
+                                        filteredPins.map((pin) => (
+                                            <div 
+                                                key={pin.id}
+                                                onClick={() => {
+                                                    setSelectedPin(pin);
+                                                    setIsExpanded(true);
+                                                }}
+                                                className="bg-white hover:bg-sky-50/60 border border-slate-200 hover:border-sky-300 rounded-xl p-3 cursor-pointer transition-all shadow-sm"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                        <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: getCategoryColor(pin.category) }}></div>
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="font-mono text-sky-700 text-[11px] font-bold">[{pin.id}]</span>
+                                                                <span className={`text-[9px] px-1.5 py-0.2 rounded font-medium ${pin.details?.status === 'Operational' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                                                                    {pin.details?.status || 'Active'}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-700 truncate font-medium">{pin.name}</p>
+                                                        </div>
+                                                    </div>
+                                                    <i data-lucide="chevron-right" className="w-4 h-4 text-slate-400 shrink-0"></i>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center text-slate-400 mt-16 flex flex-col items-center">
+                                            <div className="p-3 bg-slate-50 rounded-full border border-slate-200 mb-2 text-slate-400">
+                                                <i data-lucide="folder-open" className="w-6 h-6 opacity-60"></i>
+                                            </div>
+                                            <p className="text-xs max-w-[200px]">No records found for this category.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-4 border-t border-slate-200 bg-white">
+                            <button 
+                                onClick={() => {
+                                    setRepositioningPinId(null);
+                                    setIsAddModeActive(!isAddModeActive);
+                                }}
+                                className={`w-full font-medium py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm ${
+                                    isAddModeActive 
+                                        ? 'bg-amber-500 hover:bg-amber-600 text-white animate-pulse' 
+                                        : 'bg-sky-600 hover:bg-sky-700 text-white'
+                                }`}
+                            >
+                                <i data-lucide={isAddModeActive ? "x-circle" : "map-pin"} className="w-4 h-4"></i> 
+                                {isAddModeActive ? "Cancel Location Mode" : "Activate Add Pin Mode"}
+                            </button>
+                        </div>
+                    </aside>
+
+                    {/* Canvas del Mapa Interactivo */}
+                    <main 
+                        className={`flex-1 relative bg-slate-200 overflow-hidden ${isAddModeActive || repositioningPinId ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onWheel={handleWheel}
+                    >
+                        {/* Selector de Categorías Superior Izquierdo */}
+                        <div className="absolute top-4 left-4 z-30">
+                            <div 
+                                className="relative"
+                                onMouseEnter={() => setCategoryDropdownOpen(true)}
+                                onMouseLeave={() => setCategoryDropdownOpen(false)}
+                            >
+                                <button className="bg-white/90 hover:bg-white border border-slate-300 text-slate-800 px-4 py-2 rounded-xl shadow-lg backdrop-blur flex items-center gap-2.5 text-xs font-medium transition-all">
+                                    <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: currentActiveCategory.color }}></div>
+                                    <span>Category: <strong>{currentActiveCategory.label}</strong></span>
+                                    <i data-lucide={categoryDropdownOpen ? "chevron-up" : "chevron-down"} className="w-4 h-4 text-slate-500"></i>
+                                </button>
+
+                                {categoryDropdownOpen && (
+                                    <div className="absolute left-0 top-full mt-1.5 w-60 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 space-y-1 z-40">
+                                        {CATEGORIES.map((cat) => (
+                                            <button
+                                                key={cat.id}
+                                                onClick={() => {
+                                                    setFilter(cat.id);
+                                                    setSelectedPin(null);
+                                                    setCategoryDropdownOpen(false);
+                                                }}
+                                                className={`w-full py-2 px-3 text-xs font-medium rounded-xl flex items-center justify-between transition-all ${filter === cat.id ? 'bg-sky-50 text-sky-900 border border-sky-200' : 'text-slate-600 hover:bg-slate-100'}`}
+                                            >
+                                                <div className="flex items-center gap-2.5 truncate">
+                                                    {cat.id !== 'all' ? (
+                                                        <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: cat.color }}></div>
+                                                    ) : (
+                                                        <i data-lucide={cat.icon} className="w-3.5 h-3.5 text-sky-600"></i>
+                                                    )}
+                                                    <span className="truncate">{cat.label}</span>
+                                                </div>
+                                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-mono border border-slate-200">
+                                                    {cat.id === 'all' ? pins.length : pins.filter(p => p.category === cat.id).length}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Controles de Zoom */}
+                        <div className="absolute top-4 right-4 z-30 flex items-center bg-white/90 backdrop-blur border border-slate-300 p-1 rounded-xl shadow-lg">
+                            <button onClick={() => setScale(s => Math.min(s * 1.2, 3))} className="p-2 hover:bg-slate-100 rounded-lg text-slate-700 font-bold text-xs">+</button>
+                            <div className="w-[1px] h-4 bg-slate-200 mx-0.5"></div>
+                            <button onClick={() => setScale(s => Math.max(s / 1.2, 0.5))} className="p-2 hover:bg-slate-100 rounded-lg text-slate-700 font-bold text-xs">-</button>
+                            <div className="w-[1px] h-4 bg-slate-200 mx-0.5"></div>
+                            <button onClick={() => { setScale(1); setPosition({ x: 0, y: 0 }); }} className="px-2.5 py-1 hover:bg-slate-100 rounded-lg text-[10px] text-slate-600 font-mono">Reset</button>
+                        </div>
+
+                        {isAddModeActive && (
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-amber-500 text-white font-bold px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 text-xs animate-bounce">
+                                <i data-lucide="alert-circle" className="w-4 h-4"></i> Click anywhere on the map to place the pin
+                            </div>
+                        )}
+
+                        {repositioningPinId && (
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-sky-600 text-white font-bold px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 text-xs animate-bounce">
+                                <i data-lucide="compass" className="w-4 h-4"></i> Click on the new location for pin [{repositioningPinId}]
+                                <button onClick={() => setRepositioningPinId(null)} className="ml-2 bg-black/20 hover:bg-black/40 px-2 py-0.5 rounded text-[10px]">Cancel</button>
+                            </div>
+                        )}
+
+                        {/* Lienzo del Mapa */}
+                        <div 
+                            onClick={handleMapClick}
+                            className="absolute w-[1600px] h-[1000px] bg-white border border-slate-300 transition-transform duration-75 ease-out rounded-2xl shadow-xl"
+                            style={{
+                                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                                transformOrigin: '0 0',
+                                top: '50px',
+                                left: '50px'
+                            }}
+                        >
+                            <img 
+                                src="https://designsystemocj.github.io/SMRSytem-DashBoard/layout%20update.JPG" 
+                                alt="Plant Layout" 
+                                className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-95 rounded-2xl"
+                            />
+
+                            {filteredPins.map((pin) => (
+                                <div
+                                    key={pin.id}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (repositioningPinId) return;
+                                        setSelectedPin(pin);
+                                        setIsExpanded(true);
+                                    }}
+                                    style={{ top: `${pin.y}%`, left: `${pin.x}%` }}
+                                    className="pin-element absolute -translate-x-1/2 -translate-y-full cursor-pointer transition-transform hover:scale-125 z-10 group"
+                                >
+                                    {renderPinGraphic(getCategoryColor(pin.category))}
+                                    
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-white text-xs text-slate-800 px-3 py-1.5 rounded-xl shadow-xl border border-slate-200 whitespace-nowrap z-30 pointer-events-none">
+                                        <span className="font-mono text-sky-700 font-bold">[{pin.id}]</span> <span className="text-slate-700">{pin.name}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+
+                    {/* Notificaciones Flotantes */}
+                    {showFloatingNotifs && notifications.length > 0 && (
+                        <div className="absolute top-20 right-6 z-40 max-w-sm w-full space-y-3">
+                            <div className="flex items-center justify-between bg-white/90 border border-slate-200 px-4 py-2 rounded-xl backdrop-blur shadow-lg">
+                                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i data-lucide="bell-ring" className="w-4 h-4 text-sky-600 animate-bounce"></i> Alertas de Extintores
+                                </span>
+                                <button onClick={() => setShowFloatingNotifs(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                                    <i data-lucide="x" className="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            
+                            {notifications.map((notif, idx) => (
+                                <div 
+                                    key={idx}
+                                    className={`p-4 rounded-2xl border backdrop-blur-md shadow-xl cursor-pointer ${notif.bgClass}`}
+                                    onClick={() => {
+                                        const targetPin = pins.find(p => p.id === notif.id);
+                                        if (targetPin) {
+                                            setSelectedPin(targetPin);
+                                            setIsExpanded(true);
+                                        }
+                                    }}
+                                >
+                                    <div className="flex items-center gap-2 font-bold text-sm mb-1">
+                                        <i data-lucide="alert-triangle" className="w-4 h-4 shrink-0"></i>
+                                        {notif.title}
+                                    </div>
+                                    <p className="text-xs">{notif.message}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Modal Crear Pin */}
+                    {modalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                                <h2 className="text-base font-bold mb-4 flex items-center gap-2 text-slate-900">
+                                    <i data-lucide="plus-circle" className="text-emerald-600 w-5 h-5"></i> Register New Pin
+                                </h2>
+                                <form onSubmit={handleCreatePin} className="space-y-4 text-xs">
+                                    <div>
+                                        <label className="block text-slate-600 mb-1 font-medium">Element ID</label>
+                                        <input type="text" required value={newPin.id} onChange={e => setNewPin({...newPin, id: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono" placeholder="Ex. EXT-005" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-slate-600 mb-1 font-medium">Location Name</label>
+                                        <input type="text" required value={newPin.name} onChange={e => setNewPin({...newPin, name: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2" placeholder="Ex. Central Hallway" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-slate-600 mb-1 font-medium">Category</label>
+                                            <select value={newPin.category} onChange={e => setNewPin({...newPin, category: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                                {CATEGORIES.filter(c => c.id !== 'all').map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-slate-600 mb-1 font-medium">Status</label>
+                                            <select value={newPin.status} onChange={e => setNewPin({...newPin, status: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                                <option value="Operational">Operational</option>
+                                                <option value="Warning">Warning</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {newPin.category === 'extintores' && (
+                                        <div className="p-3 bg-sky-50/50 border border-sky-200 rounded-xl space-y-3">
+                                            <span className="text-[11px] font-bold text-red-600 uppercase tracking-wider block">Extinguisher Specific Data</span>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div><label className="block text-slate-600 mb-1 font-medium">Registration Date</label><input type="date" value={newPin.registrationDate} onChange={e => setNewPin({...newPin, registrationDate: e.target.value})} className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs" /></div>
+                                                <div><label className="block text-slate-600 mb-1 font-medium">Expiration Date</label><input type="date" value={newPin.expirationDate} onChange={e => setNewPin({...newPin, expirationDate: e.target.value})} className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs" /></div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div><label className="block text-slate-600 mb-1 font-medium">Type</label><input type="text" value={newPin.extinguisherType} onChange={e => setNewPin({...newPin, extinguisherType: e.target.value})} className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs" /></div>
+                                                <div><label className="block text-slate-600 mb-1 font-medium">Weight</label><input type="text" value={newPin.weight} onChange={e => setNewPin({...newPin, weight: e.target.value})} className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs" /></div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+                                        <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl">Cancel</button>
+                                        <button type="submit" className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md font-medium">Save to Supabase</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal Editar Pin */}
+                    {editModalOpen && editingPin && (
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                                <h2 className="text-base font-bold mb-4 flex items-center gap-2 text-slate-900">
+                                    <i data-lucide="pencil" className="text-sky-600 w-5 h-5"></i> Edit Pin: <span className="font-mono text-sky-700">[{editingPin.id}]</span>
+                                </h2>
+                                <form onSubmit={handleUpdatePin} className="space-y-4 text-xs">
+                                    <div>
+                                        <label className="block text-slate-600 mb-1 font-medium">Location Name</label>
+                                        <input type="text" required value={editingPin.name} onChange={e => setEditingPin({...editingPin, name: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-slate-600 mb-1 font-medium">Category</label>
+                                            <select value={editingPin.category} onChange={e => setEditingPin({...editingPin, category: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                                {CATEGORIES.filter(c => c.id !== 'all').map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-slate-600 mb-1 font-medium">Status</label>
+                                            <select value={editingPin.details?.status || 'Operational'} onChange={e => setEditingPin({...editingPin, details: { ...editingPin.details, status: e.target.value }})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                                <option value="Operational">Operational</option>
+                                                <option value="Warning">Warning</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-3 bg-sky-50/50 border border-sky-200 rounded-xl flex items-center justify-between">
+                                        <div>
+                                            <span className="text-slate-700 font-medium block">Map Coordinates</span>
+                                            <span className="text-[10px] text-slate-500 font-mono">X: {editingPin.x}%, Y: {editingPin.y}%</span>
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                const idToMove = editingPin.id;
+                                                setEditModalOpen(false);
+                                                setEditingPin(null);
+                                                setRepositioningPinId(idToMove);
+                                            }}
+                                            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 rounded-lg font-medium flex items-center gap-1.5 shadow-sm"
+                                        >
+                                            <i data-lucide="compass" className="w-3.5 h-3.5"></i> Change Position
+                                        </button>
+                                    </div>
+
+                                    {editingPin.category === 'extintores' && (
+                                        <div className="p-3 bg-sky-50/50 border border-sky-200 rounded-xl space-y-3">
+                                            <span className="text-[11px] font-bold text-red-600 uppercase tracking-wider block">Extinguisher Details</span>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div><label className="block text-slate-600 mb-1 font-medium">Registration Date</label><input type="date" value={editingPin.details?.registrationDate || ''} onChange={e => setEditingPin({...editingPin, details: { ...editingPin.details, registrationDate: e.target.value }})} className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs" /></div>
+                                                <div><label className="block text-slate-600 mb-1 font-medium">Expiration Date</label><input type="date" value={editingPin.details?.expirationDate || ''} onChange={e => setEditingPin({...editingPin, details: { ...editingPin.details, expirationDate: e.target.value }})} className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs" /></div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                                        <button type="button" onClick={() => handleDeletePin(editingPin.id)} className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl flex items-center gap-1.5">
+                                            <i data-lucide="trash-2" className="w-3.5 h-3.5"></i> Delete Pin
+                                        </button>
+                                        <div className="flex gap-2">
+                                            <button type="button" onClick={() => setEditModalOpen(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl">Cancel</button>
+                                            <button type="submit" className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md font-medium">Save Changes</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
