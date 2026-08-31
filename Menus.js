@@ -5,16 +5,22 @@ document.addEventListener("DOMContentLoaded", () => {
     date: document.getElementById("date"),
     welcomeScreen: document.getElementById("welcome-screen"),
     iframe: document.getElementById("main-iframe"),
-    mobileNavItems: document.querySelectorAll(".mobile-nav-item")
+    mobileNavItems: document.querySelectorAll(".mobile-nav-item"),
+    adminModal: document.getElementById("admin-modal"),
+    closeModalBtn: document.getElementById("close-modal-btn"),
+    loginSublink: document.getElementById("login-sublink"),
+    mobileSettingsLink: document.getElementById("mobile-settings-link")
   };
 
-  // Manejo adaptativo para Mouse (Desktop) y Touch (Tablets/Móviles grandes)
+  // Manejo adaptativo para Mouse (Desktop)
   DOM.sidebar.addEventListener("mouseenter", () => {
     if (window.innerWidth > 900) DOM.sidebar.classList.add("expanded");
   });
   
   DOM.sidebar.addEventListener("mouseleave", () => {
-    if (window.innerWidth > 900) DOM.sidebar.classList.remove("expanded");
+    if (window.innerWidth > 900) {
+      resetSidebarState();
+    }
   });
 
   function resetSidebarState() {
@@ -24,9 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Delegación de eventos unificada para el menú, submenús y soporte táctil
+  // Delegación de eventos unificada para el menú y submenús
   DOM.sidebar.addEventListener("click", (event) => {
-    // Soporte táctil en tablets para expandir/colapsar el menú al tocar la cabecera
     const brandHeader = event.target.closest(".sidebar-header");
     if (brandHeader && window.innerWidth <= 1024) {
       DOM.sidebar.classList.toggle("expanded");
@@ -37,13 +42,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const link = event.target.closest(".sidebar-link");
     if (!link) return;
 
-    if (link.id === "roughcut-toggle") {
+    if (link.classList.contains("dropdown-toggle")) {
       event.preventDefault();
       event.stopPropagation();
       if (!DOM.sidebar.classList.contains("expanded")) DOM.sidebar.classList.add("expanded");
-      link.closest(".dropdown-item").classList.toggle("open");
+      
+      const parentDropdown = link.closest(".dropdown-item");
+      document.querySelectorAll(".dropdown-item").forEach(item => {
+        if (item !== parentDropdown) item.classList.remove("open");
+      });
+
+      parentDropdown.classList.toggle("open");
       return;
     }
+
+    if (subLink && subLink.id === "login-sublink") return; 
 
     if (subLink) {
       openModule(subLink);
@@ -51,11 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Excluimos administration (#settings-link) para que no abra en el iframe principal
-    if (link.id !== "settings-link") {
-      resetSidebarState();
-      openModule(link);
-    }
+    resetSidebarState();
+    openModule(link);
   });
 
   // Reloj en tiempo real optimizado
@@ -70,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const href = link.getAttribute("href");
     if (!href || href === "#") return;
 
-    document.querySelectorAll(".sidebar-link").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll(".sidebar-link, .sub-link").forEach(item => item.classList.remove("active"));
     link.classList.add("active");
 
     DOM.welcomeScreen.style.display = "none";
@@ -82,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     DOM.welcomeScreen.style.display = "flex";
     DOM.iframe.style.display = "none";
     DOM.iframe.src = "";
-    document.querySelectorAll(".sidebar-link").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll(".sidebar-link, .sub-link").forEach(item => item.classList.remove("active"));
     resetSidebarState();
   }
 
@@ -98,7 +108,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       
-      // Si el ítem es el de administración móvil, dejamos que lo maneje el script del modal
       if (item.id === "mobile-settings-link") return;
 
       DOM.welcomeScreen.style.display = "none";
@@ -106,43 +115,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- CONTROL DE LA VENTANA MODAL DE ADMINISTRACIÓN ---
-  const adminModal = document.getElementById("admin-modal");
-  const closeModalBtn = document.getElementById("close-modal-btn");
-  const settingsLink = document.getElementById("settings-link");
-  const mobileSettingsLink = document.getElementById("mobile-settings-link");
-
+  // Control de Modal de Administración
   function openAdminModal(e) {
     e.preventDefault();
-    if (adminModal) {
-      adminModal.showModal(); // Abre el diálogo nativo de forma flotante
-    }
+    if (DOM.adminModal) DOM.adminModal.showModal();
     resetSidebarState();
   }
 
-  if (settingsLink) {
-    settingsLink.addEventListener("click", openAdminModal);
-  }
+  if (DOM.loginSublink) DOM.loginSublink.addEventListener("click", openAdminModal);
+  if (DOM.mobileSettingsLink) DOM.mobileSettingsLink.addEventListener("click", openAdminModal);
 
-  if (mobileSettingsLink) {
-    mobileSettingsLink.addEventListener("click", openAdminModal);
-  }
+  if (DOM.closeModalBtn && DOM.adminModal) {
+    DOM.closeModalBtn.addEventListener("click", () => DOM.adminModal.close());
 
-  if (closeModalBtn && adminModal) {
-    closeModalBtn.addEventListener("click", () => {
-      adminModal.close();
-    });
-
-    // Permitir cerrar haciendo clic fuera del contenedor del modal (en la zona oscura)
-    adminModal.addEventListener("click", (event) => {
-      const rect = adminModal.getBoundingClientRect();
-      if (
-        event.clientX < rect.left ||
-        event.clientX > rect.right ||
-        event.clientY < rect.top ||
-        event.clientY > rect.bottom
-      ) {
-        adminModal.close();
+    DOM.adminModal.addEventListener("click", (event) => {
+      const rect = DOM.adminModal.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) {
+        DOM.adminModal.close();
       }
     });
   }
@@ -150,15 +139,10 @@ document.addEventListener("DOMContentLoaded", () => {
   showHome();
 });
 
-// --- BLOQUEO DE CLIC DERECHO Y CÓDIGO FUENTE ---
+// Bloqueo de atajos de desarrollo e inspección
 document.addEventListener("contextmenu", (e) => e.preventDefault());
-
 document.addEventListener("keydown", (e) => {
-  if (
-    e.key === "F12" ||
-    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
-    (e.ctrlKey && e.key === "U")
-  ) {
+  if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) || (e.ctrlKey && e.key === "U")) {
     e.preventDefault();
   }
 });
