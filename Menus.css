@@ -6,12 +6,10 @@
 
 :root {
   --bg: #e4e8ee;
-  --panel-bg: #e4e8ee;
   --text-main: #2b3648;
   --text-secondary: #58667e;
   --text-muted: #8b97a8;
   --primary-red: #c00d0d;
-  --primary-red-hover: #9e0a0a;
   --pastel-red: #ffcccc;
   --shadow-dark: #babecc;
   --shadow-light: #ffffff;
@@ -25,13 +23,13 @@
 html, body {
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 body {
   font-family: "Segoe UI", Inter, Arial, sans-serif;
   background-color: var(--bg);
   color: var(--text-main);
-  overflow: hidden;
   letter-spacing: 1px;
 }
 
@@ -117,7 +115,6 @@ body {
 .brand-info h1 {
   font-size: 16px;
   font-weight: 800;
-  color: var(--text-main);
   letter-spacing: -0.3px;
 }
 
@@ -214,9 +211,7 @@ body {
   color: #ffffff !important;
 }
 
-/* =========================================
-   SUBMENÚ DESPLEGABLE CON EFECTO HUNDIDO
-   ========================================= */
+/* Submenús Desplegables */
 .sidebar-item.dropdown-item {
   display: flex;
   flex-direction: column;
@@ -228,17 +223,21 @@ body {
   overflow: hidden;
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0 8px;
-  margin: 0;
 }
 
 .sidebar.expanded .sidebar-item.dropdown-item.open .sidebar-submenu {
-  max-height: 180px;
-  background: var(--bg);
-  box-shadow: var(--neo-inset);
-  border-radius: 16px;
-  padding: 8px;
-  margin-top: 6px;
-  margin-bottom: 6px;
+  max-height: 220px;
+  padding: 4px 8px 8px;
+  margin: 4px 0;
+  position: relative;
+}
+
+.sidebar.expanded .sidebar-item.dropdown-item.open .sidebar-submenu::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(139, 151, 168, 0.25);
+  margin: 8px 12px 4px;
 }
 
 .dropdown-chevron {
@@ -274,9 +273,9 @@ body {
   color: #ffffff !important;
 }
 
+/* Footer de la Barra Lateral */
 .sidebar-footer {
   padding: 16px 12px;
-  background: var(--bg);
   border-top: 1px solid rgba(186, 190, 204, 0.2);
 }
 
@@ -301,7 +300,6 @@ body {
 
 .status-info strong {
   font-size: 10px;
-  color: var(--text-main);
 }
 
 .clock-box {
@@ -348,7 +346,6 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   transition: margin-left 0.35s ease, width 0.35s ease;
 }
 
@@ -375,7 +372,6 @@ body {
   text-align: center;
   max-width: 500px;
   padding: 30px;
-  background: var(--bg);
 }
 
 #welcome-logo {
@@ -388,7 +384,6 @@ body {
 .welcome-content h3 {
   font-size: 22px;
   font-weight: 800;
-  color: var(--text-main);
 }
 
 /* =========================================
@@ -447,7 +442,7 @@ body {
 }
 
 /* =========================================
-   MODAL DE ADMINISTRACIÓN EN GRANDE (PANTALLA COMPLETA)
+   MODAL DE ADMINISTRACIÓN
    ========================================= */
 .admin-modal-overlay {
   padding: 0;
