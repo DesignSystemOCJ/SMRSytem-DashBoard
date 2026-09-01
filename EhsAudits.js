@@ -11,6 +11,8 @@ let chartShiftInstance = null;
 let chartMonthInstance = null;
 let chartIssuesInstance = null;
 
+const MESES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 window.toggleDropdown = function(event) {
     event.stopPropagation();
     const wrapper = document.getElementById("customSelectAnio");
@@ -44,6 +46,18 @@ window.addEventListener("click", function() {
     if(wrapper) {
         wrapper.classList.remove("open");
     }
+});
+
+// Forzar reescalado dinámico inmediato con ResizeObserver para multitarea fluida
+window.addEventListener('DOMContentLoaded', () => {
+    const observer = new ResizeObserver(() => {
+        if (chartShiftInstance) chartShiftInstance.resize();
+        if (chartMonthInstance) chartMonthInstance.resize();
+        if (chartIssuesInstance) chartIssuesInstance.resize();
+    });
+    
+    const chartsGrid = document.querySelector('.charts-grid');
+    if (chartsGrid) observer.observe(chartsGrid);
 });
 
 function establecerAnioActual() {
@@ -200,7 +214,6 @@ function actualizarGraficas(data) {
         });
     }
 
-    const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
     const monthCounts = new Array(12).fill(0);
     data.forEach(r => {
         if(r.Fecha) {
@@ -220,7 +233,7 @@ function actualizarGraficas(data) {
         chartMonthInstance = new Chart(ctxMonthElem.getContext("2d"), {
             type: 'bar',
             data: {
-                labels: monthNames,
+                labels: MESES,
                 datasets: [{
                     label: 'Auditorías',
                     data: monthCounts,
@@ -258,15 +271,32 @@ function actualizarGraficas(data) {
     }
 
     const dayCounts = {};
+
     data.forEach(r => {
         if(r.Fecha) {
-            const fecha = r.Fecha.trim();
-            dayCounts[fecha] = (dayCounts[fecha] || 0) + 1;
+            const fechaStr = r.Fecha.trim();
+            const partes = fechaStr.split(/[-/]/);
+            if(partes.length === 3) {
+                const anio = partes[0];
+                const mesIndex = parseInt(partes[1], 10) - 1;
+                const dia = partes[2];
+
+                if(!isNaN(mesIndex) && mesIndex >= 0 && mesIndex < 12) {
+                    const claveOrden = `${anio}-${partes[1]}-${dia}`;
+                    const etiquetaFormateada = `${dia}-${MESES[mesIndex]}`;
+                    
+                    if (!dayCounts[claveOrden]) {
+                        dayCounts[claveOrden] = { etiqueta: etiquetaFormateada, count: 0 };
+                    }
+                    dayCounts[claveOrden].count++;
+                }
+            }
         }
     });
 
-    const sortedDates = Object.keys(dayCounts).sort();
-    const sortedValues = sortedDates.map(d => dayCounts[d]);
+    const sortedKeys = Object.keys(dayCounts).sort();
+    const sortedDates = sortedKeys.map(k => dayCounts[k].etiqueta);
+    const sortedValues = sortedKeys.map(k => dayCounts[k].count);
 
     if(chartIssuesInstance) chartIssuesInstance.destroy();
     const ctxIssuesElem = document.getElementById("chartIssuesDay");
@@ -278,12 +308,12 @@ function actualizarGraficas(data) {
                 datasets: [{
                     label: 'Issues / Auditorías',
                     data: sortedValues,
-                    borderColor: '#e74c3c', // Línea en color rojo
-                    backgroundColor: 'rgba(231, 76, 60, 0.1)', // Fondo difuminado rojo suave
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
                     fill: true,
                     tension: 0.3,
-                    pointBackgroundColor: '#e74c3c', // Relleno de los puntos en rojo
-                    pointBorderColor: '#ffffff', // Borde blanco para resaltar los puntos
+                    pointBackgroundColor: '#e74c3c',
+                    pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointRadius: 4
                 }]
@@ -310,7 +340,7 @@ function actualizarGraficas(data) {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grace: '15%' // Espacio extra arriba para que los números no se corten
+                        grace: '15%'
                     }
                 }
             }
@@ -351,17 +381,4 @@ window.exportarPDF = function(){
 document.addEventListener("DOMContentLoaded", () => {
     establecerAnioActual();
     window.cargarDatos();
-});
-
-// --- BLOQUEO DE CLIC DERECHO Y CÓDIGO FUENTE ---
-document.addEventListener("contextmenu", (e) => e.preventDefault());
-
-document.addEventListener("keydown", (e) => {
-  if (
-    e.key === "F12" ||
-    (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
-    (e.ctrlKey && e.key === "U")
-  ) {
-    e.preventDefault();
-  }
 });
