@@ -1,4 +1,4 @@
-:root{
+:root {
     --sap-blue:#0a6ed1;
     --sap-dark:#082b4c;
     --sap-turquoise:#00a6a6;
@@ -268,17 +268,18 @@ body {
 .btn-refresh{ background:linear-gradient(135deg,#0984e3,#74b9ff); }
 
 #mensaje {
-    padding: 6px 0;
-    border-radius: 8px;
+    padding: 0;
+    border-radius: 0;
     background: transparent;
     box-shadow: none;
     color: var(--sap-dark);
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
     font-size: 12px;
     font-weight: 700;
-    text-align: right;
-    margin: 0 0 12px 0;
+    text-align: center;
+    margin: 0;
     line-height: 1;
+    white-space: nowrap;
 }
 
 .cards-container {
@@ -307,16 +308,16 @@ body {
     flex-direction: column;
     align-items: center;
     position: relative;
-    min-height: 260px;
+    height: 310px;
 }
 
 .chart-card.full-width {
     grid-column: 1 / -1;
-    min-height: 280px;
+    height: 330px;
 }
 
 .chart-card h4 {
-    margin: 0 0 8px 0;
+    margin: 0 0 6px 0;
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
     font-size: 12px;
     font-weight: 800;
@@ -325,11 +326,20 @@ body {
     letter-spacing: 1px;
 }
 
+/* Contenedor estricto para evitar expansión infinita de los gráficos */
 .chart-container {
     position: relative;
     width: 100%;
-    flex: 1;
+    height: calc(100% - 24px);
     min-height: 0;
+}
+
+.chart-container canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .modal-overlay {
@@ -484,7 +494,7 @@ button:hover{
     gap: 12px;
     position: relative;
     transition: 0.3s;
-    min-height: 75px;
+    min-height: 110px;
     overflow: hidden;
     border-left: none !important;
 }
@@ -506,13 +516,13 @@ button:hover{
 }
 
 .card-icon-box {
-    width: 42px;
-    height: 42px;
+    width: 45px;
+    height: 45px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 20px;
     flex-shrink: 0;
     margin-left: 4px;
     background: color-mix(in srgb, var(--card-color) 8%, transparent);
@@ -529,7 +539,7 @@ button:hover{
 .card h3 {
     margin: 0;
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 800;
     color: var(--sap-gray);
     text-transform: uppercase;
@@ -540,7 +550,7 @@ button:hover{
 .card .card-value {
     margin: 2px 0;
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 850;
     color: var(--sap-dark);
     line-height: 1.1;
@@ -548,7 +558,7 @@ button:hover{
 
 .card-subtitle {
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
-    font-size: 9px;
+    font-size: 11px;
     color: var(--sap-gray);
     font-weight: 600;
     line-height: 1;
