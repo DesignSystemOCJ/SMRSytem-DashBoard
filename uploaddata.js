@@ -10,15 +10,79 @@ const enviarBtn = document.getElementById('enviarBtn');
 const tablaSelect = document.getElementById('tablaSelect');
 const mensajeEstado = document.getElementById('mensajeEstado');
 
-let contenidoCSVGlobal = '';
+const formProductionContainer = document.getElementById('formProductionContainer');
+const formBUStatusContainer = document.getElementById('formBUStatusContainer');
+const csvContainer = document.getElementById('csvContainer');
 
-tablaSelect.addEventListener('change', () => {
-    contenidoCSVGlobal = '';
-    pasteTextarea.value = '';
-    csvFileInput.value = '';
-    fileLabel.innerHTML = `Drag your CSV file here or click to select it from your files`;
-    mensajeEstado.textContent = '';
+// Campos Production
+const prodDate = document.getElementById('prodDate');
+const prodMonth = document.getElementById('prodMonth');
+const prodRunning = document.getElementById('prodRunning');
+const prodScrap = document.getElementById('prodScrap');
+const prodAveg = document.getElementById('prodAveg');
+
+// Campos B&U Status
+const buWeek = document.getElementById('buWeek');
+const buDate = document.getElementById('buDate');
+const buMonth = document.getElementById('buMonth');
+const buQty = document.getElementById('buQty');
+const buProd = document.getElementById('buProd');
+const buPercent = document.getElementById('buPercent');
+const buGoal = document.getElementById('buGoal');
+
+// Autocompletar el mes en inglés para Production
+prodDate.addEventListener('change', () => {
+    if (prodDate.value) {
+        const [year, month, day] = prodDate.value.split('-');
+        const fecha = new Date(year, month - 1, day);
+        const nombreMes = fecha.toLocaleString('en-US', { month: 'long' });
+        prodMonth.value = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+    } else {
+        prodMonth.value = '';
+    }
 });
+
+// Autocompletar el mes en inglés para B&U Status
+buDate.addEventListener('change', () => {
+    if (buDate.value) {
+        const [year, month, day] = buDate.value.split('-');
+        const fecha = new Date(year, month - 1, day);
+        const nombreMes = fecha.toLocaleString('en-US', { month: 'long' });
+        buMonth.value = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+    } else {
+        buMonth.value = '';
+    }
+});
+
+// Alternar vistas según la tabla seleccionada
+tablaSelect.addEventListener('change', () => {
+    mensajeEstado.textContent = '';
+    
+    // Ocultar todos los contenedores primero
+    formProductionContainer.style.display = 'none';
+    formBUStatusContainer.style.display = 'none';
+    csvContainer.style.display = 'none';
+
+    if (tablaSelect.value === 'Production') {
+        formProductionContainer.style.display = 'flex';
+    } else if (tablaSelect.value === 'BUStatus') {
+        formBUStatusContainer.style.display = 'flex';
+    } else {
+        csvContainer.style.display = 'block';
+        contenidoCSVGlobal = '';
+        pasteTextarea.value = '';
+        csvFileInput.value = '';
+        fileLabel.innerHTML = `Drag your CSV file here or click to select it from your files`;
+        
+        if (tablaSelect.value === 'ManttoIssues') {
+            pasteTextarea.placeholder = "Week,Month,Date,Area,Description\n1,January,2026-01-01,Linea 1,Falla mecanica";
+        } else {
+            pasteTextarea.placeholder = "Week,Month,Date,Qty,Prod,Percent,Goal\n1,January,2026-01-01,100,95,95,0.0150";
+        }
+    }
+});
+
+let contenidoCSVGlobal = '';
 
 csvFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -76,49 +140,103 @@ function parseCSV(text) {
     
     const result = [];
     for (let i = 1; i < lines.length; i++) {
+        // Ignorar líneas vacías
         if (!lines[i].trim()) continue;
+        
         const currentline = lines[i].split(delimiter);
         const obj = {};
+        let hasValues = false; // Bandera para validar si la fila tiene contenido real
+
         for (let j = 0; j < headers.length; j++) {
             let val = currentline[j] !== undefined ? currentline[j].trim().replace(/^"|"$/g, '') : '';
             
             if (val === '') {
                 val = null;
-            } else if (!isNaN(val)) {
-                val = Number(val);
+            } else {
+                hasValues = true; // Se encontró al menos un dato válido en esta fila
+                if (!isNaN(val)) {
+                    val = Number(val);
+                }
             }
             
             obj[headers[j]] = val;
         }
-        result.push(obj);
+        
+        // Agregar la fila únicamente si contiene datos reales y no está vacía
+        if (hasValues) {
+            result.push(obj);
+        }
     }
     return result;
 }
 
 enviarBtn.addEventListener('click', async () => {
-    const tablaSeleccionada = tablaSelect.value;
-    const datosTexto = pasteTextarea.value.trim();
-
-    if (!datosTexto) {
-        mensajeEstado.style.color = 'var(--primary-red)';
-        mensajeEstado.textContent = 'Please upload a CSV file or paste the data.';
-        return;
-    }
-
+    const opcionSeleccionada = tablaSelect.value;
     mensajeEstado.style.color = 'var(--text-secondary)';
     mensajeEstado.textContent = 'Calculating the sequence and sending data...';
 
     try {
-        let records = parseCSV(datosTexto);
-        
-        if (records.length === 0) {
-            throw new Error('The data format is invalid or requires headers and at least one row.');
+        let records = [];
+        let tablaDestino = opcionSeleccionada;
+        let columnaSecuencia = 'No.';
+
+        if (opcionSeleccionada === 'ManttoIssues') {
+            columnaSecuencia = 'Trans';
         }
 
-        const columnaSecuencia = tablaSeleccionada === 'ManttoIssues' ? 'Trans' : 'No.';
+        if (opcionSeleccionada === 'Production') {
+            if (!prodDate.value || !prodMonth.value) {
+                throw new Error('Please fill out the Date and Month fields.');
+            }
 
+            records = [{
+                Date: prodDate.value,
+                Month: prodMonth.value.trim(),
+                Running: prodRunning.value !== '' ? Number(prodRunning.value) : null,
+                Scrap: prodScrap.value !== '' ? Number(prodScrap.value) : null,
+                '%Aveg': prodAveg.value !== '' ? Number(prodAveg.value) : null
+            }];
+        } else if (opcionSeleccionada === 'BUStatus') {
+            tablaDestino = 'bupercen';
+
+            if (!buWeek.value || !buDate.value || !buMonth.value) {
+                throw new Error('Please fill out Week, Date, and Month fields.');
+            }
+
+            records = [{
+                Week: Number(buWeek.value),
+                Date: buDate.value,
+                Month: buMonth.value.trim(),
+                Qty: buQty.value !== '' ? Number(buQty.value) : null,
+                Prod: buProd.value !== '' ? Number(buProd.value) : null,
+                Percent: buPercent.value !== '' ? Number(buPercent.value) : null,
+                Goal: Number(buGoal.value)
+            }];
+        } else if (opcionSeleccionada === 'bupercen') {
+            tablaDestino = 'bu';
+
+            const datosTexto = pasteTextarea.value.trim();
+            if (!datosTexto) {
+                throw new Error('Please upload a CSV file or paste the data.');
+            }
+            records = parseCSV(datosTexto);
+            if (records.length === 0) {
+                throw new Error('The data format is invalid or requires headers and at least one row.');
+            }
+        } else {
+            const datosTexto = pasteTextarea.value.trim();
+            if (!datosTexto) {
+                throw new Error('Please upload a CSV file or paste the data.');
+            }
+            records = parseCSV(datosTexto);
+            if (records.length === 0) {
+                throw new Error('The data format is invalid or requires headers and at least one row.');
+            }
+        }
+
+        // Consultar el último número consecutivo en la tabla destino de Supabase
         const { data: ultimoRegistro, error: errorConsulta } = await supabaseClient
-            .from(tablaSeleccionada)
+            .from(tablaDestino)
             .select(`"${columnaSecuencia}"`)
             .order(`"${columnaSecuencia}"`, { ascending: false })
             .limit(1);
@@ -133,6 +251,7 @@ enviarBtn.addEventListener('click', async () => {
             }
         }
 
+        // Asignar el autoincremental al campo correspondiente (No. o Trans)
         records = records.map((record, index) => {
             return {
                 ...record,
@@ -141,17 +260,33 @@ enviarBtn.addEventListener('click', async () => {
         });
 
         const { data, error } = await supabaseClient
-            .from(tablaSeleccionada)
+            .from(tablaDestino)
             .insert(records);
 
         if (error) throw error;
 
         mensajeEstado.style.color = '#16a34a';
-        mensajeEstado.textContent = `¡Datos guardados exitosamente en "${tablaSeleccionada}" (${columnaSecuencia} numerado del ${siguienteNumero} al ${siguienteNumero + records.length - 1})!`;
+        mensajeEstado.textContent = `¡Data successfully saved to "${tablaDestino}" (${columnaSecuencia}: ${siguienteNumero})!`;
         
-        pasteTextarea.value = '';
-        csvFileInput.value = '';
-        fileLabel.innerHTML = `Drag your CSV file here or click to select it`;
+        // Limpiar formularios después de guardar
+        if (opcionSeleccionada === 'Production') {
+            prodDate.value = '';
+            prodMonth.value = '';
+            prodRunning.value = '';
+            prodScrap.value = '';
+            prodAveg.value = '';
+        } else if (opcionSeleccionada === 'BUStatus') {
+            buWeek.value = '';
+            buDate.value = '';
+            buMonth.value = '';
+            buQty.value = '';
+            buProd.value = '';
+            buPercent.value = '';
+        } else {
+            pasteTextarea.value = '';
+            csvFileInput.value = '';
+            fileLabel.innerHTML = `Drag your CSV file here or click to select it`;
+        }
 
     } catch (err) {
         mensajeEstado.style.color = 'var(--primary-red)';
