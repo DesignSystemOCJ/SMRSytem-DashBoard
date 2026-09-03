@@ -118,30 +118,6 @@ function procesarYRenderizar() {
         });
     }
 
-    const cuerpo = document.querySelector("#tabla tbody");
-    if(cuerpo) {
-        cuerpo.innerHTML = "";
-        datosFiltrados.forEach(row => {
-            let pdf = "Sin documento";
-            if(row.PDF){
-                pdf = `<a href="${row.PDF}" target="_blank"><button><span class="pdf-icon">📎</span></button></a>`;
-            }
-            cuerpo.innerHTML += `
-            <tr>
-                <td>${row.Folio ?? ""}</td>
-                <td>${row.Plant ?? ""}</td>
-                <td>${row.Shift ?? ""}</td>
-                <td>${row.Area ?? ""}</td>
-                <td>${row.EHSName ?? ""}</td>
-                <td>${row.Gerente ?? ""}</td>
-                <td>${row.Fecha ?? ""}</td>
-                <td>${row.Status ?? ""}</td>
-                <td>${row["C/O"] ?? ""}</td>
-                <td>${pdf}</td>
-            </tr>`;
-        });
-    }
-
     const total = datosFiltrados.length;
     const open = datosFiltrados.filter(r => (r["C/O"] ?? "").trim().toUpperCase() === "OPEN").length;
     const closed = datosFiltrados.filter(r => (r["C/O"] ?? "").trim().toUpperCase() === "CLOSED").length;
@@ -348,9 +324,69 @@ function actualizarGraficas(data) {
     }
 }
 
+// Función encargada de renderizar la tabla del modal filtrando por Mes y por C/O == Open
+window.renderizarTablaModal = function() {
+    const selectMes = document.getElementById("filtroMesModal");
+    const mesSeleccionado = selectMes ? parseInt(selectMes.value, 10) : new Date().getMonth() + 1;
+
+    const datosModalFiltrados = globalData.filter(row => {
+        const estadoCO = (row["C/O"] ?? "").trim().toUpperCase();
+        if (estadoCO !== "OPEN") return false;
+
+        if (!row.Fecha) return false;
+        const partes = row.Fecha.split(/[-/]/);
+        if (partes.length >= 2) {
+            const mesRegistro = parseInt(partes[1], 10);
+            return mesRegistro === mesSeleccionado;
+        }
+        return false;
+    });
+
+    const cuerpo = document.querySelector("#tabla tbody");
+    if (cuerpo) {
+        cuerpo.innerHTML = "";
+        if (datosModalFiltrados.length === 0) {
+            cuerpo.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 25px; color: #718096; font-weight: 600;">No records found with C/O "Open" for this month.</td></tr>`;
+            return;
+        }
+
+        datosModalFiltrados.forEach(row => {
+            let pdf = "Sin documento";
+            if(row.PDF){
+                pdf = `<a href="${row.PDF}" target="_blank"><button><span class="pdf-icon">📎</span></button></a>`;
+            }
+            cuerpo.innerHTML += `
+            <tr>
+                <td>${row.Folio ?? ""}</td>
+                <td>${row.Plant ?? ""}</td>
+                <td>${row.Shift ?? ""}</td>
+                <td>${row.Area ?? ""}</td>
+                <td>${row.EHSName ?? ""}</td>
+                <td>${row.Gerente ?? ""}</td>
+                <td>${row.Fecha ?? ""}</td>
+                <td>${row.Status ?? ""}</td>
+                <td>${row["C/O"] ?? ""}</td>
+                <td>${pdf}</td>
+            </tr>`;
+        });
+    }
+};
+
 window.abrirModalTabla = function() {
     const modal = document.getElementById("tableModal");
-    if(modal) modal.style.display = "flex";
+    if(modal) {
+        modal.style.display = "flex";
+        
+        // Asignar el mes actual del sistema al selector del modal al abrir
+        const mesActual = new Date().getMonth() + 1;
+        const selectMes = document.getElementById("filtroMesModal");
+        if (selectMes) {
+            selectMes.value = mesActual;
+        }
+
+        // Ejecutar renderizado con el filtro aplicado
+        window.renderizarTablaModal();
+    }
 };
 
 window.cerrarModalTabla = function() {
