@@ -1,27 +1,50 @@
 :root {
-    --sap-blue:#0a6ed1;
-    --sap-dark:#082b4c;
-    --sap-turquoise:#00a6a6;
-    --sap-light:#f4f7fb;
-    --sap-gray:#5b6b7a;
-    --white:#ffffff;
-    --background: radial-gradient(circle at 15% 10%, rgba(10,110,209,.10), transparent 30%),
-                  radial-gradient(circle at 85% 20%, rgba(0,166,166,.08), transparent 30%),
-                  linear-gradient(135deg,#F3F7FB,#EAF1F7 50%,#F7FAFC);
+--primary: #0A6ED1;
+--primary-dark: #0756A5;
+--cyan: #00B8D9;
+--teal: #00A6A6;
+--purple: #7C3AED;
+--orange: #F59E0B;
+--red: #EF4444;
+--dark: #07111F;
+--dark-2: #0B1728;
+--dark-3: #122033;
+--white: #FFFFFF;
+--text: #172033;
+--muted: #718096;
+
+--border: rgba(148,163,184,.20);
+--background:
+    radial-gradient(circle at 15% 10%, rgba(10,110,209,.10), transparent 30%),
+    radial-gradient(circle at 85% 20%, rgba(0,166,166,.08), transparent 30%),
+    linear-gradient(135deg,#F3F7FB,#EAF1F7 50%,#F7FAFC);
+--shadow:
+    0 15px 45px rgba(15,23,42,.07);
+--radius: 20px;
 }
 
+/* ================= RESET ================= */
+
 * {
-    box-sizing: border-box;
-    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+  box-sizing: border-box;
+  font-family:
+  "Segoe UI",
+  Inter,
+  Arial,
+  sans-serif;
+  }
+
+html {
+scroll-behavior: smooth;
 }
 
 body {
-    margin: 0;
-    min-height: 100vh;
-    background: var(--background);
-    background-attachment: fixed;
-    color: var(--text, #1E293B);
-    overflow-x: hidden;
+margin: 0;
+min-height: 100vh;
+background: var(--background);
+background-attachment: fixed;
+color: var(--text);
+overflow-x: hidden;
 }
 
 /* ================= SHELL & TOPBAR ================= */
@@ -326,7 +349,6 @@ body {
     letter-spacing: 1px;
 }
 
-/* Contenedor estricto para evitar expansión infinita de los gráficos */
 .chart-container {
     position: relative;
     width: 100%;
@@ -376,24 +398,59 @@ body {
 }
 
 .modal-header {
-    padding: 20px 25px;
+    padding: 15px 25px;
     background: #0a6ed1;
     color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 15px;
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 20px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Estilos para el filtro de mes dentro del modal */
+.modal-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.modal-filter-container label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.modal-filter-container select {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    font-size: 13px;
+    color: #1e293b;
+    background: #ffffff;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s;
+}
+
+.modal-filter-container select:hover {
+    border-color: #ffffff;
 }
 
 .close-modal {
     background: none;
     border: none;
     color: white;
-    font-size: 22px;
+    font-size: 20px;
     cursor: pointer;
     box-shadow: none;
     padding: 0;
@@ -467,6 +524,14 @@ button:hover{
     }
     .charts-grid {
         grid-template-columns: 1fr !important;
+    }
+    .modal-header {
+        flex-wrap: wrap;
+    }
+    .modal-filter-container {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
     }
 }
 
