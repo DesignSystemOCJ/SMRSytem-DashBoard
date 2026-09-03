@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#001424">
+    <title>SMRC System // Maintenance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fioriShell: '#001424',     
+                        fioriSubHeader: '#F7F7F7',  
+                        fioriBg: '#EAEDF1',         
+                        fioriCard: '#FFFFFF',       
+                        fioriBorder: '#D9D9D9',    
+                        fioriBlue: '#0070F2',      
+                        fioriText: '#32363A',    
+                        fioriMuted: '#6A6D70',     
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos del loader eliminados correctamente sin alterar la estructura */
+    </style>
+</head>
+<body class="bg-fioriBg text-fioriText font-sans min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- CONTENEDOR FIJO PARA HEADER Y NAVBAR -->
+    <div class="sticky top-0 z-50 shadow-md">
+        <!-- HEADER -->
+        <header class="bg-fioriShell text-white h-12 px-4 flex items-center justify-between select-none relative">
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button id="menuButton" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors focus:outline-none">
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <div id="dropdownMenu" class="absolute left-0 top-full mt-1 w-40 bg-white border border-fioriBorder rounded-xl shadow-xl py-1 hidden z-50 text-fioriText">
+                        <a href="#" class="block px-4 py-2 hover:bg-fioriBg transition-colors text-xs">Log in</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-fioriBg transition-colors text-xs">Capture Data</a>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <span class="font-bold text-sm tracking-wide text-white">SMRC</span>
+                    <span class="text-xs text-blue-400 font-mono tracking-widest pl-1 border-l border-blue-500/40">Rough Cut Department</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 text-xs">
+                <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                </button>
+                <div class="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-inner">
+                    RC
+                </div>
+            </div>
+        </header>
+
+        <!-- NAVBAR CON FILTRO PERIOD Y BOTÓN RECORDS A LA DERECHA -->
+        <nav class="bg-gray-100 border-b border-fioriBorder px-6 flex items-center justify-between text-xs font-medium overflow-x-visible select-none relative">
+            <div class="flex items-center space-x-5 overflow-x-auto">
+                <a href="A26-IDXXSYS-000.html" class="py-3 text-fioriMuted hover:text-fioriText transition-colors whitespace-nowrap">My Home</a>
+                <div class="h-3 w-px bg-fioriBorder"></div>
+                <a href="maintenance.html" class="py-3 font-bold text-fioriBlue border-b-2 border-fioriBlue whitespace-nowrap">Maintenance</a>
+                <div class="h-3 w-px bg-fioriBorder"></div>
+                <a href="#" class="py-3 text-fioriMuted hover:text-fioriText transition-colors whitespace-nowrap">Quality</a>
+                <div class="h-3 w-px bg-fioriBorder"></div>
+                <a href="#" class="py-3 text-fioriMuted hover:text-fioriText transition-colors whitespace-nowrap">B&U</a>
+                <div class="h-3 w-px bg-fioriBorder"></div>
+                
+                <div class="relative group py-3">
+                    <button class="text-fioriMuted hover:text-fioriText transition-colors flex items-center space-x-1 focus:outline-none">
+                        <span>Safety</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="absolute left-0 mt-3 w-40 bg-white border border-fioriBorder rounded-xl shadow-lg py-1 hidden group-hover:block z-40">
+                        <a href="#" class="block px-4 py-2 text-fioriText hover:bg-fioriBg transition-colors">Ehs Audits</a>
+                        <a href="#" class="block px-4 py-2 text-fioriText hover:bg-fioriBg transition-colors">Accidents</a>
+                        <a href="#" class="block px-4 py-2 text-fioriText hover:bg-fioriBg transition-colors">Layout CNC</a>
+                    </div>
+                </div>
+
+                <div class="h-3 w-px bg-fioriBorder"></div>
+                <a href="#" class="py-3 text-fioriMuted hover:text-fioriText transition-colors whitespace-nowrap">Projects</a>
+                <div class="h-3 w-px bg-fioriBorder"></div>
+
+                <div class="relative group py-3">
+                    <button class="text-fioriMuted hover:text-fioriText transition-colors flex items-center space-x-1 focus:outline-none">
+                        <span>Summarys</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="absolute left-0 mt-3 w-40 bg-white border border-fioriBorder rounded-xl shadow-lg py-1 hidden group-hover:block z-40">
+                        <a href="#" class="block px-4 py-2 text-fioriText hover:bg-fioriBg transition-colors">Pilot Bore</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LADO DERECHO DE LA NAVBAR: FILTRO PERIOD PERSONALIZADO Y BOTÓN RECORDS -->
+            <div class="flex items-center space-x-3 py-2">
+                <!-- Filtro Period Personalizado -->
+                <div class="relative">
+                    <button id="monthDropdownBtn" class="flex items-center space-x-1.5 bg-white border border-fioriBorder px-2.5 py-1 rounded-lg shadow-sm hover:bg-gray-50 transition-colors focus:outline-none cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-fioriBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="text-fioriMuted font-medium">Period:</span>
+                        <span id="selectedMonthText" class="font-semibold text-fioriText">January</span>
+                        <svg class="w-3 h-3 text-fioriMuted ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Menú desplegable personalizado de meses -->
+                    <div id="monthDropdownMenu" class="absolute right-0 mt-1 w-36 bg-white border border-fioriBorder rounded-xl shadow-xl py-1 hidden z-50 text-fioriText">
+                        <div class="max-h-60 overflow-y-auto">
+                            <div data-value="january" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">January</div>
+                            <div data-value="february" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">February</div>
+                            <div data-value="march" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">March</div>
+                            <div data-value="april" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">April</div>
+                            <div data-value="may" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">May</div>
+                            <div data-value="june" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">June</div>
+                            <div data-value="july" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">July</div>
+                            <div data-value="august" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">August</div>
+                            <div data-value="september" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">September</div>
+                            <div data-value="october" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">October</div>
+                            <div data-value="november" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">November</div>
+                            <div data-value="december" class="month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">December</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón con Icono Records -->
+                <button id="recordsBtn" class="flex items-center space-x-1.5 bg-fioriBlue hover:bg-blue-700 text-white px-3 py-1 rounded-lg shadow-sm transition-colors font-medium cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>Records</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="p-6 space-y-6 flex-1">
+        
+        <!-- 4 CARDS INICIALES -->
+        <div class="space-y-3">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-fioriMuted">Maintenance KPIs Overview</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between border-l-4 border-l-red-500 overflow-hidden">
+                    <div>
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">TOTAL ISSUES</span>
+                        <p id="totalIssuesCount" class="text-2xl font-bold font-mono text-red-600 mt-1">0</p>
+                        <p id="totalIssuesSubtitle" class="text-[11px] text-fioriMuted mt-1">Open tickets this month</p>
+                    </div>
+                </div>
+
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between border-l-4 border-l-blue-500 overflow-hidden">
+                    <div>
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">TOP CELL</span>
+                        <p id="topCellText" class="text-2xl font-bold font-mono text-fioriBlue mt-1">-</p>
+                        <p id="topCellSubtitle" class="text-[11px] text-fioriMuted mt-1">Highest failure rate</p>
+                    </div>
+                </div>
+
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between border-l-4 border-l-amber-500 overflow-hidden">
+                    <div>
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">TOP ISSUES</span>
+                        <p id="topIssueText" class="text-xl font-bold font-mono text-amber-600 mt-1">-</p>
+                        <p id="topIssueSubtitle" class="text-[11px] text-fioriMuted mt-1">Most frequent machine issue</p>
+                    </div>
+                </div>
+
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between border-l-4 border-l-gray-600 overflow-hidden">
+                    <div>
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">TOP OPERATION</span>
+                        <p id="topOperationText" class="text-xl font-bold font-mono text-fioriText mt-1">-</p>
+                        <p id="topOperationSubtitle" class="text-[11px] text-fioriMuted mt-1">Most frequent interventions</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE GRÁFICAS -->
+        <div class="space-y-3 pt-2">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-fioriMuted">Analytical Insights</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between overflow-hidden">
+                    <span class="text-xs font-semibold text-fioriText tracking-wider">ISSUES PER OPERATION</span>
+                    <div id="chartIssuesOp" class="w-full h-52 mt-2"></div>
+                </div>
+
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between overflow-hidden">
+                    <span class="text-xs font-semibold text-fioriText tracking-wider">ISSUES BY DEFECTS</span>
+                    <div id="chartIssuesMonth" class="w-full h-52 mt-2"></div>
+                </div>
+
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between overflow-hidden">
+                    <span class="text-xs font-semibold text-fioriText tracking-wider">ISSUES BY MONTH</span>
+                    <div id="chartIssuesDays" class="w-full h-52 mt-2"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between md:col-span-6 overflow-hidden">
+                    <span class="text-xs font-semibold text-fioriText tracking-wider">ISSUES PER DAY - LAST 15 DAYS</span>
+                    <div id="chartIssueDetail" class="w-full h-60 mt-2"></div>
+                </div>
+
+                <div class="bg-fioriCard border border-fioriBorder p-4 rounded-xl shadow-xl flex flex-col justify-between md:col-span-6 overflow-hidden">
+                    <span class="text-xs font-semibold text-fioriText tracking-wider">ISSUES BY CELL</span>
+                    <div id="chartIssuesMachine" class="w-full h-60 mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENEDOR AGRUPADO: Tabla Top 10 Cells y Operaciones en la misma línea -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <!-- TABLA: Top 10 Cells -->
+            <div class="lg:col-span-4 bg-fioriCard border border-fioriBorder rounded-xl shadow-xl p-4 space-y-3 overflow-hidden flex flex-col h-full min-h-[520px]">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-fioriMuted">Top 10 Cells</h2>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-fioriBorder text-fioriMuted">
+                                <th class="py-2 px-3 font-semibold tracking-wider">Rank</th>
+                                <th class="py-2 px-3 font-semibold tracking-wider">Cell</th>
+                                <th class="py-2 px-3 font-semibold tracking-wider">Area</th>
+                                <th class="py-2 px-3 font-semibold tracking-wider">Total Issues</th>
+                                <th class="py-2 px-3 font-semibold tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top10CellsTableBody" class="divide-y divide-fioriBorder text-fioriText">
+                            <tr>
+                                <td colspan="5" class="py-3 text-center text-fioriMuted">Cargando datos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR CON LAS 4 GRÁFICAS DE OPERACIONES -->
+            <div class="lg:col-span-8 bg-fioriCard border border-fioriBorder rounded-xl shadow-xl p-4 space-y-4 overflow-hidden flex flex-col h-full min-h-[520px]">
+                <div>
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-fioriMuted">Operation Specific by Cell</h2>
+                    <p class="text-[11px] text-fioriMuted mt-0.5"></p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                    <div class="bg-fioriBg border border-fioriBorder p-3 rounded-lg flex flex-col justify-between">
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">MD Operation</span>
+                        <div id="chartMD" class="w-full h-64 mt-2"></div>
+                    </div>
+                    <div class="bg-fioriBg border border-fioriBorder p-3 rounded-lg flex flex-col justify-between">
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">1st Operation</span>
+                        <div id="chart1st" class="w-full h-64 mt-2"></div>
+                    </div>
+                    <div class="bg-fioriBg border border-fioriBorder p-3 rounded-lg flex flex-col justify-between">
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">2nd Operation</span>
+                        <div id="chart2nd" class="w-full h-64 mt-2"></div>
+                    </div>
+                    <div class="bg-fioriBg border border-fioriBorder p-3 rounded-lg flex flex-col justify-between">
+                        <span class="text-xs font-semibold text-fioriText tracking-wider">Chiron Operation</span>
+                        <div id="chartChiron" class="w-full h-64 mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- VENTANA MODAL PARA RECORDS -->
+    <div id="recordsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-fioriBorder rounded-xl shadow-2xl w-full max-w-[95vw] h-[92vh] max-h-[95vh] flex flex-col overflow-hidden">
+            <!-- Header Modal -->
+            <div class="bg-fioriShell text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h3 class="font-bold text-sm tracking-wide">Database Records</h3>
+                </div>
+                <button id="closeModalBtn" class="text-gray-300 hover:text-white p-1 rounded-lg transition-colors focus:outline-none cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Filtros del Modal -->
+            <div class="bg-gray-50 border-b border-fioriBorder px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs select-none">
+                <div class="flex items-center space-x-4">
+                    
+                    <!-- Filtro de Mes Personalizado -->
+                    <div class="relative">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-fioriMuted">Month:</span>
+                            <button id="modalMonthBtn" class="flex items-center justify-between space-x-2 bg-white border border-fioriBorder px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 transition-colors focus:outline-none cursor-pointer min-w-[120px]">
+                                <span id="modalMonthText" class="font-medium text-fioriText">All months</span>
+                                <svg class="w-3 h-3 text-fioriMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="modalMonthMenu" class="absolute left-0 mt-1 w-40 bg-white border border-fioriBorder rounded-xl shadow-xl py-1 hidden z-50 text-fioriText max-h-60 overflow-y-auto">
+                            <div data-value="all" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">All months</div>
+                            <div data-value="january" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">January</div>
+                            <div data-value="february" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">February</div>
+                            <div data-value="march" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">March</div>
+                            <div data-value="april" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">April</div>
+                            <div data-value="may" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">May</div>
+                            <div data-value="june" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">June</div>
+                            <div data-value="july" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">July</div>
+                            <div data-value="august" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">August</div>
+                            <div data-value="september" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">September</div>
+                            <div data-value="october" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">October</div>
+                            <div data-value="november" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">November</div>
+                            <div data-value="december" class="modal-month-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">December</div>
+                        </div>
+                    </div>
+
+                    <!-- Filtro de Celdas Personalizado -->
+                    <div class="relative">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-fioriMuted">Cell:</span>
+                            <button id="modalCellBtn" class="flex items-center justify-between space-x-2 bg-white border border-fioriBorder px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 transition-colors focus:outline-none cursor-pointer min-w-[110px]">
+                                <span id="modalCellText" class="font-medium text-fioriText">All cells</span>
+                                <svg class="w-3 h-3 text-fioriMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="modalCellMenu" class="absolute left-0 mt-1 w-40 bg-white border border-fioriBorder rounded-xl shadow-xl py-1 hidden z-50 text-fioriText max-h-60 overflow-y-auto">
+                            <div data-value="all" class="modal-cell-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">All cells</div>
+                        </div>
+                    </div>
+
+                    <!-- Filtro de Operación Personalizado -->
+                    <div class="relative">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-fioriMuted">Operation:</span>
+                            <button id="modalOpBtn" class="flex items-center justify-between space-x-2 bg-white border border-fioriBorder px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 transition-colors focus:outline-none cursor-pointer min-w-[130px]">
+                                <span id="modalOpText" class="font-medium text-fioriText">All operations</span>
+                                <svg class="w-3 h-3 text-fioriMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="modalOpMenu" class="absolute left-0 mt-1 w-44 bg-white border border-fioriBorder rounded-xl shadow-xl py-1 hidden z-50 text-fioriText max-h-60 overflow-y-auto">
+                            <div data-value="all" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">All operations</div>
+                            <div data-value="MD" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">MD</div>
+                            <div data-value="OP1" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">OP1</div>
+                            <div data-value="OP2" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">OP2</div>
+                            <div data-value="CHIRON" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">CHIRON</div>
+                            <div data-value="ROBOT FANUC" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">ROBOT FANUC</div>
+                            <div data-value="ROBOT JR" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">ROBOT JR</div>
+                            <div data-value="AGS" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">AGS</div>
+                            <div data-value="TRANSFER" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">TRANSFER</div>
+                            <div data-value="CONVEYOR" class="modal-op-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">CONVEYOR</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botón Clean -->
+                <button id="modalCleanBtn" class="flex items-center space-x-1 bg-gray-200 hover:bg-gray-300 text-fioriText px-3 py-1.5 rounded-lg shadow-sm transition-colors font-medium cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-fioriMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Clean</span>
+                </button>
+            </div>
+
+            <!-- Contenido / Tabla del Modal -->
+            <div class="p-6 overflow-auto flex-1">
+                <div class="border border-fioriBorder rounded-xl shadow-inner overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-gray-100 text-fioriMuted border-b border-fioriBorder sticky top-0 z-10">
+                            <tr>
+                                <th class="py-3 px-3 font-semibold tracking-wider">Trans</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">Date</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">Month</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">D/N</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">Maq</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">MD</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">OP1</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">OP2</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">CHIRON</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">ROBOT FANUC</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">ROBOT JR</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">AGS</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">TRANSFER</th>
+                                <th class="py-3 px-3 font-semibold tracking-wider">CONVEYOR</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalTableBody" class="divide-y divide-fioriBorder text-fioriText bg-white">
+                            <tr>
+                                <td colspan="14" class="py-4 text-center text-fioriMuted">Cargando registros...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="bg-gray-50 border-t border-fioriBorder px-6 py-3 flex items-center justify-between text-xs text-fioriMuted">
+                <span id="modalRecordCount">Showing 0 records</span>
+                <button id="modalCloseBottomBtn" class="bg-fioriBlue hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE SUPABASE Y GRÁFICAS -->
+    <script>
+        const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
+        const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const axisStyle = { 
+            axisLabel: { fontSize: 11, color: '#6A6D70', interval: 0, rotate: 25 }, 
+            axisLine: { lineStyle: { color: '#D9D9D9' } } 
+        };
+
+        const opKeys = ['MD', 'OP1', 'OP2', 'CHIRON', 'ROBOT FANUC', 'ROBOT JR', 'AGS', 'TRANSFER'];
+
+        const cellList = [
+            'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'C08', 'C09', 'C10',
+            'C11', 'C12', 'C13', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 'C20',
+            'C21', 'C22', 'C23', 'C24', 'C25', 'C26', 'C27', 'C28', 'C29', 'C30',
+            'C33', 'C34', 'C35', 'C36'
+        ];
+
+        var cIssuesOp = echarts.init(document.getElementById('chartIssuesOp'));
+        var cIssuesMonth = echarts.init(document.getElementById('chartIssuesMonth'));
+        const allMonthsList = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        var cIssuesDays = echarts.init(document.getElementById('chartIssuesDays'));
+        cIssuesDays.setOption({
+            animation: false,
+            grid: { top: '20%', bottom: '15%', left: '12%', right: '5%' },
+            xAxis: { type: 'category', data: allMonthsList, ...axisStyle },
+            yAxis: { type: 'value', splitLine: { lineStyle: { color: '#E5E7EB' } }, ...axisStyle },
+            series: [{ 
+                data: new Array(12).fill(0), 
+                type: 'bar', 
+                itemStyle: { color: '#E9730C' }, 
+                barWidth: '40%',
+                label: { show: true, position: 'top', fontSize: 11, color: '#32363A' }
+            }]
+        });
+
+        var cIssueDetail = echarts.init(document.getElementById('chartIssueDetail'));
+        var cIssuesMachine = echarts.init(document.getElementById('chartIssuesMachine'));
+
+        var cMD = echarts.init(document.getElementById('chartMD'));
+        var c1st = echarts.init(document.getElementById('chart1st'));
+        var c2nd = echarts.init(document.getElementById('chart2nd'));
+        var cChiron = echarts.init(document.getElementById('chartChiron'));
+
+        function updateChartBar(chartInstance, countsMap, colorHex = '#0070F2') {
+            const sortedEntries = Object.entries(countsMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const categories = sortedEntries.map(item => item[0]);
+            const values = sortedEntries.map(item => item[1]);
+
+            chartInstance.setOption({
+                animation: false,
+                grid: { top: '15%', bottom: '42%', left: '15%', right: '5%' },
+                xAxis: { 
+                    type: 'category', 
+                    data: categories, 
+                    axisLabel: { fontSize: 10, color: '#6A6D70', interval: 0, rotate: 45 }, 
+                    axisLine: { lineStyle: { color: '#D9D9D9' } } 
+                },
+                yAxis: { type: 'value', splitLine: { lineStyle: { color: '#E5E7EB' } }, ...axisStyle },
+                series: [{ 
+                    data: values, 
+                    type: 'bar', 
+                    itemStyle: { color: colorHex }, 
+                    barWidth: '40%', 
+                    label: { show: true, position: 'top', fontSize: 11, color: '#32363A' } 
+                }]
+            });
+        }
+
+        function getFieldCounts(rows, fieldKey) {
+            const counts = {};
+            rows.forEach(row => {
+                const val = row[fieldKey];
+                if (val !== null && val !== undefined && String(val).trim() !== '') {
+                    const cleanVal = String(val).trim();
+                    counts[cleanVal] = (counts[cleanVal] || 0) + 1;
+                }
+            });
+            return counts;
+        }
+
+        async function fetchAllRows(columns = '*') {
+            const cacheKey = 'smrc_mantto_data_cache';
+            const cachedData = sessionStorage.getItem(cacheKey);
+            if (cachedData) {
+                try {
+                    return JSON.parse(cachedData);
+                } catch (e) {
+                    sessionStorage.removeItem(cacheKey);
+                }
+            }
+
+            let allData = [];
+            let step = 1000;
+            let from = 0;
+            let to = step - 1;
+            let keepFetching = true;
+
+            while (keepFetching) {
+                const { data, error } = await supabaseClient
+                    .from('ManttoIssues')
+                    .select(columns)
+                    .range(from, to);
+
+                if (error) {
+                    console.error("Error en consulta masiva:", error);
+                    break;
+                }
+
+                if (data && data.length > 0) {
+                    allData = allData.concat(data);
+                    if (data.length < step) {
+                        keepFetching = false;
+                    } else {
+                        from += step;
+                        to += step;
+                    }
+                } else {
+                    keepFetching = false;
+                }
+            }
+
+            if (allData.length > 0) {
+                sessionStorage.setItem(cacheKey, JSON.stringify(allData));
+            }
+            return allData;
+        }
+
+        let globalRawData = [];
+        let currentSelectedMonth = 'january';
+
+        let modalSelectedMonth = 'all';
+        let modalSelectedCell = 'all';
+        let modalSelectedOp = 'all';
+
+        async function initDashboard() {
+            globalRawData = await fetchAllRows('*');
+            if (!globalRawData || globalRawData.length === 0) {
+                return;
+            }
+
+            setupIndependentIssueDetailChart(globalRawData);
+            populateModalCellFilter();
+
+            const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' }).toLowerCase();
+            
+            let defaultFound = false;
+            const monthOptions = document.querySelectorAll('.month-option');
+            
+            for (let option of monthOptions) {
+                if (option.getAttribute('data-value') === currentMonthName) {
+                    currentSelectedMonth = currentMonthName;
+                    document.getElementById('selectedMonthText').textContent = option.textContent;
+                    defaultFound = true;
+                    break;
+                }
+            }
+            if (!defaultFound) {
+                currentSelectedMonth = 'january';
+                document.getElementById('selectedMonthText').textContent = 'January';
+            }
+
+            processAndRenderData(currentSelectedMonth);
+
+            const monthDropdownBtn = document.getElementById('monthDropdownBtn');
+            const monthDropdownMenu = document.getElementById('monthDropdownMenu');
+            const selectedMonthText = document.getElementById('selectedMonthText');
+
+            monthDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('dropdownMenu').classList.add('hidden');
+                monthDropdownMenu.classList.toggle('hidden');
+            });
+
+            window.addEventListener('click', () => {
+                if (!monthDropdownMenu.classList.contains('hidden')) {
+                    monthDropdownMenu.classList.add('hidden');
+                }
+            });
+
+            monthOptions.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const selectedValue = e.target.getAttribute('data-value');
+                    const displayName = e.target.textContent;
+                    
+                    currentSelectedMonth = selectedValue;
+                    selectedMonthText.textContent = displayName;
+                    monthDropdownMenu.classList.add('hidden');
+
+                    processAndRenderData(currentSelectedMonth);
+                });
+            });
+
+            setupModalLogic();
+        }
+
+        function populateModalCellFilter() {
+            const cellMenu = document.getElementById('modalCellMenu');
+            cellMenu.innerHTML = '<div data-value="all" class="modal-cell-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs">All cells</div>';
+            
+            for (let i = 1; i <= 36; i++) {
+                const cellName = 'C' + String(i).padStart(2, '0');
+                if (cellName === 'C31' || cellName === 'C32') continue; 
+                
+                const div = document.createElement('div');
+                div.className = "modal-cell-option px-4 py-1.5 hover:bg-fioriBg cursor-pointer transition-colors text-xs";
+                div.setAttribute('data-value', cellName);
+                div.textContent = cellName;
+                cellMenu.appendChild(div);
+            }
+
+            document.querySelectorAll('.modal-cell-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    modalSelectedCell = e.target.getAttribute('data-value');
+                    document.getElementById('modalCellText').textContent = e.target.textContent;
+                    document.getElementById('modalCellMenu').classList.add('hidden');
+                    renderModalTable();
+                });
+            });
+        }
+
+        function setupModalLogic() {
+            const recordsBtn = document.getElementById('recordsBtn');
+            const recordsModal = document.getElementById('recordsModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalCloseBottomBtn = document.getElementById('modalCloseBottomBtn');
+            const modalCleanBtn = document.getElementById('modalCleanBtn');
+
+            const modalMonthBtn = document.getElementById('modalMonthBtn');
+            const modalMonthMenu = document.getElementById('modalMonthMenu');
+            const modalCellBtn = document.getElementById('modalCellBtn');
+            const modalCellMenu = document.getElementById('modalCellMenu');
+            const modalOpBtn = document.getElementById('modalOpBtn');
+            const modalOpMenu = document.getElementById('modalOpMenu');
+
+            function openModal() {
+                const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' }).toLowerCase();
+                modalSelectedMonth = currentMonthName;
+                modalSelectedCell = 'all';
+                modalSelectedOp = 'all';
+
+                document.getElementById('modalMonthText').textContent = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
+                document.getElementById('modalCellText').textContent = 'All cells';
+                document.getElementById('modalOpText').textContent = 'All operations';
+                
+                renderModalTable();
+                recordsModal.classList.remove('hidden');
+            }
+
+            function closeModal() {
+                recordsModal.classList.add('hidden');
+                modalMonthMenu.classList.add('hidden');
+                modalCellMenu.classList.add('hidden');
+                modalOpMenu.classList.add('hidden');
+            }
+
+            recordsBtn.addEventListener('click', openModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            modalCloseBottomBtn.addEventListener('click', closeModal);
+
+            recordsModal.addEventListener('click', (e) => {
+                if (e.target === recordsModal) closeModal();
+            });
+
+            modalMonthBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modalCellMenu.classList.add('hidden');
+                modalOpMenu.classList.add('hidden');
+                modalMonthMenu.classList.toggle('hidden');
+            });
+
+            modalCellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modalMonthMenu.classList.add('hidden');
+                modalOpMenu.classList.add('hidden');
+                modalCellMenu.classList.toggle('hidden');
+            });
+
+            modalOpBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modalMonthMenu.classList.add('hidden');
+                modalCellMenu.classList.add('hidden');
+                modalOpMenu.classList.toggle('hidden');
+            });
+
+            recordsModal.addEventListener('click', () => {
+                modalMonthMenu.classList.add('hidden');
+                modalCellMenu.classList.add('hidden');
+                modalOpMenu.classList.add('hidden');
+            });
+
+            document.querySelectorAll('.modal-month-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    modalSelectedMonth = e.target.getAttribute('data-value');
+                    document.getElementById('modalMonthText').textContent = e.target.textContent;
+                    modalMonthMenu.classList.add('hidden');
+                    renderModalTable();
+                });
+            });
+
+            document.querySelectorAll('.modal-op-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    modalSelectedOp = e.target.getAttribute('data-value');
+                    document.getElementById('modalOpText').textContent = e.target.textContent;
+                    modalOpMenu.classList.add('hidden');
+                    renderModalTable();
+                });
+            });
+
+            modalCleanBtn.addEventListener('click', () => {
+                const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' }).toLowerCase();
+                modalSelectedMonth = currentMonthName;
+                modalSelectedCell = 'all';
+                modalSelectedOp = 'all';
+
+                document.getElementById('modalMonthText').textContent = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
+                document.getElementById('modalCellText').textContent = 'All cells';
+                document.getElementById('modalOpText').textContent = 'All operations';
+
+                renderModalTable();
+            });
+        }
+
+        function renderModalTable() {
+            const modalTableBody = document.getElementById('modalTableBody');
+            const modalRecordCount = document.getElementById('modalRecordCount');
+
+            const spanishToEnglish = {
+                'enero': 'January', 'febrero': 'February', 'marzo': 'March', 'abril': 'April',
+                'mayo': 'May', 'junio': 'June', 'julio': 'July', 'agosto': 'August',
+                'septiembre': 'September', 'octubre': 'October', 'noviembre': 'November', 'diciembre': 'December',
+                'setiembre': 'September'
+            };
+
+            let filtered = globalRawData.filter(row => {
+                let matchMonth = true;
+                if (modalSelectedMonth !== 'all') {
+                    if (!row.Month) {
+                        matchMonth = false;
+                    } else {
+                        let cleanVal = String(row.Month).trim().toLowerCase();
+                        if (spanishToEnglish[cleanVal]) cleanVal = spanishToEnglish[cleanVal].toLowerCase();
+                        matchMonth = (cleanVal === modalSelectedMonth.toLowerCase() || cleanVal.startsWith(modalSelectedMonth.toLowerCase()));
+                    }
+                }
+
+                let matchCell = true;
+                if (modalSelectedCell !== 'all') {
+                    if (!row.Maq) {
+                        matchCell = false;
+                    } else {
+                        matchCell = (String(row.Maq).trim() === modalSelectedCell);
+                    }
+                }
+
+                let matchOperation = true;
+                if (modalSelectedOp !== 'all') {
+                    const opValue = row[modalSelectedOp];
+                    if (opValue === null || opValue === undefined || String(opValue).trim() === '') {
+                        matchOperation = false;
+                    }
+                }
+
+                return matchMonth && matchCell && matchOperation;
+            });
+
+            modalTableBody.innerHTML = '';
+            if (filtered.length === 0) {
+                modalTableBody.innerHTML = `<tr><td colspan="14" class="py-4 text-center text-fioriMuted">No records found matching criteria</td></tr>`;
+                modalRecordCount.textContent = `Showing 0 records`;
+                return;
+            }
+
+            filtered.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50/50 transition-colors border-b border-fioriBorder";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-mono font-bold text-fioriMuted">${row.Trans ?? row.id ?? '-'}</td>
+                    <td class="py-2.5 px-3 font-mono">${row.Date ? row.Date.split('T')[0] : '-'}</td>
+                    <td class="py-2.5 px-3 font-medium">${row.Month || '-'}</td>
+                    <td class="py-2.5 px-3">${row['D/N'] ?? row.D_N ?? '-'}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-fioriBlue">${row.Maq || '-'}</td>
+                    <td class="py-2.5 px-3">${row.MD || '-'}</td>
+                    <td class="py-2.5 px-3">${row.OP1 || '-'}</td>
+                    <td class="py-2.5 px-3">${row.OP2 || '-'}</td>
+                    <td class="py-2.5 px-3">${row.CHIRON || '-'}</td>
+                    <td class="py-2.5 px-3">${row['ROBOT FANUC'] || '-'}</td>
+                    <td class="py-2.5 px-3">${row['ROBOT JR'] || '-'}</td>
+                    <td class="py-2.5 px-3">${row.AGS || '-'}</td>
+                    <td class="py-2.5 px-3">${row.TRANSFER || '-'}</td>
+                    <td class="py-2.5 px-3">${row.CONVEYOR || '-'}</td>
+                `;
+                modalTableBody.appendChild(tr);
+            });
+
+            modalRecordCount.textContent = `Showing ${filtered.length} records`;
+        }
+
+        function setupIndependentIssueDetailChart(rawData) {
+            const dateCounts = {};
+            rawData.forEach(row => {
+                const dateVal = row.Date;
+                if (dateVal && typeof dateVal === 'string') {
+                    const cleanDate = dateVal.trim().split('T')[0];
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(cleanDate)) {
+                        dateCounts[cleanDate] = (dateCounts[cleanDate] || 0) + 1;
+                    }
+                }
+            });
+
+            const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const allDbDates = Object.keys(dateCounts).sort();
+
+            let baseDate = new Date();
+            let generatedDays = [];
+            for (let i = 300; i >= 0; i--) {
+                let d = new Date(baseDate);
+                d.setDate(baseDate.getDate() - i);
+                let year = d.getFullYear();
+                let month = String(d.getMonth() + 1).padStart(2, '0');
+                let day = String(d.getDate()).padStart(2, '0');
+                let keyStr = `${year}-${month}-${day}`;
+                generatedDays.push(keyStr);
+            }
+
+            const combinedDatesSet = new Set([...allDbDates, ...generatedDays]);
+            const sortedDates = Array.from(combinedDatesSet).sort();
+
+            const chartCategories = sortedDates.map(dateStr => {
+                const [y, m, d] = dateStr.split('-');
+                const monthIdx = parseInt(m, 10) - 1;
+                return `${parseInt(d, 10)}-${monthNamesEn[monthIdx] || m}`;
+            });
+
+            const chartValues = sortedDates.map(dateStr => dateCounts[dateStr] || 0);
+
+            const totalPoints = sortedDates.length;
+            let startPercent = 0;
+            if (totalPoints > 15) {
+                startPercent = ((totalPoints - 15) / totalPoints) * 100;
+            }
+
+            cIssueDetail.setOption({
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'line', lineStyle: { color: '#0070F2', width: 1, type: 'dashed' } }
+                },
+                grid: { top: '15%', bottom: '32%', left: '5%', right: '5%' },
+                xAxis: { type: 'category', data: chartCategories, ...axisStyle },
+                yAxis: { type: 'value', splitLine: { lineStyle: { color: '#E5E7EB' } }, ...axisStyle },
+                dataZoom: [{
+                    type: 'slider',
+                    start: startPercent,
+                    end: 100,
+                    height: 16,
+                    bottom: 4,
+                    borderColor: '#94A3B8',      
+                    backgroundColor: '#E2E8F0',  
+                    fillerColor: 'rgba(0, 112, 242, 0.35)', 
+                    handleColor: '#1E3A8A',      
+                    handleBorderColor: '#0F172A',
+                    showDetail: true
+                }],
+                series: [{ 
+                    data: chartValues, 
+                    type: 'line', 
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 6,
+                    itemStyle: { color: '#0070F2' }, 
+                    lineStyle: { width: 2 },
+                    label: { show: true, position: 'top', fontSize: 11, color: '#32363A' }
+                }]
+            });
+        }
+
+        function processAndRenderData(selectedMonth) {
+            const spanishToEnglish = {
+                'enero': 'January', 'febrero': 'February', 'marzo': 'March', 'abril': 'April',
+                'mayo': 'May', 'junio': 'June', 'julio': 'July', 'agosto': 'August',
+                'septiembre': 'September', 'octubre': 'October', 'noviembre': 'November', 'diciembre': 'December',
+                'setiembre': 'September'
+            };
+
+            const monthCounts = {};
+            allMonthsList.forEach(m => monthCounts[m] = 0);
+
+            globalRawData.forEach(row => {
+                const val = row.Month;
+                if (val && typeof val === 'string' && val.trim() !== '') {
+                    let cleanVal = val.trim().toLowerCase();
+                    if (spanishToEnglish[cleanVal]) {
+                        cleanVal = spanishToEnglish[cleanVal].toLowerCase();
+                    }
+                    const matchedMonth = allMonthsList.find(m => m.toLowerCase() === cleanVal || m.toLowerCase().startsWith(cleanVal));
+                    if (matchedMonth) {
+                        monthCounts[matchedMonth] = (monthCounts[matchedMonth] || 0) + 1;
+                    }
+                }
+            });
+
+            const monthValues = allMonthsList.map(m => monthCounts[m] || 0);
+            cIssuesDays.setOption({
+                series: [{ data: monthValues, label: { show: true, position: 'top', fontSize: 11, color: '#32363A' } }]
+            });
+
+            const filteredMonthData = globalRawData.filter(row => {
+                if (!row.Month) return false;
+                let cleanVal = String(row.Month).trim().toLowerCase();
+                if (spanishToEnglish[cleanVal]) cleanVal = spanishToEnglish[cleanVal].toLowerCase();
+                return cleanVal === selectedMonth.toLowerCase() || cleanVal.startsWith(selectedMonth.toLowerCase());
+            });
+
+            const counterElement = document.getElementById('totalIssuesCount');
+            const counterSubtitle = document.getElementById('totalIssuesSubtitle');
+            if (counterElement) counterElement.textContent = filteredMonthData.length;
+            if (counterSubtitle) counterSubtitle.textContent = `Open tickets in ${selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1)}`;
+
+            if (filteredMonthData.length > 0) {
+                const counts = {};
+                const opCounts = {};
+                opKeys.forEach(k => opCounts[k] = 0);
+
+                const defectCounts = {};
+                const cellCounts = {};
+                cellList.forEach(c => cellCounts[c] = 0);
+
+                filteredMonthData.forEach(row => {
+                    opKeys.forEach(k => {
+                        if (row[k] !== null && row[k] !== undefined && String(row[k]).trim() !== '') {
+                            opCounts[k]++;
+                        }
+                    });
+
+                    opKeys.forEach(col => {
+                        const val = row[col];
+                        if (val && typeof val === 'string' && val.trim() !== '') {
+                            const cleanVal = val.trim();
+                            counts[cleanVal] = (counts[cleanVal] || 0) + 1;
+                            defectCounts[cleanVal] = (defectCounts[cleanVal] || 0) + 1;
+                        }
+                    });
+
+                    if (row.Maq && String(row.Maq).trim() !== '') {
+                        const cleanMaq = row.Maq.trim();
+                        cellCounts[cleanMaq] = (cellCounts[cleanMaq] || 0) + 1;
+                    }
+                });
+
+                const top10Array = Object.entries(cellCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+
+                const tableBody = document.getElementById('top10CellsTableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = '';
+                    if (top10Array.length === 0) {
+                        tableBody.innerHTML = `<tr><td colspan="5" class="py-3 text-center text-fioriMuted">No hay registros disponibles para este mes</td></tr>`;
+                    } else {
+                        top10Array.forEach(([cellName, totalIssues], index) => {
+                            const rank = index + 1;
+                            const tr = document.createElement('tr');
+                            tr.className = "cursor-pointer hover:bg-blue-50 transition-colors";
+                            tr.innerHTML = `
+                                <td class="py-2 px-3 font-mono font-bold">${rank}</td>
+                                <td class="py-2 px-3 font-medium">${cellName}</td>
+                                <td class="py-2 px-3">Rough Cut</td>
+                                <td class="py-2 px-3 font-mono text-amber-600 font-bold">${totalIssues}</td>
+                                <td class="py-2 px-3"><span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] border border-amber-200">Warning</span></td>
+                            `;
+                            
+                            tr.addEventListener('click', () => {
+                                tableBody.querySelectorAll('tr').forEach(row => {
+                                    row.classList.remove('bg-blue-100');
+                                });
+                                tr.classList.add('bg-blue-100');
+
+                                const filteredRows = filteredMonthData.filter(row => {
+                                    return row.Maq && String(row.Maq).trim() === cellName;
+                                });
+
+                                updateChartBar(cMD, getFieldCounts(filteredRows, 'MD'), '#0070F2');
+                                updateChartBar(c1st, getFieldCounts(filteredRows, 'OP1'), '#0070F2');
+                                updateChartBar(c2nd, getFieldCounts(filteredRows, 'OP2'), '#0070F2');
+                                updateChartBar(cChiron, getFieldCounts(filteredRows, 'CHIRON'), '#0070F2');
+                            });
+
+                            tableBody.appendChild(tr);
+                        });
+                    }
+                }
+
+                cIssuesOp.setOption({
+                    animation: false,
+                    grid: { top: '20%', bottom: '28%', left: '10%', right: '5%' },
+                    xAxis: { type: 'category', data: opKeys, ...axisStyle },
+                    yAxis: { type: 'value', splitLine: { lineStyle: { color: '#E5E7EB' } }, ...axisStyle },
+                    series: [{ 
+                        data: opKeys.map(k => opCounts[k]), 
+                        type: 'bar', 
+                        itemStyle: { color: '#0070F2' }, 
+                        barWidth: '45%',
+                        label: { show: true, position: 'top', fontSize: 11, color: '#32363A' }
+                    }]
+                });
+
+                const sortedDefects = Object.entries(defectCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 7);
+
+                cIssuesMonth.setOption({
+                    animation: false,
+                    grid: { top: '8%', bottom: '8%', left: '25%', right: '10%' },
+                    xAxis: { type: 'value', splitLine: { lineStyle: { color: '#E5E7EB' } }, ...axisStyle },
+                    yAxis: { type: 'category', data: sortedDefects.map(item => item[0]), ...axisStyle, axisLabel: { fontSize: 11, color: '#6A6D70', interval: 0, rotate: 0 } },
+                    series: [{ 
+                        data: sortedDefects.map(item => item[1]), 
+                        type: 'bar', 
+                        itemStyle: { color: '#BB0000' }, 
+                        barWidth: '55%',
+                        label: { show: true, position: 'right', fontSize: 11, color: '#32363A' }
+                    }]
+                });
+
+                const chartCellData = cellList.map(c => cellCounts[c] || 0);
+                cIssuesMachine.setOption({
+                    animation: false,
+                    tooltip: { trigger: 'axis', axisPointer: { type: 'line', lineStyle: { color: '#107E3E', width: 1, type: 'dashed' } } },
+                    grid: { top: '20%', bottom: '28%', left: '5%', right: '5%' },
+                    xAxis: { type: 'category', data: cellList, ...axisStyle },
+                    yAxis: { type: 'value', splitLine: { lineStyle: { color: '#E5E7EB' } }, ...axisStyle },
+                    series: [{ 
+                        data: chartCellData, 
+                        type: 'line', 
+                        smooth: true,
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        itemStyle: { color: '#107E3E' }, 
+                        lineStyle: { width: 2 },
+                        label: { show: true, position: 'top', fontSize: 11, color: '#32363A' }
+                    }]
+                });
+
+                let topCell = null;
+                let maxCount = 0;
+                for (const [key, value] of Object.entries(counts)) {
+                    if (value > maxCount) { maxCount = value; topCell = key; }
+                }
+                if (topCell) {
+                    document.getElementById('topCellText').textContent = topCell;
+                    document.getElementById('topCellSubtitle').textContent = `${maxCount} occurrences this month`;
+                } else {
+                    document.getElementById('topCellText').textContent = '-';
+                    document.getElementById('topCellSubtitle').textContent = `Highest failure rate`;
+                }
+
+                let topMaq = null;
+                let maxMaqCount = 0;
+                for (const [key, value] of Object.entries(cellCounts)) {
+                    if (value > maxMaqCount) { maxMaqCount = value; topMaq = key; }
+                }
+                if (topMaq) {
+                    document.getElementById('topIssueText').textContent = topMaq;
+                    document.getElementById('topIssueSubtitle').textContent = `${maxMaqCount} occurrences this month`;
+                } else {
+                    document.getElementById('topIssueText').textContent = '-';
+                    document.getElementById('topIssueSubtitle').textContent = `Most frequent machine issue`;
+                }
+
+                let topOperation = opKeys.reduce((a, b) => opCounts[a] > opCounts[b] ? a : b);
+                if (topOperation && opCounts[topOperation] > 0) {
+                    document.getElementById('topOperationText').textContent = topOperation;
+                    document.getElementById('topOperationSubtitle').textContent = `${opCounts[topOperation]} records this month`;
+                } else {
+                    document.getElementById('topOperationText').textContent = '-';
+                    document.getElementById('topOperationSubtitle').textContent = `Most frequent interventions`;
+                }
+
+                updateChartBar(cMD, getFieldCounts(filteredMonthData, 'MD'), '#0070F2');
+                updateChartBar(c1st, getFieldCounts(filteredMonthData, 'OP1'), '#0070F2');
+                updateChartBar(c2nd, getFieldCounts(filteredMonthData, 'OP2'), '#0070F2');
+                updateChartBar(cChiron, getFieldCounts(filteredMonthData, 'CHIRON'), '#0070F2');
+
+            } else {
+                document.getElementById('totalIssuesCount').textContent = '0';
+                document.getElementById('topCellText').textContent = '-';
+                document.getElementById('topIssueText').textContent = '-';
+                document.getElementById('topOperationText').textContent = '-';
+                document.getElementById('top10CellsTableBody').innerHTML = `<tr><td colspan="5" class="py-3 text-center text-fioriMuted">No hay registros disponibles para este mes</td></tr>`;
+                
+                cIssuesOp.setOption({ series: [{ data: new Array(opKeys.length).fill(0) }] });
+                cIssuesMonth.setOption({ yAxis: { data: [] }, series: [{ data: [] }] });
+                cIssuesMachine.setOption({ series: [{ data: new Array(cellList.length).fill(0) }] });
+                
+                updateChartBar(cMD, {}, '#0070F2');
+                updateChartBar(c1st, {}, '#0070F2');
+                updateChartBar(c2nd, {}, '#0070F2');
+                updateChartBar(cChiron, {}, '#0070F2');
+            }
+        }
+
+        initDashboard();
+
+        document.addEventListener("contextmenu", (e) => e.preventDefault());
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) || (e.ctrlKey && e.key === "U")) {
+            e.preventDefault();
+          }
+        });
+
+        const menuButton = document.getElementById('menuButton');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        if(menuButton && dropdownMenu) {
+            menuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('monthDropdownMenu').classList.add('hidden');
+                dropdownMenu.classList.toggle('hidden');
+            });
+            window.addEventListener('click', () => {
+                if (!dropdownMenu.classList.contains('hidden')) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                cIssuesOp.resize();
+                cIssuesMonth.resize();
+                cIssuesDays.resize();
+                cIssueDetail.resize();
+                cIssuesMachine.resize();
+                cMD.resize();
+                c1st.resize();
+                c2nd.resize();
+                cChiron.resize();
+            }, 150);
+        });
+    </script>
+</body>
+</html>
