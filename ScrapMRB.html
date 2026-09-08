@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scrap Intelligence Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="ScrapMRB.css">
+
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+        .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+        .bottom-navbar { margin-top: 0 !important; top: 0 !important; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <nav class="bottom-navbar" style="justify-content: space-between;">
+        <div class="brand-section">
+            <div class="brand-icon-subtle">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <div class="brand-title-main">Scrap Analysis Dashboard</div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="nav-links">
+                <div class="period-selector-nav nav-item active" id="filterBox" onclick="toggleMonthDropdown(event)">
+                    <i class="fa-regular fa-calendar-days" style="margin-right: 6px;"></i>
+                    <span id="selectedMonthText">Loading...</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>
+
+                    <div class="custom-dropdown" id="monthDropdown">
+                        <div class="dropdown-title">Select Scrap Period</div>
+                        <div class="custom-option" onclick="selectMonth('January', event)">January</div>
+                        <div class="custom-option" onclick="selectMonth('February', event)">February</div>
+                        <div class="custom-option" onclick="selectMonth('March', event)">March</div>
+                        <div class="custom-option" onclick="selectMonth('April', event)">April</div>
+                        <div class="custom-option" onclick="selectMonth('May', event)">May</div>
+                        <div class="custom-option" onclick="selectMonth('June', event)">June</div>
+                        <div class="custom-option" onclick="selectMonth('July', event)">July</div>
+                        <div class="custom-option" onclick="selectMonth('August', event)">August</div>
+                        <div class="custom-option" onclick="selectMonth('September', event)">September</div>
+                        <div class="custom-option" onclick="selectMonth('October', event)">October</div>
+                        <div class="custom-option" onclick="selectMonth('November', event)">November</div>
+                        <div class="custom-option" onclick="selectMonth('December', event)">December</div>
+                    </div>
+                </div>
+
+                <a href="#" class="nav-item" onclick="openRecordsModal(); return false;">
+                    <i class="fa-solid fa-table" style="margin-right: 6px;"></i>Trend
+                </a>
+
+                <div class="nav-item has-submenu">
+                    <a href="#" onclick="return false;" style="text-decoration: none;">
+                        <i class="fa-solid fa-sliders" style="margin-right: 6px;"></i>Option <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 3px;"></i>
+                    </a>
+                    <div class="nav-dropdown">
+                        <div class="dropdown-submenu-container">
+                            <div class="custom-option has-nested">
+                                <span><i class="fa-solid fa-share-nodes" style="margin-right: 8px; color: #64748B;"></i>Share</span>
+                                <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+                            </div>
+                            <div class="nested-dropdown">
+                                <div class="custom-option" onclick="alert('Exporting to XLS...')">
+                                    <i class="fa-solid fa-file-excel" style="margin-right: 8px; color: #107C41;"></i>Share to xls
+                                </div>
+                                <div class="custom-option" onclick="alert('Exporting to PDF...')">
+                                    <i class="fa-solid fa-file-pdf" style="margin-right: 8px; color: #E53E3E;"></i>Share to pdf
+                                </div>
+                            </div>
+                        </div>
+                        <div class="custom-option" id="dataMenuOption" onclick="handleDataClick()" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
+                            <i class="fa-solid fa-database" style="margin-right: 8px; color: #2563EB;"></i>Data
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="topbar-right-icons" style="border-left: 1px solid rgba(148,163,184,0.2); padding-left: 14px;">
+                <button class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                
+                <div class="user-menu-container">
+                    <div class="user-avatar-container red-avatar" title="User Profile" onclick="toggleUserDropdown(event)">
+                        <span id="userAvatarText">RC</span>
+                    </div>
+
+                    <div class="custom-dropdown" id="userDropdown" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; min-width: 200px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; z-index: 1200;">
+                        <div id="userInfoHeader" style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px;">
+                            <span style="display: block; font-size: 11px; font-weight: 700; color: #94a3b8;">SESSION STATUS</span>
+                            <span id="userStatusText" style="font-size: 12px; font-weight: 800; color: #EF4444;">NO LOG IN</span>
+                        </div>
+                        
+                        <div class="custom-option" id="loginMenuBtn" onclick="openLoginPrompt()" style="padding: 9px 12px; font-size: 13px; font-weight: 600; color: #2563EB; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Log In
+                        </div>
+
+                        <div class="custom-option" id="logoutMenuBtn" onclick="handleSignOut()" style="padding: 9px 12px; font-size: 13px; font-weight: 600; color: #EF4444; border-radius: 8px; cursor: pointer; display: none; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        
+        <section class="kpi-grid">
+            <article class="kpi-card">
+                <div class="kpi-icon danger">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOTAL SCRAP</span>
+                    <strong id="totalIssues">0</strong>
+                    <small>Recorded events</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon purple">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOP MODEL</span>
+                    <strong id="topOperation">--</strong>
+                    <small>Main affected model</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon orange">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOP DEFECT</span>
+                    <strong id="topIssue">--</strong>
+                    <small>Most frequent defect</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon blue">
+                    <i class="fa-solid fa-industry"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">%Scrap</span>
+                    <strong id="topCell">0.00%</strong>
+                    <small>Production %Aveg Average</small>
+                </div>
+            </article>
+        </section>
+
+        <section class="analytics-grid">
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">SCRAP PERFORMANCE GAUGE</span>
+                        <h2><i class="fa-solid fa-gauge-high"></i> %Scrap Velocimeter</h2>
+                    </div>
+                    <div class="panel-badge">Max 3.50%</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="issueChart"></canvas>
+                </div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">YEARLY OVERVIEW</span>
+                        <h2><i class="fa-regular fa-calendar-days"></i> Scrap by Month</h2>
+                    </div>
+                    <div class="panel-badge"><i class="fa-solid fa-globe"></i> Independent</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyIssuesChart"></canvas>
+                </div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">MODEL PERFORMANCE</span>
+                        <h2><i class="fa-solid fa-laptop-code"></i> Scrap By Model</h2>
+                    </div>
+                    <div class="panel-badge">Top 10</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="cellChart"></canvas>
+                </div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">DEFECT DESCRIPTIONS</span>
+                        <h2><i class="fa-solid fa-chart-column"></i> Scrap by Defect</h2>
+                    </div>
+                    <div class="panel-badge"><i class="fa-solid fa-chart-column"></i> Distribution</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="operationChart"></canvas>
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-panel machine-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-kicker">DAILY PERFORMANCE</span>
+                    <h2><i class="fa-solid fa-cubes"></i> Scrap Daily</h2>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="chart-nav-group">
+                        <button class="chart-nav-btn" onclick="shiftMachineChart(-1)" title="Días anteriores"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="chart-nav-btn today-btn" onclick="resetMachineChartToday()" title="Ir a la fecha actual">Hoy</button>
+                        <button class="chart-nav-btn" onclick="shiftMachineChart(1)" title="Días siguientes"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div class="panel-badge live"><span></span> Live Analysis</div>
+                </div>
+            </div>
+            <div class="machine-chart-container">
+                <canvas id="machineChart"></canvas>
+            </div>
+        </section>
+
+        <section class="lower-grid">
+            <article class="dashboard-panel ranking-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">DEFECTS RANKING</span>
+                        <h2><i class="fa-solid fa-ranking-star"></i> Top 10 Defects - Current Month</h2>
+                    </div>
+                </div>
+                <div class="ranking-header">
+                    <span>RANK</span>
+                    <span>DEFECT DESC</span>
+                    <span>SCRAP</span>
+                    <span>%</span>
+                </div>
+                <div class="table-scroll-container">
+                    <div class="ranking-table">
+                        <table>
+                            <tbody id="top10Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </article>
+
+            <article class="dashboard-panel selected-analysis-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">DEEP ANALYSIS</span>
+                        <h2><i class="fa-solid fa-table-list"></i> Selected Defect Analysis</h2>
+                    </div>
+                    <div class="selected-cell-badge">
+                        <span>SELECTED DEFECT</span>
+                        <strong id="selectedCell">ALL</strong>
+                    </div>
+                </div>
+
+                <div class="ranking-header">
+                    <span>RANK</span>
+                    <span>MODEL</span>
+                    <span>QTY</span>
+                    <span>%</span>
+                </div>
+                <div class="table-scroll-container">
+                    <div class="ranking-table">
+                        <table>
+                            <tbody id="selectedAreaTableBody">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 20px; color: #64748B;">Select a defect to view details</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<div class="modal-overlay" id="loginModal">
+    <div class="login-modal-container">
+        <div class="login-modal-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="login-icon-box">
+                    <i class="fa-solid fa-fingerprint"></i>
+                </div>
+                <div>
+                    <h2>Log In</h2>
+                    <p>Enter your administrator credentials</p>
+                </div>
+            </div>
+            <button class="login-close-btn" onclick="closeLoginModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="loginForm" onsubmit="handleFormLogin(event)" class="login-form">
+            <div class="login-input-group">
+                <label for="loginUser">User</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <input type="text" id="loginUser" required placeholder="Ej. Admin-Admin" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="login-input-group">
+                <label for="loginPassword">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" class="login-submit-btn">
+                <span>verify access</span>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="recordsModal">
+    <div class="records-modal trends-modal-layout">
+        <div class="modal-topbar">
+            <div class="modal-title">
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h2>Defects Trends Comparison <span id="trendsModalMonthTitle">Current</span></h2>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeRecordsModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="trends-modal-body">
+            <div class="trends-left-panel">
+                <div class="trends-panel-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <h3>Top Defects</h3>
+                        <span id="selectedTrendsCount" class="panel-badge">0/5 Selected</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="modalMonthSelect" onchange="handleModalMonthChange(this.value)" style="flex: 1; padding: 6px 8px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 12px; font-weight: 600; background: #FFF; color: #334155; outline: none;">
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                        <input type="text" id="trendsSearchInput" placeholder="Buscar defecto..." oninput="filterTrendsTable()" style="flex: 1; padding: 6px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 12px; outline: none; background: #FFF;">
+                    </div>
+                </div>
+                <div class="trends-table-container">
+                    <table class="ranking-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="display: grid; grid-template-columns: 40px 1fr 50px 50px; font-size: 8px; color: #94A3B8; padding: 6px 8px; border-bottom: 1px solid #E2E8F0;">
+                                <th style="text-align: center;">SEL</th>
+                                <th>DEFECT DESC</th>
+                                <th style="text-align: center;">QTY</th>
+                                <th style="text-align: center;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trendsDefectsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="trends-right-panel">
+                <div class="trends-panel-header">
+                    <h3>Comparative Defect Charts (Max 5)</h3>
+                </div>
+                <div class="trends-charts-scroll" id="trendsChartsContainer">
+                    <div class="trends-placeholder-msg">
+                        <i class="fa-solid fa-hand-pointer" style="font-size: 28px; margin-bottom: 8px; color: #94A3B8;"></i>
+                        <p>Select up to 5 defects from the left list to render comparative charts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="ScrapMRBB.js"></script>
+</body>
+</html>
