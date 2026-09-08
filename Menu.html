@@ -18,7 +18,7 @@
   <aside class="sidebar" aria-label="Main Navigation">
     <div class="sidebar-top">
 
-      <div class="sidebar-header">
+      <div class="brand-container">
         <div class="brand-mark">
           <i class="fa-solid fa-cube" aria-hidden="true"></i>
           <span class="brand-pulse"></span>
@@ -36,19 +36,21 @@
 
         <ul class="sidebar-menu">
           <li class="sidebar-item dropdown-item">
-            <a href="#" class="sidebar-link dropdown-toggle" id="roughcut-toggle">
+            <a href="#" class="sidebar-link dropdown-toggle" id="roughcut-toggle" data-tooltip="RoughCut Summarys">
               <span class="nav-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
               <span class="nav-label">RoughCut Summarys</span>
               <span class="nav-arrow"><i class="fa-solid fa-chevron-right dropdown-chevron" aria-hidden="true"></i></span>
             </a>
-            <ul class="sidebar-submenu flat-submenu">
+            <ul class="sidebar-submenu">
               <li class="sidebar-item">
                 <a href="ManttoIssues.html" target="content-frame" class="sidebar-link sub-link">
+                  <span class="nav-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
                   <span class="nav-label">Maintenance Issues</span>
                 </a>
               </li>
               <li class="sidebar-item">
                 <a href="PilotBore.html" target="content-frame" class="sidebar-link sub-link">
+                  <span class="nav-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span>
                   <span class="nav-label">Pilot Bore Report</span>
                 </a>
               </li>
@@ -56,24 +58,27 @@
           </li>
 
           <li class="sidebar-item dropdown-item">
-            <a href="#" class="sidebar-link dropdown-toggle" id="ehs-toggle">
+            <a href="#" class="sidebar-link dropdown-toggle" id="ehs-toggle" data-tooltip="Safety and Hygiene">
               <span class="nav-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
               <span class="nav-label">Safety and Hygiene</span>
               <span class="nav-arrow"><i class="fa-solid fa-chevron-right dropdown-chevron" aria-hidden="true"></i></span>
             </a>
-            <ul class="sidebar-submenu flat-submenu">
+            <ul class="sidebar-submenu">
               <li class="sidebar-item">
                 <a href="EhsAudits.html" target="content-frame" class="sidebar-link sub-link">
+                  <span class="nav-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span>
                   <span class="nav-label">EHS Audits</span>
                 </a>
               </li>
               <li class="sidebar-item">
                 <a href="Accidents.html" target="content-frame" class="sidebar-link sub-link">
+                  <span class="nav-icon"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
                   <span class="nav-label">Accidents</span>
                 </a>
               </li>
               <li class="sidebar-item">
-                <a href="P.html" target="content-frame" class="sidebar-link sub-link">
+                <a href="Plant.html" target="content-frame" class="sidebar-link sub-link">
+                  <span class="nav-icon"><i class="fa-solid fa-map" aria-hidden="true"></i></span>
                   <span class="nav-label">Layout CNC</span>
                 </a>
               </li>
@@ -81,33 +86,33 @@
           </li>
 
           <li class="sidebar-item">
-            <a href="ScrapMrb.html" target="content-frame" class="sidebar-link">
+            <a href="ScrapMrb.html" target="content-frame" class="sidebar-link" data-tooltip="ScrapMRB">
               <span class="nav-icon"><i class="fa-solid fa-recycle" aria-hidden="true"></i></span>
               <span class="nav-label">ScrapMRB</span>
             </a>
           </li>
 
           <li class="sidebar-item">
-            <a href="bu.html" target="content-frame" class="sidebar-link">
+            <a href="bu.html" target="content-frame" class="sidebar-link" data-tooltip="B&U">
               <span class="nav-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
               <span class="nav-label">B&amp;U</span>
             </a>
           </li>
 
           <li class="sidebar-item">
-            <a href="Projects.html" target="content-frame" class="sidebar-link">
+            <a href="Projects.html" target="content-frame" class="sidebar-link" data-tooltip="Projects">
               <span class="nav-icon"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></span>
               <span class="nav-label">Projects</span>
             </a>
           </li>
 
           <li class="sidebar-item dropdown-item">
-            <a href="#" class="sidebar-link dropdown-toggle" id="admin-toggle">
+            <a href="#" class="sidebar-link dropdown-toggle" id="admin-toggle" data-tooltip="Administration">
               <span class="nav-icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
               <span class="nav-label">Administration</span>
               <span class="nav-arrow"><i class="fa-solid fa-chevron-right dropdown-chevron" aria-hidden="true"></i></span>
             </a>
-            <ul class="sidebar-submenu flat-submenu">
+            <ul class="sidebar-submenu">
               <li class="sidebar-item">
                 <a href="login.html" class="sidebar-link sub-link" id="login-sublink">
                   <span class="nav-icon"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i></span>
@@ -115,7 +120,7 @@
                 </a>
               </li>
               <li class="sidebar-item">
-                <a href="uploaddata.html" target="content-frame" class="sidebar-link sub-link">
+                <a href="UploadData.html" target="content-frame" class="sidebar-link sub-link">
                   <span class="nav-icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>
                   <span class="nav-label">Upload Data</span>
                 </a>
@@ -149,13 +154,17 @@
 
       <div class="sidebar-version">
         <span>SMRC SYSTEM</span>
-        <span>v2.1.1</span>
+        <span>v2.2.0</span>
       </div>
     </div>
   </aside>
 
   <main class="main-content">
     <section class="workspace">
+      <div class="iframe-loader" id="iframe-loader">
+        <div class="spinner"></div>
+      </div>
+
       <div class="welcome-screen" id="welcome-screen">
         <div class="welcome-content">
           <img
@@ -164,6 +173,7 @@
             alt="Company Logo"
             loading="lazy">
           <h3>Rough Cut Department</h3>
+          <p> </p>
         </div>
       </div>
 
@@ -180,28 +190,28 @@
     <a href="#" class="mobile-nav-item active" data-home="true" title="Home" aria-label="Home">
       <i class="fa-solid fa-house" aria-hidden="true"></i>
     </a>
-    <a href="ManttoIssues.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Maintenance Issues" aria-label="Maintenance Issues">
+    <a href="ManttoIssues.html" target="content-frame" class="mobile-nav-item" title="Maintenance Issues" aria-label="Maintenance Issues">
       <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
     </a>
-    <a href="PilotBore.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Pilot Bore Report" aria-label="Pilot Bore Report">
+    <a href="PilotBore.html" target="content-frame" class="mobile-nav-item" title="Pilot Bore Report" aria-label="Pilot Bore Report">
       <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
     </a>
-    <a href="ScrapMrb.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Scrap" aria-label="Scrap">
+    <a href="ScrapMrb.html" target="content-frame" class="mobile-nav-item" title="Scrap" aria-label="Scrap">
       <i class="fa-solid fa-recycle" aria-hidden="true"></i>
     </a>
-    <a href="EhsAudits.html" target="content-frame" class="mobile-nav-item" data-module="true" title="EHS Audits" aria-label="EHS Audits">
+    <a href="EhsAudits.html" target="content-frame" class="mobile-nav-item" title="EHS Audits" aria-label="EHS Audits">
       <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
     </a>
-    <a href="Accidents.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Accidents" aria-label="Accidents">
+    <a href="Accidents.html" target="content-frame" class="mobile-nav-item" title="Accidents" aria-label="Accidents">
       <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
     </a>
-    <a href="Plant.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Layout CNC" aria-label="Layout CNC">
+    <a href="Plant.html" target="content-frame" class="mobile-nav-item" title="Layout CNC" aria-label="Layout CNC">
       <i class="fa-solid fa-map" aria-hidden="true"></i>
     </a>
-    <a href="bu.html" target="content-frame" class="mobile-nav-item" data-module="true" title="B&amp;U" aria-label="B&amp;U">
+    <a href="bu.html" target="content-frame" class="mobile-nav-item" title="B&amp;U" aria-label="B&amp;U">
       <i class="fa-solid fa-building" aria-hidden="true"></i>
     </a>
-    <a href="Projects.html" target="content-frame" class="mobile-nav-item" data-module="true" title="Projects" aria-label="Projects">
+    <a href="Projects.html" target="content-frame" class="mobile-nav-item" title="Projects" aria-label="Projects">
       <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
     </a>
     <a href="login.html" id="mobile-settings-link" class="mobile-nav-item" title="Administration" aria-label="Administration">
