@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     date: document.getElementById("date"),
     welcomeScreen: document.getElementById("welcome-screen"),
     iframe: document.getElementById("main-iframe"),
+    iframeLoader: document.getElementById("iframe-loader"),
     mobileNavItems: document.querySelectorAll(".mobile-nav-item"),
     adminModal: document.getElementById("admin-modal"),
     closeModalBtn: document.getElementById("close-modal-btn"),
@@ -12,14 +13,22 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileSettingsLink: document.getElementById("mobile-settings-link")
   };
 
-  // Manejo adaptativo para Mouse (Desktop)
   DOM.sidebar.addEventListener("mouseenter", () => {
     if (window.innerWidth > 900) DOM.sidebar.classList.add("expanded");
   });
   
   DOM.sidebar.addEventListener("mouseleave", () => {
-    if (window.innerWidth > 900) {
-      resetSidebarState();
+    if (window.innerWidth > 900) resetSidebarState();
+  });
+
+  DOM.sidebar.addEventListener("mouseover", (event) => {
+    if (window.innerWidth <= 900 || !DOM.sidebar.classList.contains("expanded")) return;
+    const dropdownItem = event.target.closest(".dropdown-item");
+    if (dropdownItem) {
+      document.querySelectorAll(".dropdown-item").forEach(item => {
+        if (item !== dropdownItem) item.classList.remove("open");
+      });
+      dropdownItem.classList.add("open");
     }
   });
 
@@ -30,14 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Delegación de eventos unificada para el menú y submenús
   DOM.sidebar.addEventListener("click", (event) => {
-    const brandHeader = event.target.closest(".sidebar-header");
-    if (brandHeader && window.innerWidth <= 1024) {
-      DOM.sidebar.classList.toggle("expanded");
-      return;
-    }
-
     const subLink = event.target.closest(".sub-link");
     const link = event.target.closest(".sidebar-link");
     if (!link) return;
@@ -68,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
     openModule(link);
   });
 
-  // Reloj en tiempo real optimizado
   const dateFormatter = new Intl.DateTimeFormat("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
   setInterval(() => {
     const now = new Date();
@@ -81,22 +82,36 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!href || href === "#") return;
 
     document.querySelectorAll(".sidebar-link, .sub-link").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll(".dropdown-item").forEach(item => item.classList.remove("has-active-child"));
+
     link.classList.add("active");
+
+    const parentDropdown = link.closest(".dropdown-item");
+    if (parentDropdown && link.classList.contains("sub-link")) {
+      parentDropdown.classList.add("has-active-child");
+    }
 
     DOM.welcomeScreen.style.display = "none";
     DOM.iframe.style.display = "block";
+    
+    if (DOM.iframeLoader) DOM.iframeLoader.classList.add("active");
     DOM.iframe.src = href;
   }
+
+  DOM.iframe.addEventListener("load", () => {
+    if (DOM.iframeLoader) DOM.iframeLoader.classList.remove("active");
+  });
 
   function showHome() {
     DOM.welcomeScreen.style.display = "flex";
     DOM.iframe.style.display = "none";
     DOM.iframe.src = "";
     document.querySelectorAll(".sidebar-link, .sub-link").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll(".dropdown-item").forEach(item => item.classList.remove("has-active-child"));
+    if (DOM.iframeLoader) DOM.iframeLoader.classList.remove("active");
     resetSidebarState();
   }
 
-  // Navegación Móvil
   DOM.mobileNavItems.forEach(item => {
     item.addEventListener("click", event => {
       DOM.mobileNavItems.forEach(nav => nav.classList.remove("active"));
@@ -112,10 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       DOM.welcomeScreen.style.display = "none";
       DOM.iframe.style.display = "block";
+      if (DOM.iframeLoader) DOM.iframeLoader.classList.add("active");
     });
   });
 
-  // Control de Modal de Administración
   function openAdminModal(e) {
     e.preventDefault();
     if (DOM.adminModal) DOM.adminModal.showModal();
@@ -139,8 +154,14 @@ document.addEventListener("DOMContentLoaded", () => {
   showHome();
 });
 
-// Bloqueo de atajos de desarrollo e inspección
 document.addEventListener("contextmenu", (e) => e.preventDefault());
+document.addEventListener("keydown", (e) => {
+  if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) || (e.ctrlKey && e.key === "U")) {
+    e.preventDefault();
+  }
+});
+
+ document.addEventListener("contextmenu", (e) => e.preventDefault());
 document.addEventListener("keydown", (e) => {
   if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) || (e.ctrlKey && e.key === "U")) {
     e.preventDefault();
