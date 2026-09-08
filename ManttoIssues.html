@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maintenance Intelligence Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="ManttoIssuess.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .bottom-navbar {
+            margin-top: 0 !important;
+            top: 0 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- BARRA DE NAVEGACIÓN EN LA PARTE SUPERIOR -->
+    <nav class="bottom-navbar" style="justify-content: space-between;">
+        <div class="brand-section">
+            <div class="brand-icon-subtle">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <div class="brand-title-main">Maintenance Issues Dashboard</div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="nav-links">
+                <!-- Opción Period (Selector de Meses integrado) -->
+                <div class="period-selector-nav nav-item active" id="filterBox" onclick="toggleMonthDropdown(event)">
+                    <i class="fa-regular fa-calendar-days" style="margin-right: 6px;"></i>
+                    <span id="selectedMonthText">Loading...</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>
+
+                    <!-- Menú Desplegable de Meses -->
+                    <div class="custom-dropdown" id="monthDropdown">
+                        <div class="dropdown-title">Select Maintenance Period</div>
+                        <div class="custom-option" onclick="selectMonth('January', event)">January</div>
+                        <div class="custom-option" onclick="selectMonth('February', event)">February</div>
+                        <div class="custom-option" onclick="selectMonth('March', event)">March</div>
+                        <div class="custom-option" onclick="selectMonth('April', event)">April</div>
+                        <div class="custom-option" onclick="selectMonth('May', event)">May</div>
+                        <div class="custom-option" onclick="selectMonth('June', event)">June</div>
+                        <div class="custom-option" onclick="selectMonth('July', event)">July</div>
+                        <div class="custom-option" onclick="selectMonth('August', event)">August</div>
+                        <div class="custom-option" onclick="selectMonth('September', event)">September</div>
+                        <div class="custom-option" onclick="selectMonth('October', event)">October</div>
+                        <div class="custom-option" onclick="selectMonth('November', event)">November</div>
+                        <div class="custom-option" onclick="selectMonth('December', event)">December</div>
+                    </div>
+                </div>
+
+                <!-- Opción Records -->
+                <a href="#" class="nav-item" onclick="openRecordsModal(); return false;">
+                    <i class="fa-solid fa-table" style="margin-right: 6px;"></i>Records
+                </a>
+
+                <!-- Opción Option con Submenú -->
+                <div class="nav-item has-submenu">
+                    <a href="#" onclick="return false;" style="text-decoration: none;">
+                        <i class="fa-solid fa-sliders" style="margin-right: 6px;"></i>Option <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 3px;"></i>
+                    </a>
+                    <div class="nav-dropdown">
+                        <div class="dropdown-submenu-container">
+                            <div class="custom-option has-nested">
+                                <span><i class="fa-solid fa-share-nodes" style="margin-right: 8px; color: #64748B;"></i>Share</span>
+                                <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+                            </div>
+                            <div class="nested-dropdown">
+                                <div class="custom-option" onclick="alert('Exporting to XLS...')">
+                                    <i class="fa-solid fa-file-excel" style="margin-right: 8px; color: #107C41;"></i>Share to xls
+                                </div>
+                                <div class="custom-option" onclick="alert('Exporting to PDF...')">
+                                    <i class="fa-solid fa-file-pdf" style="margin-right: 8px; color: #E53E3E;"></i>Share to pdf
+                                </div>
+                            </div>
+                        </div>
+                        <div class="custom-option" id="dataMenuOption" onclick="handleDataClick()" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
+                            <i class="fa-solid fa-database" style="margin-right: 8px; color: #2563EB;"></i>Data
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar y Notificaciones -->
+            <div class="topbar-right-icons" style="border-left: 1px solid rgba(148,163,184,0.2); padding-left: 14px;">
+                <button class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                
+                <div class="user-menu-container">
+                    <div class="user-avatar-container red-avatar" title="User Profile" onclick="toggleUserDropdown(event)">
+                        <span id="userAvatarText">RC</span>
+                    </div>
+
+                    <div class="custom-dropdown" id="userDropdown" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; min-width: 200px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; z-index: 1200;">
+                        <div id="userInfoHeader" style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px;">
+                            <span style="display: block; font-size: 11px; font-weight: 700; color: #94a3b8;">SESSION STATUS</span>
+                            <span id="userStatusText" style="font-size: 12px; font-weight: 800; color: #EF4444;">NO LOG IN</span>
+                        </div>
+                        
+                        <div class="custom-option" id="loginMenuBtn" onclick="openLoginPrompt()" style="padding: 9px 12px; font-size: 13px; font-weight: 600; color: #2563EB; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Log In
+                        </div>
+
+                        <div class="custom-option" id="logoutMenuBtn" onclick="handleSignOut()" style="padding: 9px 12px; font-size: 13px; font-weight: 600; color: #EF4444; border-radius: 8px; cursor: pointer; display: none; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        
+        <section class="kpi-grid">
+            <article class="kpi-card">
+                <div class="kpi-icon danger">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOTAL ISSUES</span>
+                    <strong id="totalIssues">0</strong>
+                    <small>Maintenance events</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon blue">
+                    <i class="fa-solid fa-industry"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOP CELL</span>
+                    <strong id="topCell">--</strong>
+                    <small>Highest affected cell</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon orange">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOP ISSUE</span>
+                    <strong id="topIssue">--</strong>
+                    <small>Most frequent failure</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon purple">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOP OPERATION</span>
+                    <strong id="topOperation">--</strong>
+                    <small>Main affected operation</small>
+                </div>
+            </article>
+        </section>
+
+        <section class="analytics-grid">
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">PRODUCTION CELLS</span>
+                        <h2><i class="fa-solid fa-chart-column"></i> Issues per Operation</h2>
+                    </div>
+                    <div class="panel-badge">
+                        <i class="fa-solid fa-chart-column"></i> Distribution
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="operationChart"></canvas>
+                </div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">YEARLY OVERVIEW</span>
+                        <h2><i class="fa-regular fa-calendar-days"></i> Issues by Month</h2>
+                    </div>
+                    <div class="panel-badge">
+                        <i class="fa-solid fa-globe"></i> Independent
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyIssuesChart"></canvas>
+                </div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">DAILY PERFORMANCE</span>
+                        <h2><i class="fa-solid fa-industry"></i> Issues per day - Last 15 Days</h2>
+                    </div>
+                    <div class="panel-badge">Top 10</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="cellChart"></canvas>
+                </div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">FAILURE ANALYSIS</span>
+                        <h2><i class="fa-solid fa-triangle-exclamation"></i> Issue Detail</h2>
+                    </div>
+                    <div class="panel-badge">Frequency</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="issueChart"></canvas>
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-panel machine-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-kicker">MACHINE PERFORMANCE</span>
+                    <h2><i class="fa-solid fa-robot"></i> Issues by Machine</h2>
+                </div>
+                <div class="panel-badge live">
+                    <span></span> Live Analysis
+                </div>
+            </div>
+            <div class="machine-chart-container">
+                <canvas id="machineChart"></canvas>
+            </div>
+        </section>
+
+        <section class="lower-grid">
+            <article class="dashboard-panel ranking-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">PERFORMANCE RANKING</span>
+                        <h2><i class="fa-solid fa-ranking-star"></i> Top 10 Cells</h2>
+                    </div>
+                </div>
+                <div class="ranking-header">
+                    <span>RANK</span>
+                    <span>CELL</span>
+                    <span>ISSUES</span>
+                    <span>%</span>
+                </div>
+                <div class="ranking-table">
+                    <table>
+                        <tbody id="top10Table"></tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="dashboard-panel selected-analysis-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">DEEP ANALYSIS</span>
+                        <h2><i class="fa-solid fa-chart-line"></i> Selected Cell Analysis</h2>
+                    </div>
+                    <div class="selected-cell-badge">
+                        <span>SELECTED</span>
+                        <strong id="selectedCell">ALL</strong>
+                    </div>
+                </div>
+
+                <div class="analysis-grid">
+                    <div class="mini-analysis-card">
+                        <div class="mini-card-header">
+                            <span>MD</span>
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <div class="mini-chart">
+                            <canvas id="mdChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="mini-analysis-card">
+                        <div class="mini-card-header">
+                            <span>1er Operation</span>
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <div class="mini-chart">
+                            <canvas id="op1Chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="mini-analysis-card">
+                        <div class="mini-card-header">
+                            <span>2nd Operation</span>
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <div class="mini-chart">
+                            <canvas id="op2Chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="mini-analysis-card">
+                        <div class="mini-card-header">
+                            <span>Chiron Operation</span>
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="mini-chart">
+                            <canvas id="chironChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<!-- Modal de Inicio de Sesión -->
+<div class="modal-overlay" id="loginModal">
+    <div class="login-modal-container">
+        <div class="login-modal-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="login-icon-box">
+                    <i class="fa-solid fa-fingerprint"></i>
+                </div>
+                <div>
+                    <h2>Log In</h2>
+                    <p>Enter your administrator credentials</p>
+                </div>
+            </div>
+            <button class="login-close-btn" onclick="closeLoginModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="loginForm" onsubmit="handleFormLogin(event)" class="login-form">
+            <div class="login-input-group">
+                <label for="loginUser">User</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <input type="text" id="loginUser" required placeholder="Ej. Admin-Admin" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="login-input-group">
+                <label for="loginPassword">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" class="login-submit-btn">
+                <span>verify access</span>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Registros -->
+<div class="modal-overlay" id="recordsModal">
+    <div class="records-modal">
+        <div class="modal-topbar">
+            <div class="modal-title">
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-table-list"></i>
+                </div>
+                <div>
+                    <span>MAINTENANCE DATABASE</span>
+                    <h2>Maintenance Records</h2>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeRecordsModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-filters">
+            <div class="filter-control">
+                <label><i class="fa-regular fa-calendar"></i> Month</label>
+                <select id="modalMonthFilter" onchange="loadModalRecords()">
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                </select>
+            </div>
+
+            <div class="filter-control">
+                <label><i class="fa-solid fa-industry"></i> Cell</label>
+                <select id="modalCellFilter" onchange="filterModalTable()">
+                    <option value="">All Cells</option>
+                </select>
+            </div>
+
+            <button class="clear-filter" onclick="clearCellFilter()">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Clear Filters
+            </button>
+        </div>
+
+        <div class="records-info">
+            <div>
+                <i class="fa-solid fa-database"></i>
+                <span id="recordsCount">Loading records...</span>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-table-container">
+                <table id="modalTable">
+                    <thead>
+                        <tr id="modalTableHeaders"></tr>
+                    </thead>
+                    <tbody id="modalTableBody">
+                        <tr>
+                            <td colspan="100" class="loading-table">
+                                <div class="table-loader"></div>
+                                Loading data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para uploaddata.html -->
+<div class="modal-overlay" id="dataModal">
+    <div class="records-modal" style="width: min(1000px, 90vw); height: min(1200px, 85vh);">
+        <div class="modal-topbar">
+            <div class="modal-title">
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div>
+                    <span>DATA MANAGEMENT</span>
+                    <h2>Upload Data</h2>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeDataModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="modal-body" style="padding: 0; background: #fff;">
+            <iframe id="dataIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="ManttoIssues.js"></script>
+</body>
+</html>
