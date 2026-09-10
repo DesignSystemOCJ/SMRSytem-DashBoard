@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Accidents & Incidents Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Accidentss.css">
+
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+        .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+        .bottom-navbar { margin-top: 0 !important; top: 0 !important; }
+        .body-stats-list { max-height: 220px !important; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <nav class="bottom-navbar" style="justify-content: space-between;">
+        <div class="brand-section">
+            <div class="brand-icon-subtle">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <div class="brand-title-main">Accidents & Incidents Dashboard</div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="nav-links">
+                <div class="period-selector-nav nav-item active" id="filterBox" onclick="toggleYearDropdown(event)">
+                    <i class="fa-regular fa-calendar-days" style="margin-right: 6px;"></i>
+                    <span id="selectedYearText">2026</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>
+
+                    <div class="custom-dropdown" id="yearDropdown">
+                        <div class="dropdown-title">Select Year Period</div>
+                        <div class="custom-option" onclick="selectYear('2025', event)">2025</div>
+                        <div class="custom-option" onclick="selectYear('2026', event)">2026</div>
+                        <div class="custom-option" onclick="selectYear('2027', event)">2027</div>
+                        <div class="custom-option" onclick="selectYear('2028', event)">2028</div>
+                        <div class="custom-option" onclick="selectYear('2029', event)">2029</div>
+                        <div class="custom-option" onclick="selectYear('2030', event)">2030</div>
+                    </div>
+                </div>
+
+                <a href="#" class="nav-item" onclick="openRecordsModal(); return false;">
+                    <i class="fa-solid fa-table" style="margin-right: 6px;"></i>Records
+                </a>
+
+                <div class="nav-item has-submenu">
+                    <a href="#" onclick="return false;" style="text-decoration: none;">
+                        <i class="fa-solid fa-sliders" style="margin-right: 6px;"></i>Option <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 3px;"></i>
+                    </a>
+                    <div class="nav-dropdown">
+                        <div class="dropdown-submenu-container">
+                            <div class="custom-option has-nested">
+                                <span><i class="fa-solid fa-share-nodes" style="margin-right: 8px; color: #64748B;"></i>Share</span>
+                                <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+                            </div>
+                            <div class="nested-dropdown">
+                                <div class="custom-option" onclick="alert('Exporting to XLS...')">
+                                    <i class="fa-solid fa-file-excel" style="margin-right: 8px; color: #107C41;"></i>Share to xls
+                                </div>
+                                <div class="custom-option" onclick="alert('Exporting to PDF...')">
+                                    <i class="fa-solid fa-file-pdf" style="margin-right: 8px; color: #E53E3E;"></i>Share to pdf
+                                </div>
+                            </div>
+                        </div>
+                        <div class="custom-option" id="dataMenuOption" onclick="openAccidentModal()" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
+                            <i class="fa-solid fa-plus" style="margin-right: 8px; color: #2563EB;"></i>Accident
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="topbar-right-icons" style="border-left: 1px solid rgba(148,163,184,0.2); padding-left: 14px;">
+                <button class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                
+                <div class="user-menu-container">
+                    <div class="user-avatar-container red-avatar" title="User Profile" onclick="toggleUserDropdown(event)">
+                        <span id="userAvatarText">RC</span>
+                    </div>
+
+                    <div class="custom-dropdown" id="userDropdown" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; min-width: 200px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; z-index: 1200;">
+                        <div id="userInfoHeader" style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px;">
+                            <span style="display: block; font-size: 11px; font-weight: 700; color: #94a3b8;">SESSION STATUS</span>
+                            <span id="userStatusText" style="font-size: 12px; font-weight: 800; color: #EF4444;">NO LOG IN</span>
+                        </div>
+                        
+                        <div class="custom-option" id="loginMenuBtn" onclick="openLoginPrompt()" style="padding: 9px 12px; font-size: 13px; font-weight: 600; color: #2563EB; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Log In
+                        </div>
+
+                        <div class="custom-option" id="logoutMenuBtn" onclick="handleSignOut()" style="padding: 9px 12px; font-size: 13px; font-weight: 600; color: #EF4444; border-radius: 8px; cursor: pointer; display: none; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        
+        <section class="kpi-grid">
+            <article class="kpi-card">
+                <div class="kpi-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">DAYS WITHOUT ACCIDENTS</span>
+                    <strong id="totalAudits">0</strong>
+                    <small>Days count</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon blue"><i class="fa-solid fa-folder-open"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">TOTAL INCIDENTS</span>
+                    <strong id="openCount">0</strong>
+                    <small>Total records</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon orange"><i class="fa-solid fa-folder-closed"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">OPEN ACCIDENTS</span>
+                    <strong id="closedCount">0</strong>
+                    <small>Total affected</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon purple"><i class="fa-solid fa-spinner"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">CLOSED ACCIDENTS</span>
+                    <strong id="inProcessCount">0</strong>
+                    <small>Status Open</small>
+                </div>
+            </article>
+
+            <article class="kpi-card">
+                <div class="kpi-icon" style="color: #059669; background: #ECFDF5;"><i class="fa-solid fa-chart-pie"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">% PROGRESS</span>
+                    <strong id="progressPercent">0.00%</strong>
+                    <small>Ratio percentage</small>
+                </div>
+            </article>
+        </section>
+
+        <div class="main-content-layout">
+            
+            <aside class="body-panel">
+                <div class="body-panel-header">
+                    <h3><i class="fa-solid fa-child-reaching" style="color: var(--primary);"></i> Injury Mapping</h3>
+                    <span style="font-size: 9px; font-weight: 800; background: #EEF2FF; color: var(--primary); padding: 3px 8px; border-radius: 6px;">Live Heatmap</span>
+                </div>
+                
+                <div class="human-silhouette-container" style="height: 480px; display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 200 400" width="100%" height="100%" style="max-height: 400px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.08));">
+                        <!-- Cabeza y Cara -->
+                        <path id="part-cabeza" class="body-part" d="M100,10 C85,10 75,22 75,38 C75,54 85,65 100,65 C115,65 125,54 125,38 C125,22 115,10 100,10 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Cabeza')"/>
+                        <path id="part-cara" class="body-part" d="M85,35 L115,35 L115,55 C115,62 108,65 100,65 C92,65 85,62 85,55 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1" onclick="filterByBodyPart('Cara')"/>
+                        <path id="part-ojos" class="body-part" d="M88,40 C91,40 93,42 93,44 C93,46 91,48 88,48 C85,48 83,46 83,44 C83,42 85,40 88,40 Z M112,40 C115,40 117,42 117,44 C117,46 115,48 112,48 C109,48 107,46 107,44 C107,42 109,40 112,40 Z" fill="#94A3B8" stroke="#64748B" stroke-width="1" onclick="filterByBodyPart('Ojos')"/>
+
+                        <!-- Cuello y Torso -->
+                        <path id="part-cuello" class="body-part" d="M92,66 L108,66 L108,76 L92,76 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Cuello')"/>
+                        <path id="part-hombros" class="body-part" d="M68,78 L132,78 L128,95 L72,95 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Hombros')"/>
+                        <path id="part-pecho" class="body-part" d="M74,98 L126,98 L124,140 L76,140 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Pecho')"/>
+                        <path id="part-espalda" class="body-part" d="M74,98 L126,98 L124,140 L76,140 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Espalda')"/>
+                        <path id="part-cintura" class="body-part" d="M76,143 L124,143 L122,165 L78,165 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Cintura')"/>
+
+                        <!-- Brazos y Manos Izquierdas -->
+                        <path id="part-brazos" class="body-part" d="M66,80 L48,88 L38,150 L50,154 L60,105 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Brazos')"/>
+                        <path id="part-manos" class="body-part" d="M35,156 L52,152 L48,172 L31,168 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Manos')"/>
+                        <path id="part-dedos" class="body-part" d="M28,170 L46,174 L42,182 L26,178 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Dedos')"/>
+
+                        <!-- Brazos y Manos Derechas -->
+                        <path id="part-brazos-der" class="body-part" d="M134,80 L152,88 L162,150 L150,154 L140,105 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Brazos')"/>
+                        <path id="part-manos-der" class="body-part" d="M165,156 L148,152 L152,172 L169,168 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Manos')"/>
+                        <path id="part-dedos-der" class="body-part" d="M172,170 L154,174 L158,182 L174,178 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Dedos')"/>
+
+                        <!-- Cadera -->
+                        <path id="part-cadera" class="body-part" d="M78,168 L122,168 L118,195 L82,195 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Cadera')"/>
+
+                        <!-- Pierna Izquierda Completa -->
+                        <path id="part-pierna" class="body-part" d="M80,198 L98,198 L94,260 L82,260 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Pierna')"/>
+                        <path id="part-rodilla" class="body-part" d="M82,262 L96,262 L95,282 L83,282 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Rodilla')"/>
+                        <path id="part-pantorrilla" class="body-part" d="M83,284 L95,284 L94,308 L84,308 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Pierna')"/>
+                        <path id="part-tobillo" class="body-part" d="M84,310 L94,310 L92,330 L85,330 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Tobillo')"/>
+                        <path id="part-pie" class="body-part" d="M85,332 L105,332 L102,348 L72,348 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Pie')"/>
+
+                        <!-- Pierna Derecha Completa -->
+                        <path id="part-pierna-der" class="body-part" d="M102,198 L120,198 L118,260 L106,260 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Pierna')"/>
+                        <path id="part-rodilla-der" class="body-part" d="M104,262 L118,262 L117,282 L105,282 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Rodilla')"/>
+                        <path id="part-pantorrilla-der" class="body-part" d="M105,284 L117,284 L116,308 L106,308 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Pierna')"/>
+                        <path id="part-tobillo-der" class="body-part" d="M106,310 L116,310 L115,330 L108,330 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Tobillo')"/>
+                        <path id="part-pie-der" class="body-part" d="M95,332 L115,332 L128,348 L98,348 Z" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1.5" onclick="filterByBodyPart('Pie')"/>
+                    </svg>
+                </div>
+
+                <div class="body-stats-list" id="bodyStatsList" style="overflow-y: auto; margin-top: 10px;">
+                    <div class="body-stat-item">
+                        <span>Select a zone</span>
+                        <span class="body-stat-badge" style="background: #E2E8F0; color: #64748B;">0</span>
+                    </div>
+                </div>
+            </aside>
+
+            <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0;">
+                
+                <section class="analytics-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                    <article class="dashboard-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="panel-kicker">SHIFT DISTRIBUTION</span>
+                                <h2><i class="fa-solid fa-chart-pie"></i> Audits by Shift</h2>
+                            </div>
+                        </div>
+                        <div class="chart-container"><canvas id="operationChart"></canvas></div>
+                    </article>
+
+                    <article class="dashboard-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="panel-kicker">YEARLY OVERVIEW</span>
+                                <h2><i class="fa-regular fa-calendar-days"></i> Issues by Month</h2>
+                            </div>
+                        </div>
+                        <div class="chart-container"><canvas id="monthlyIssuesChart"></canvas></div>
+                    </article>
+
+                    <article class="dashboard-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="panel-kicker">ACCIDENT CLASSIFICATION</span>
+                                <h2><i class="fa-solid fa-car-burst"></i> Type of Accident</h2>
+                            </div>
+                        </div>
+                        <div class="chart-container"><canvas id="typeOfAccidentChart"></canvas></div>
+                    </article>
+
+                    <article class="dashboard-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="panel-kicker">ANATOMICAL DISTRIBUTION</span>
+                                <h2><i class="fa-solid fa-user-injured"></i> BodyPart Analysis</h2>
+                            </div>
+                        </div>
+                        <div class="chart-container"><canvas id="bodyPartAnalysisChart"></canvas></div>
+                    </article>
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Modal actualizado para cargar AccidentesIngresar.html -->
+<div class="modal-overlay" id="accidentModal" style="display: none;">
+    <div class="records-modal" style="width: min(1200px, 95vw); height: min(850px, 90vh);">
+        <div class="modal-topbar">
+            <div class="modal-title">
+                <div class="modal-title-icon"><i class="fa-solid fa-file-circle-plus"></i></div>
+                <div><span>EHS SYSTEM</span><h2>New Accident Report</h2></div>
+            </div>
+            <button class="modal-close" onclick="closeAccidentModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="padding: 0; background: #fff;">
+            <iframe src="AccidentesIngresar.html" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="loginModal">
+    <div class="login-modal-container">
+        <div class="login-modal-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="login-icon-box"><i class="fa-solid fa-fingerprint"></i></div>
+                <div><h2>Log In</h2><p>Enter your administrator credentials</p></div>
+            </div>
+            <button class="login-close-btn" onclick="closeLoginModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="loginForm" onsubmit="handleFormLogin(event)" class="login-form">
+            <div class="login-input-group">
+                <label for="loginUser">User</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <input type="text" id="loginUser" required placeholder="Ej. Admin-Admin" autocomplete="off">
+                </div>
+            </div>
+            <div class="login-input-group">
+                <label for="loginPassword">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+            </div>
+            <button type="submit" class="login-submit-btn"><span>verify access</span><i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="recordsModal">
+    <div class="records-modal">
+        <div class="modal-topbar">
+            <div class="modal-title">
+                <div class="modal-title-icon"><i class="fa-solid fa-table-list"></i></div>
+                <div><span>EHS ACCIDENTS DATABASE</span><h2>Accidents Records</h2></div>
+            </div>
+            <button class="modal-close" onclick="closeRecordsModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-filters">
+            <div class="filter-control">
+                <label><i class="fa-regular fa-calendar"></i> Year Filter</label>
+                <select id="modalYearFilter" onchange="loadModalRecords()">
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                    <option value="2029">2029</option>
+                    <option value="2030">2030</option>
+                </select>
+            </div>
+            <div class="filter-control">
+                <label><i class="fa-solid fa-industry"></i> Cell</label>
+                <select id="modalCellFilter" onchange="filterModalTable()"><option value="">All Cells</option></select>
+            </div>
+            <button class="clear-filter" onclick="clearCellFilter()"><i class="fa-solid fa-filter-circle-xmark"></i> Clear Filters</button>
+        </div>
+
+        <div class="records-info"><div><i class="fa-solid fa-database"></i><span id="recordsCount">Loading records...</span></div></div>
+
+        <div class="modal-body">
+            <div class="modal-table-container">
+                <table id="modalTable">
+    <thead>
+        <tr id="modalTableHeaders"></tr>
+    </thead>
+    <tbody id="modalTableBody">
+        <tr><td colspan="100" class="loading-table"><div class="table-loader"></div>Loading data...</td></tr>
+    </tbody>
+</table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="Accidents.js"></script>
+</body>
+</html>

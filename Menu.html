@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SMRC System | Rough Cut Department</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="Menus.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="Menus.js" defer></script>
+</head>
+<body>
+
+  <aside class="sidebar" aria-label="Main Navigation">
+    <div class="sidebar-top">
+      <div class="brand-container">
+        <div class="brand-mark">
+          <i class="fa-solid fa-cube" aria-hidden="true"></i>
+          <span class="brand-pulse"></span>
+        </div>
+        <div class="brand-info">
+          <h1>SMRC <span>System</span></h1>
+          <p>Rough Cut Department</p>
+        </div>
+      </div>
+
+      <nav class="navigation">
+        <div class="nav-section-title">
+          <span>MAIN</span>
+        </div>
+        <ul class="sidebar-menu" id="dynamic-sidebar-menu"></ul>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="clock-box">
+        <div class="clock-icon"><i class="fa-regular fa-clock" aria-hidden="true"></i></div>
+        <div>
+          <div id="time">00:00:00</div>
+          <div id="date">Loading date...</div>
+        </div>
+      </div>
+
+      <div class="user-profile-card">
+        <a href="#" class="sidebar-link user-profile-link" id="login-sublink" data-tooltip="Sign in">
+          <div class="user-avatar-box" id="userAvatarBox">
+            <i class="fa-solid fa-user" id="userDefaultIcon" aria-hidden="true"></i>
+            <img id="userAvatarImg" src="" alt="Avatar">
+          </div>
+          <div class="user-info-text">
+            <span class="nav-label" id="userNameLabel">Sign in</span>
+            <span class="user-sub-label" id="userEmailLabel">Access system</span>
+          </div>
+          <div class="user-action-icon" id="userActionIcon">
+            <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>
+          </div>
+        </a>
+      </div>
+
+      <div class="sidebar-version">
+        <span>SMRC SYSTEM</span>
+        <span>v2.2.0</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <section class="workspace">
+      <div class="iframe-loader" id="iframe-loader">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-content">
+          <img
+            id="welcome-logo"
+            src="https://controlaccesosysistemas.com/wp-content/uploads/2022/03/prime-wheel-980x980.png"
+            alt="Company Logo"
+            loading="lazy">
+          <h3>Rough Cut Department</h3>
+          <p> </p>
+        </div>
+      </div>
+
+      <iframe
+        name="content-frame"
+        id="main-iframe"
+        class="content-frame"
+        title="SMRC Module Viewer">
+      </iframe>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" id="dynamic-mobile-nav" aria-label="Mobile Navigation"></nav>
+
+  <div class="modal-overlay" id="mainLoginModal">
+      <div class="login-modal-container">
+          <button type="button" class="modal-close-btn" onclick="closeMainLoginModal()">&times;</button>
+          
+          <div class="modal-header-box">
+            <div class="modal-icon-box">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2>Sign In</h2>
+            <p>SMRC System Access</p>
+          </div>
+
+          <form id="mainLoginForm" onsubmit="handleMainLogin(event)">
+              <div class="form-group">
+                  <label>User</label>
+                  <input type="text" id="mainLoginUser" required autocomplete="off" placeholder="Enter your username">
+              </div>
+              
+              <div class="form-group">
+                  <label>Password</label>
+                  <div class="password-wrapper">
+                      <input type="password" id="mainLoginPassword" required placeholder="Enter your password">
+                      <i id="togglePasswordIcon" class="fa-solid fa-eye"></i>
+                  </div>
+              </div>
+
+              <button type="submit" class="login-submit-btn">Validate Access</button>
+          </form>
+      </div>
+  </div>
+</body>
+</html>
