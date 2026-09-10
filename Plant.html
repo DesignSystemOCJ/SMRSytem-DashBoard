@@ -143,7 +143,8 @@
 
                 const notifs = [];
                 pins.forEach(pin => {
-                    if (pin.category === 'extintores' && pin.details?.expirationDate) {
+                    const catLower = String(pin.category || '').toLowerCase();
+                    if (catLower.includes('extintor') && pin.details?.expirationDate) {
                         const expDate = new Date(pin.details.expirationDate);
                         expDate.setHours(0, 0, 0, 0);
 
@@ -186,13 +187,23 @@
                 }
             }, [pins]);
 
-          
-            useEffect(() => {
+                      useEffect(() => {
                 const timer = setTimeout(() => lucide.createIcons(), 50);
                 return () => clearTimeout(timer);
             }, [filter, selectedPin, isExpanded, hoveredCardId, pins, editModalOpen, repositioningPinId, showFloatingNotifs, notificationsDropdownOpen, categoryDropdownOpen]);
 
-            const filteredPins = filter === 'all' ? pins : pins.filter(p => p.category === filter);
+            const filteredPins = filter === 'all' ? pins : pins.filter(p => {
+                const pCat = String(p.category || '').toLowerCase().trim();
+                const activeCategory = CATEGORIES.find(c => c.id === filter);
+                const fId = String(filter).toLowerCase().trim();
+                const fLabel = activeCategory ? activeCategory.label.toLowerCase().trim() : '';
+
+                return pCat === fId || 
+                       pCat === fLabel || 
+                       pCat.includes(fId) || 
+                       fId.includes(pCat) || 
+                       (fLabel && (pCat.includes(fLabel) || fLabel.includes(pCat)));
+            });
 
           
             const handleMouseDown = (e) => {
@@ -328,13 +339,31 @@
                 </div>
             );
 
-            const getCategoryColor = (catId) => CATEGORIES.find(c => c.id === catId)?.color || '#dc2626';
-            const getCategoryLabel = (catId) => CATEGORIES.find(c => c.id === catId)?.label || catId;
+            const getCategoryColor = (catId) => {
+                if (!catId) return '#4f46e5';
+                const cleanCat = String(catId).toLowerCase().trim();
+                
+                const found = CATEGORIES.find(c => c.id === cleanCat || c.label.toLowerCase() === cleanCat);
+                if (found) return found.color;
+
+                if (cleanCat.includes('basura') || cleanCat.includes('trash')) return '#059669';
+                if (cleanCat.includes('aluminio') || cleanCat.includes('aluminum')) return '#0284c7';
+                if (cleanCat.includes('extintor') || cleanCat.includes('fire')) return '#dc2626';
+                if (cleanCat.includes('voltaje') || cleanCat.includes('high')) return '#ca8a04';
+                if (cleanCat.includes('hidrante') || cleanCat.includes('hydrant')) return '#2563eb';
+                if (cleanCat.includes('derrame') || cleanCat.includes('spill')) return '#ea580c';
+                if (cleanCat.includes('igloo')) return '#7c3aed';
+                if (cleanCat.includes('regadera') || cleanCat.includes('eyewash') || cleanCat.includes('shower')) return '#db2777';
+
+                return '#4f46e5';
+            };
+
+            const getCategoryLabel = (catId) => CATEGORIES.find(c => c.id === catId || c.label.toLowerCase() === String(catId).toLowerCase())?.label || catId;
             const currentActiveCategory = CATEGORIES.find(c => c.id === filter) || CATEGORIES[0];
 
             return (
                 <div className="flex h-screen w-screen overflow-hidden select-none relative bg-slate-100 text-slate-800">
-                    {/* Sidebar Izquierdo */}
+                 
                     <aside className="w-80 bg-white border-r border-slate-200 flex flex-col z-20 shadow-lg">
                         <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                             <div className="flex items-center gap-2">
@@ -427,7 +456,7 @@
                                                 </span>
                                             </div>
 
-                                            {selectedPin.category === 'extintores' && selectedPin.details && (
+                                            {String(selectedPin.category).toLowerCase().includes('extintor') && selectedPin.details && (
                                                 <>
                                                     <div className="flex justify-between items-center"><span className="text-slate-500">Type:</span><span className="font-semibold text-slate-800">{selectedPin.details.type || 'N/A'}</span></div>
                                                     <div className="flex justify-between items-center"><span className="text-slate-500">Weight:</span><span className="font-semibold text-slate-800">{selectedPin.details.weight || 'N/A'}</span></div>
@@ -453,7 +482,7 @@
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                                         <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                            All Active Items ({filteredPins.length})
+                                            {currentActiveCategory.label} Items ({filteredPins.length})
                                         </span>
                                     </div>
 
@@ -487,7 +516,6 @@
                                                         <i data-lucide={isHovered ? "chevron-up" : "chevron-right"} className="w-4 h-4 text-slate-400 shrink-0"></i>
                                                     </div>
 
-                                                  
                                                     {isHovered && (
                                                         <div className="space-y-1.5 text-xs border-t border-sky-200/60 pt-2.5 mt-2.5">
                                                             <div className="flex justify-between items-center">
@@ -503,7 +531,7 @@
                                                                 </span>
                                                             </div>
 
-                                                            {pin.category === 'extintores' && pin.details && (
+                                                            {String(pin.category).toLowerCase().includes('extintor') && pin.details && (
                                                                 <>
                                                                     <div className="flex justify-between items-center"><span className="text-slate-500 text-[11px]">Type:</span><span className="font-semibold text-slate-800 text-[11px]">{pin.details.type || 'N/A'}</span></div>
                                                                     <div className="flex justify-between items-center"><span className="text-slate-500 text-[11px]">Weight:</span><span className="font-semibold text-slate-800 text-[11px]">{pin.details.weight || 'N/A'}</span></div>
@@ -546,7 +574,7 @@
                         </div>
                     </aside>
 
-                    
+                   
                     <main 
                         className={`flex-1 relative bg-slate-200 overflow-hidden ${isAddModeActive || repositioningPinId ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`}
                         onMouseDown={handleMouseDown}
@@ -554,7 +582,7 @@
                         onMouseUp={handleMouseUp}
                         onWheel={handleWheel}
                     >
-                       
+                     
                         <div className="absolute top-4 left-4 z-30">
                             <div 
                                 className="relative"
@@ -569,35 +597,46 @@
 
                                 {categoryDropdownOpen && (
                                     <div className="absolute left-0 top-full mt-1.5 w-60 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 space-y-1 z-40">
-                                        {CATEGORIES.map((cat) => (
-                                            <button
-                                                key={cat.id}
-                                                onClick={() => {
-                                                    setFilter(cat.id);
-                                                    setSelectedPin(null);
-                                                    setCategoryDropdownOpen(false);
-                                                }}
-                                                className={`w-full py-2 px-3 text-xs font-medium rounded-xl flex items-center justify-between transition-all ${filter === cat.id ? 'bg-sky-50 text-sky-900 border border-sky-200' : 'text-slate-600 hover:bg-slate-100'}`}
-                                            >
-                                                <div className="flex items-center gap-2.5 truncate">
-                                                    {cat.id !== 'all' ? (
-                                                        <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: cat.color }}></div>
-                                                    ) : (
-                                                        <i data-lucide={cat.icon} className="w-3.5 h-3.5 text-sky-600"></i>
-                                                    )}
-                                                    <span className="truncate">{cat.label}</span>
-                                                </div>
-                                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-mono border border-slate-200">
-                                                    {cat.id === 'all' ? pins.length : pins.filter(p => p.category === cat.id).length}
-                                                </span>
-                                            </button>
-                                        ))}
+                                        {CATEGORIES.map((cat) => {
+                                            const count = cat.id === 'all' 
+                                                ? pins.length 
+                                                : pins.filter(p => {
+                                                    const pCat = String(p.category || '').toLowerCase().trim();
+                                                    const cId = cat.id.toLowerCase().trim();
+                                                    const cLabel = cat.label.toLowerCase().trim();
+                                                    return pCat === cId || pCat === cLabel || pCat.includes(cId) || cId.includes(pCat) || pCat.includes(cLabel);
+                                                }).length;
+
+                                            return (
+                                                <button
+                                                    key={cat.id}
+                                                    onClick={() => {
+                                                        setFilter(cat.id);
+                                                        setSelectedPin(null);
+                                                        setCategoryDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full py-2 px-3 text-xs font-medium rounded-xl flex items-center justify-between transition-all ${filter === cat.id ? 'bg-sky-50 text-sky-900 border border-sky-200' : 'text-slate-600 hover:bg-slate-100'}`}
+                                                >
+                                                    <div className="flex items-center gap-2.5 truncate">
+                                                        {cat.id !== 'all' ? (
+                                                            <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: cat.color }}></div>
+                                                        ) : (
+                                                            <i data-lucide={cat.icon} className="w-3.5 h-3.5 text-sky-600"></i>
+                                                        )}
+                                                        <span className="truncate">{cat.label}</span>
+                                                    </div>
+                                                    <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-mono border border-slate-200">
+                                                        {count}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
                         </div>
 
-
+                       
                         <div className="absolute top-4 right-4 z-30 flex items-center bg-white/95 backdrop-blur border border-slate-300 p-1 rounded-xl shadow-lg">
                             <button onClick={() => setScale(s => Math.min(s * 1.2, 3))} className="p-2 hover:bg-slate-100 rounded-lg text-slate-700 font-bold text-xs">+</button>
                             <div className="w-[1px] h-4 bg-slate-200 mx-0.5"></div>
@@ -619,7 +658,7 @@
                             </div>
                         )}
 
-                     
+                       
                         <div 
                             onClick={handleMapClick}
                             className="absolute w-[1600px] h-[1000px] bg-white border border-slate-300 transition-transform duration-75 ease-out rounded-2xl shadow-xl"
@@ -658,7 +697,7 @@
                         </div>
                     </main>
 
-            
+                   
                     {showFloatingNotifs && notifications.length > 0 && (
                         <div className="absolute top-20 right-6 z-40 max-w-sm w-full space-y-3">
                             <div className="flex items-center justify-between bg-white/90 border border-slate-200 px-4 py-2 rounded-xl backdrop-blur shadow-lg">
@@ -692,7 +731,7 @@
                         </div>
                     )}
 
-             
+                
                     {modalOpen && (
                         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                             <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -747,7 +786,7 @@
                         </div>
                     )}
 
-        
+                  
                     {editModalOpen && editingPin && (
                         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                             <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -794,7 +833,7 @@
                                         </button>
                                     </div>
 
-                                    {editingPin.category === 'extintores' && (
+                                    {String(editingPin.category).toLowerCase().includes('extintor') && (
                                         <div className="p-3 bg-sky-50/50 border border-sky-200 rounded-xl space-y-3">
                                             <span className="text-[11px] font-bold text-red-600 uppercase tracking-wider block">Extinguisher Details</span>
                                             <div className="grid grid-cols-2 gap-3">
@@ -813,7 +852,7 @@
                                             <i data-lucide="trash-2" className="w-3.5 h-3.5"></i> Delete Pin
                                         </button>
                                         <div className="flex gap-2">
-                                            <button type="button" onClick={() => setEditModalOpen(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl">Cancel</button>
+                                            <button type="button" onClick={() => setEditModalOpen(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl">Cancel / Close</button>
                                             <button type="submit" className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md font-medium">Save Changes</button>
                                         </div>
                                     </div>
