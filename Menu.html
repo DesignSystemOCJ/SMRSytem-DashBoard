@@ -8,9 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="Menus.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+ 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="Menus.css" media="print" onload="this.media='all'">
+  
+  <!-- Scripts optimizados con defer -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="Menus.js" defer></script>
 </head>
 <body>
@@ -80,6 +84,8 @@
             id="welcome-logo"
             src="https://controlaccesosysistemas.com/wp-content/uploads/2022/03/prime-wheel-980x980.png"
             alt="Company Logo"
+            width="160"
+            height="160"
             loading="lazy">
           <h3>Rough Cut Department</h3>
           <p> </p>
