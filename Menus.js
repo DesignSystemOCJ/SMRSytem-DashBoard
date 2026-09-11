@@ -166,7 +166,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (link.classList.contains("dropdown-toggle")) {
       event.preventDefault();
       event.stopPropagation();
-      if (!DOM.sidebar.classList.contains("expanded")) DOM.sidebar.classList.add("expanded");
+      
+      if (!DOM.sidebar.classList.contains("expanded")) {
+        DOM.sidebar.classList.add("expanded");
+      }
       
       const parentDropdown = link.closest(".dropdown-item");
       document.querySelectorAll(".dropdown-item").forEach(item => {
@@ -180,11 +183,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (subLink && subLink.id === "login-sublink") return; 
 
     if (subLink) {
+      event.preventDefault();
       openModule(subLink);
       resetSidebarState();
       return;
     }
 
+    event.preventDefault();
     resetSidebarState();
     openModule(link);
   });
