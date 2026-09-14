@@ -251,7 +251,7 @@ function updateTrendsChartsContainer() {
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div class="chart-nav-group">
                             <button class="chart-nav-btn" onclick="shiftTrendChart(${idx}, -1)" title="Días anteriores"><i class="fa-solid fa-chevron-left"></i></button>
-                            <button class="chart-nav-btn today-btn" onclick="resetTrendChartToday(${idx})" title="Ir a la fecha actual">Hoy</button>
+                            <button class="chart-nav-btn today-btn" onclick="resetTrendChartToday(${idx})" title="Ir a la fecha actual">Today</button>
                             <button class="chart-nav-btn" onclick="shiftTrendChart(${idx}, 1)" title="Días siguientes"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
                         <span style="font-size: 10px; color: #64748B;">Chart #${idx + 1}</span>
