@@ -311,7 +311,7 @@ function renderOpenAuditsTable() {
     }
 
     tbody.innerHTML = openAudits.map(row => {
-        const primaryKeyVal = row.Id !== undefined && row.Id !== null ? row.Id : (row.id !== undefined ? row.id : null);
+        const primaryKeyVal = row.id !== undefined && row.id !== null ? row.id : (row.Id !== undefined ? row.Id : null);
         const folioVal = row.Folio !== undefined && row.Folio !== null ? row.Folio : "";
         const shiftVal = row.Shift !== undefined ? row.Shift : (row.shift !== undefined ? row.shift : (row.Turno || ""));
         const areaVal = row.Area !== undefined && row.Area !== null ? row.Area : "";
@@ -420,13 +420,22 @@ async function saveEditedRow(buttonElement, rowId) {
         if (select) updatedData["C/O"] = select.value;
     }
 
-    const { error } = await supabaseClient
+    // Convertimos el ID de texto a número entero para que coincida con el tipo int8 de Supabase
+    const numericId = parseInt(rowId, 10);
+
+    const { data, error } = await supabaseClient
         .from("Auditorias_Gestion_EHS")
         .update(updatedData)
-        .eq('id', rowId);
+        .eq('id', numericId)
+        .select(); // Devuelve el registro modificado para comprobar el éxito
 
     if (error) {
         alert("Error al actualizar los datos en Supabase: " + error.message);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        alert("Aviso: No se encontró ningún registro con el ID: " + rowId + " para actualizar.");
         return;
     }
 
