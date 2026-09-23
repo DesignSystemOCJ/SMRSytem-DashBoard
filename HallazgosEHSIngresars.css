@@ -1,0 +1,71 @@
+/* Color de fondo verdoso azulado (Teal oscuro/petróleo) extraído de tu imagen */
+.bg-teal-custom {
+    background-color: #0b2e36; 
+}
+
+/* Estilo del botón con el tono verde-azulado a juego */
+.btn-teal {
+    background-color: #0d9488; /* Tono Teal vibrante */
+    box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.3);
+}
+
+.btn-teal:hover {
+    background-color: #0f766e;
+}
+
+/* Alineaciones y bordes */
+.input-group input, 
+.input-group select, 
+.input-group textarea {
+    border-color: #cbd5e1;
+    background-color: #ffffff;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.relative.input-group span {
+    font-size: 1.1rem;
+    top: 0.75rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+/* Campos controlados por el sistema */
+.system-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #e2e8f0 !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 0.5rem;
+    cursor: not-allowed !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+/* Evita que parezcan campos editables */
+.system-field:focus {
+    outline: none !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Texto seleccionado */
+.system-field::selection {
+    background-color: #cbd5e1;
+    color: #475569;
+}
+
+/* Evita cambios visuales por hover */
+.system-field:hover {
+    background-color: #e2e8f0 !important;
+}
