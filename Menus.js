@@ -1,4 +1,4 @@
-// --- CONFIGURACIÓN E INICIALIZACIÓN DE SUPABASE ---
+ 
 const SUPABASE_CONFIG = {
   url: "https://mrxtqmvufmlozplszfxc.supabase.co",
   key: "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-"
@@ -11,11 +11,10 @@ try {
     window.supabaseClient = supabaseClient;
   }
 } catch (e) {
-  console.error("Error al crear cliente Supabase:", e);
+  console.error("Error al crear cliente:", e);
 }
 
-// --- CONFIGURACIÓN DINÁMICA DE MENÚS ---
-const menuConfig = [
+ const menuConfig = [
   {
     type: "dropdown",
     toggleId: "roughcut-toggle",
@@ -42,7 +41,18 @@ const menuConfig = [
   { type: "link", href: "ScrapMRB.html", tooltip: "ScrapMRB", icon: "fa-solid fa-recycle", label: "ScrapMRB" },
   { type: "link", href: "bu.html", tooltip: "B&U", icon: "fa-solid fa-building", label: "B&amp;U" },
   { type: "link", href: "Projects.html", tooltip: "Projects", icon: "fa-solid fa-diagram-project", label: "Projects" },
-  { type: "link", href: "#", id: "admin-toggle", tooltip: "Settings", icon: "fa-solid fa-sliders", label: "Settings" }
+  {
+    type: "dropdown",
+    toggleId: "admin-toggle",
+    id: "settings-dropdown-container",
+    tooltip: "Settings",
+    icon: "fa-solid fa-sliders",
+    label: "Settings",
+    subItems: [
+      { href: "User.html", icon: "fa-solid fa-user-gear", label: "User" },         
+      { href: "Employees.html", icon: "fa-solid fa-users", label: "Employees" }    
+    ]
+  }
 ];
 
 const mobileMenuConfig = [
@@ -64,6 +74,7 @@ function renderMenus() {
 
   if (sidebarMenu) {
     sidebarMenu.innerHTML = menuConfig.map(item => {
+      const idAttr = item.id ? `id="${item.id}"` : '';
       if (item.type === "dropdown") {
         const subHtml = item.subItems.map(sub => `
           <li class="sidebar-item">
@@ -75,7 +86,7 @@ function renderMenus() {
         `).join('');
 
         return `
-          <li class="sidebar-item dropdown-item">
+          <li class="sidebar-item dropdown-item" ${idAttr}>
             <a href="#" class="sidebar-link dropdown-toggle" id="${item.toggleId}" data-tooltip="${item.tooltip}">
               <span class="nav-icon"><i class="${item.icon}" aria-hidden="true"></i></span>
               <span class="nav-label">${item.label}</span>
@@ -85,7 +96,6 @@ function renderMenus() {
           </li>
         `;
       } else {
-        const idAttr = item.id ? `id="${item.id}"` : '';
         return `
           <li class="sidebar-item">
             <a href="${item.href}" target="content-frame" class="sidebar-link" ${idAttr} data-tooltip="${item.tooltip}">
@@ -101,12 +111,11 @@ function renderMenus() {
   if (mobileNav) {
     mobileNav.innerHTML = mobileMenuConfig.map((m, index) => {
       const activeClass = index === 0 ? "mobile-nav-item active" : "mobile-nav-item";
-      const homeAttr = m.home ? 'data-home="true"' : '';
       const idAttr = m.id ? `id="${m.id}"` : '';
       const hrefAttr = m.href || '#';
       
       return `
-        <a href="${hrefAttr}" ${m.home ? '' : 'target="content-frame"'} class="${activeClass}" ${homeAttr} ${idAttr} title="${m.title}" aria-label="${m.aria}">
+        <a href="${hrefAttr}" ${m.home ? '' : 'target="content-frame"'} class="${activeClass}" ${m.home ? 'data-home="true"' : ''} ${idAttr} title="${m.title}" aria-label="${m.aria}">
           <i class="${m.icon}" aria-hidden="true"></i>
         </a>
       `;
@@ -132,67 +141,64 @@ document.addEventListener("DOMContentLoaded", () => {
     mainLoginForm: document.getElementById("mainLoginForm")
   };
 
-  DOM.sidebar.addEventListener("mouseenter", () => {
-    if (window.innerWidth > 1024) DOM.sidebar.classList.add("expanded");
-  });
-  
-  DOM.sidebar.addEventListener("mouseleave", () => {
-    if (window.innerWidth > 1024) resetSidebarState();
-  });
+  if (DOM.sidebar) {
+    DOM.sidebar.addEventListener("mouseenter", () => {
+      if (window.innerWidth > 1024) DOM.sidebar.classList.add("expanded");
+    });
+    
+    DOM.sidebar.addEventListener("mouseleave", () => {
+      if (window.innerWidth > 1024) resetSidebarState();
+    });
 
-  DOM.sidebar.addEventListener("mouseover", (event) => {
-    if (window.innerWidth <= 1024 || !DOM.sidebar.classList.contains("expanded")) return;
-    const dropdownItem = event.target.closest(".dropdown-item");
-    if (dropdownItem) {
-      document.querySelectorAll(".dropdown-item").forEach(item => {
-        if (item !== dropdownItem) item.classList.remove("open");
-      });
-      dropdownItem.classList.add("open");
-    }
-  });
+    DOM.sidebar.addEventListener("mouseover", (event) => {
+      if (window.innerWidth <= 1024 || !DOM.sidebar.classList.contains("expanded")) return;
+      const dropdownItem = event.target.closest(".dropdown-item");
+      if (dropdownItem) {
+        document.querySelectorAll(".dropdown-item").forEach(item => {
+          if (item !== dropdownItem) item.classList.remove("open");
+        });
+        dropdownItem.classList.add("open");
+      }
+    });
+
+    DOM.sidebar.addEventListener("click", (event) => {
+      const subLink = event.target.closest(".sub-link");
+      const link = event.target.closest(".sidebar-link");
+      if (!link) return;
+
+      if (link.classList.contains("dropdown-toggle")) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!DOM.sidebar.classList.contains("expanded")) DOM.sidebar.classList.add("expanded");
+        
+        const parentDropdown = link.closest(".dropdown-item");
+        document.querySelectorAll(".dropdown-item").forEach(item => {
+          if (item !== parentDropdown) item.classList.remove("open");
+        });
+
+        parentDropdown.classList.toggle("open");
+        return;
+      }
+
+      if (subLink && subLink.id === "login-sublink") return; 
+
+      if (subLink) {
+        openModule(subLink);
+        resetSidebarState();
+        return;
+      }
+
+      resetSidebarState();
+      openModule(link);
+    });
+  }
 
   function resetSidebarState() {
     document.querySelectorAll(".dropdown-item").forEach(item => item.classList.remove("open"));
-    if (window.innerWidth > 1024) {
+    if (window.innerWidth > 1024 && DOM.sidebar) {
       DOM.sidebar.classList.remove("expanded");
     }
   }
-
-  DOM.sidebar.addEventListener("click", (event) => {
-    const subLink = event.target.closest(".sub-link");
-    const link = event.target.closest(".sidebar-link");
-    if (!link) return;
-
-    if (link.classList.contains("dropdown-toggle")) {
-      event.preventDefault();
-      event.stopPropagation();
-      
-      if (!DOM.sidebar.classList.contains("expanded")) {
-        DOM.sidebar.classList.add("expanded");
-      }
-      
-      const parentDropdown = link.closest(".dropdown-item");
-      document.querySelectorAll(".dropdown-item").forEach(item => {
-        if (item !== parentDropdown) item.classList.remove("open");
-      });
-
-      parentDropdown.classList.toggle("open");
-      return;
-    }
-
-    if (subLink && subLink.id === "login-sublink") return; 
-
-    if (subLink) {
-      event.preventDefault();
-      openModule(subLink);
-      resetSidebarState();
-      return;
-    }
-
-    event.preventDefault();
-    resetSidebarState();
-    openModule(link);
-  });
 
   if (DOM.togglePasswordIcon && DOM.mainLoginPassword) {
     DOM.togglePasswordIcon.addEventListener("mouseenter", () => {
@@ -208,8 +214,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const dateFormatter = new Intl.DateTimeFormat("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
   setInterval(() => {
     const now = new Date();
-    DOM.time.textContent = now.toLocaleTimeString("en-US", { hour12: false });
-    DOM.date.textContent = dateFormatter.format(now);
+    if (DOM.time) DOM.time.textContent = now.toLocaleTimeString("en-US", { hour12: false });
+    if (DOM.date) DOM.date.textContent = dateFormatter.format(now);
   }, 1000);
 
   function openModule(link) {
@@ -226,21 +232,26 @@ document.addEventListener("DOMContentLoaded", () => {
       parentDropdown.classList.add("has-active-child");
     }
 
-    DOM.welcomeScreen.style.display = "none";
-    DOM.iframe.style.display = "block";
-    
-    if (DOM.iframeLoader) DOM.iframeLoader.classList.add("active");
-    DOM.iframe.src = href;
+    if (DOM.welcomeScreen) DOM.welcomeScreen.style.display = "none";
+    if (DOM.iframe) {
+      DOM.iframe.style.display = "block";
+      if (DOM.iframeLoader) DOM.iframeLoader.classList.add("active");
+      DOM.iframe.src = href;
+    }
   }
 
-  DOM.iframe.addEventListener("load", () => {
-    if (DOM.iframeLoader) DOM.iframeLoader.classList.remove("active");
-  });
+  if (DOM.iframe) {
+    DOM.iframe.addEventListener("load", () => {
+      if (DOM.iframeLoader) DOM.iframeLoader.classList.remove("active");
+    });
+  }
 
   function showHome() {
-    DOM.welcomeScreen.style.display = "flex";
-    DOM.iframe.style.display = "none";
-    DOM.iframe.src = "";
+    if (DOM.welcomeScreen) DOM.welcomeScreen.style.display = "flex";
+    if (DOM.iframe) {
+      DOM.iframe.style.display = "none";
+      DOM.iframe.src = "";
+    }
     document.querySelectorAll(".sidebar-link, .sub-link").forEach(item => item.classList.remove("active"));
     document.querySelectorAll(".dropdown-item").forEach(item => item.classList.remove("has-active-child"));
     if (DOM.iframeLoader) DOM.iframeLoader.classList.remove("active");
@@ -260,9 +271,11 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (item.id === "mobile-settings-link") return;
 
-      DOM.welcomeScreen.style.display = "none";
-      DOM.iframe.style.display = "block";
-      if (DOM.iframeLoader) DOM.iframeLoader.classList.add("active");
+      if (DOM.welcomeScreen) DOM.welcomeScreen.style.display = "none";
+      if (DOM.iframe) {
+        DOM.iframe.style.display = "block";
+        if (DOM.iframeLoader) DOM.iframeLoader.classList.add("active");
+      }
     });
   });
 
@@ -295,7 +308,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// --- GESTIÓN DE SESIÓN Y MODAL ---
+ 
 let currentSessionUser = localStorage.getItem("smrc_logged_user");
 
 function updateMenuLoginState() {
@@ -307,6 +320,8 @@ function updateMenuLoginState() {
   const userActionIcon = document.getElementById("userActionIcon");
   const userDefaultIcon = document.getElementById("userDefaultIcon");
   const userAvatarImg = document.getElementById("userAvatarImg");
+  
+  const settingsContainer = document.getElementById("settings-dropdown-container");
 
   if (currentSessionUser) {
     if (userNameLabel) userNameLabel.textContent = currentSessionUser;
@@ -323,7 +338,13 @@ function updateMenuLoginState() {
       userAvatarImg.style.display = "block";
     }
 
-    if (loginSublink) loginSublink.setAttribute("data-tooltip", "Sign out");
+    loginSublink.setAttribute("data-tooltip", "Sign out");
+
+    if (settingsContainer) {
+      settingsContainer.style.opacity = "1";
+      settingsContainer.style.pointerEvents = "auto";
+    }
+
   } else {
     if (userNameLabel) userNameLabel.textContent = "Sign in";
     if (userEmailLabel) userEmailLabel.textContent = "Access system";
@@ -336,7 +357,13 @@ function updateMenuLoginState() {
     if (userDefaultIcon) userDefaultIcon.style.display = "block";
     if (userAvatarImg) userAvatarImg.style.display = "none";
 
-    if (loginSublink) loginSublink.setAttribute("data-tooltip", "Sign in");
+    loginSublink.setAttribute("data-tooltip", "Sign in");
+
+    if (settingsContainer) {
+      settingsContainer.style.opacity = "0.4";
+      settingsContainer.style.pointerEvents = "none";
+      settingsContainer.classList.remove("open");
+    }
   }
 }
 
@@ -379,7 +406,7 @@ window.handleMainLogin = async function(event) {
   try {
     const client = window.supabaseClient;
     if (!client) {
-      alert("Error: Supabase no está inicializado. Revisa que el script cargue correctamente en el HTML.");
+      alert("Error: Supabase no está inicializado. Revisa que el script cargue correctamente.");
       return;
     }
 
