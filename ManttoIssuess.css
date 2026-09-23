@@ -20,7 +20,6 @@
   --radius: 20px;
 }
 
-/* ================= RESET ================= */
 * {
   box-sizing: border-box;
   font-family: "Segoe UI", Inter, Arial, sans-serif;
@@ -43,12 +42,10 @@ button, select {
   font-family: inherit;
 }
 
-/* ================= SHELL ================= */
 .app-shell {
   min-height: 100vh;
 }
 
-/* ================= TOP BAR & NAVBAR ================= */
 .topbar, .bottom-navbar {
   position: sticky;
   z-index: 1000;
@@ -100,7 +97,6 @@ button, select {
   color: #0F172A;
 }
 
-/* ================= SUBMENÚ & DROPDOWNS ================= */
 .bottom-navbar .nav-item.has-submenu {
   cursor: pointer;
   display: flex;
@@ -168,7 +164,6 @@ button, select {
   display: block;
 }
 
-/* ================= BRAND ================= */
 .brand-section {
   display: flex;
   align-items: center;
@@ -197,7 +192,6 @@ button, select {
   color: #334155;
 }
 
-/* ================= PERIOD DROPDOWN ================= */
 .period-selector-nav, .user-menu-container {
   position: relative;
   display: inline-flex;
@@ -249,7 +243,6 @@ button, select {
   color: #0f172a;
 }
 
-/* ================= USER MENU CONTAINER ================= */
 .user-menu-container:hover #userDropdown {
   display: block !important;
 }
@@ -370,7 +363,6 @@ button, select {
   color: #333333;
 }
 
-/* ================= TOPBAR RIGHT ICONS ================= */
 .topbar-right-icons {
   display: flex;
   align-items: center;
@@ -422,7 +414,6 @@ button, select {
   line-height: 1;
 }
 
-/* ================= MAIN DASHBOARD CONTENT ================= */
 .dashboard-container {
   width: min(1850px, 100%);
   margin: auto;
@@ -701,7 +692,6 @@ button, select {
   width: 100%;
 }
 
-/* ================= MODALES ================= */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -886,7 +876,6 @@ button, select {
   font-size: 11px;
 }
 
-/* ================= MODAL DE LOGIN ================= */
 #loginModal {
   display: none;
   align-items: center;
@@ -1048,7 +1037,6 @@ button, select {
   box-shadow: 0 12px 25px rgba(37, 99, 235, 0.35);
 }
 
-/* ================= MEDIA QUERIES ================= */
 @media (max-width: 1200px) {
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .lower-grid { grid-template-columns: 1fr !important; }
