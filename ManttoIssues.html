@@ -124,40 +124,8 @@
     </nav>
 
     <main class="dashboard-container">
-        <section class="kpi-grid">
-            <article class="kpi-card">
-                <div class="kpi-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">TOTAL ISSUES</span>
-                    <strong id="totalIssues">0</strong>
-                    <small>Maintenance events</small>
-                </div>
-            </article>
-            <article class="kpi-card">
-                <div class="kpi-icon blue"><i class="fa-solid fa-industry"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">TOP CELL</span>
-                    <strong id="topCell">--</strong>
-                    <small>Highest affected cell</small>
-                </div>
-            </article>
-            <article class="kpi-card">
-                <div class="kpi-icon orange"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">TOP ISSUE</span>
-                    <strong id="topIssue">--</strong>
-                    <small>Most frequent failure</small>
-                </div>
-            </article>
-            <article class="kpi-card">
-                <div class="kpi-icon purple"><i class="fa-solid fa-gears"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">TOP OPERATION</span>
-                    <strong id="topOperation">--</strong>
-                    <small>Main affected operation</small>
-                </div>
-            </article>
-        </section>
+        
+        <section class="kpi-grid" id="kpiGridContainer"></section>
 
         <section class="analytics-grid">
             <article class="dashboard-panel">
@@ -240,30 +208,13 @@
                     </div>
                 </div>
 
-                <div class="analysis-grid">
-                    <div class="mini-analysis-card">
-                        <div class="mini-card-header"><span>MD</span><i class="fa-solid fa-gears"></i></div>
-                        <div class="mini-chart"><canvas id="mdChart"></canvas></div>
-                    </div>
-                    <div class="mini-analysis-card">
-                        <div class="mini-card-header"><span>1er Operation</span><i class="fa-solid fa-gears"></i></div>
-                        <div class="mini-chart"><canvas id="op1Chart"></canvas></div>
-                    </div>
-                    <div class="mini-analysis-card">
-                        <div class="mini-card-header"><span>2nd Operation</span><i class="fa-solid fa-gears"></i></div>
-                        <div class="mini-chart"><canvas id="op2Chart"></canvas></div>
-                    </div>
-                    <div class="mini-analysis-card">
-                        <div class="mini-card-header"><span>Chiron Operation</span><i class="fa-solid fa-robot"></i></div>
-                        <div class="mini-chart"><canvas id="chironChart"></canvas></div>
-                    </div>
-                </div>
+                <!-- Contenedor de Análisis de Celdas generado dinámicamente desde JS -->
+                <div class="analysis-grid" id="analysisGridContainer"></div>
             </article>
         </section>
     </main>
 </div>
 
-<!-- Modales -->
 <div class="modal-overlay" id="loginModal">
     <div class="login-modal-container">
         <div class="login-modal-header">
