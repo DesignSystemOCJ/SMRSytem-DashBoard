@@ -34,7 +34,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* SIDEBAR REESTILIZADO */
 .sidebar {
   position: fixed;
   top: 10px;
@@ -281,10 +280,10 @@ body {
   color: var(--primary-red) !important;
 }
 
-/* Submenús Mejorados */
 .sidebar-item.dropdown-item {
   display: flex;
   flex-direction: column;
+  transition: opacity 0.3s ease;
 }
 
 .sidebar-submenu {
@@ -471,7 +470,6 @@ body {
   font-weight: 700;
 }
 
-/* MAIN CONTENT */
 .main-content {
   margin-left: calc(var(--sidebar-collapsed-width) + 10px);
   width: calc(100% - var(--sidebar-collapsed-width) - 20px);
@@ -571,7 +569,6 @@ body {
   color: var(--text-muted);
 }
 
-/* MOBILE NAV */
 .mobile-nav {
   display: none;
   position: fixed;
@@ -627,8 +624,8 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(43,54,72,0.75);
-  backdrop-filter: blur(8px);
+  background: #2b3648;
+  backdrop-filter: none;
   z-index: 3000;
   align-items: center;
   justify-content: center;
@@ -639,8 +636,8 @@ body {
   padding: 40px 35px;
   border-radius: 24px;
   width: 380px;
-  box-shadow: 20px 20px 50px var(--shadow-dark), -20px -20px 50px var(--shadow-light);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 20px 20px 50px rgba(25, 30, 40, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   position: relative;
 }
 
