@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMRC System | Employees Management</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link rel="stylesheet" href="Employeess.css">
+</head>
+<body>
+
+  <div class="module-container">
+
+    <div class="content-grid">
+
+      <div class="neo-card">
+        <div class="card-title">
+          <i class="fa-solid fa-user-plus"></i> New Employee
+        </div>
+        
+        <form id="employeeForm" onsubmit="saveEmployee(event)">
+          <div class="form-group">
+            <label>Employee No.</label>
+            <input type="text" id="empNumber" required placeholder="Ex. EMP-001" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="empName" required placeholder="Worker's name" autocomplete="off">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Position</label>
+              <select id="empPosition" required>
+                <!-- Opciones cargadas dinámicamente desde JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Shift</label>
+              <select id="empShift" required>
+                <!-- Opciones cargadas dinámicamente desde JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Department</label>
+            <select id="empDepartment" disabled>
+              <option value="Rough Cut" selected>Rough Cut</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <i class="fa-solid fa-check"></i> Save Employee
+          </button>
+        </form>
+      </div>
+
+      <div class="neo-card">
+        <div class="card-title" style="justify-content: space-between;">
+          <span><i class="fa-solid fa-address-book"></i> Employee List</span>
+          <span id="totalCount" style="font-size: 11px; background: var(--pastel-red); color: var(--primary-red); padding: 2px 8px; border-radius: 6px;">0 Records</span>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search by ID, name, position, shift..." onkeyup="filterTable()">
+          </div>
+          <button type="button" class="btn-clear" onclick="clearFilter()" title="Clear filter">
+            <i class="fa-solid fa-rotate-left"></i> Clean
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 50px;">ID</th>
+                <th>Emp No.</th>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Department</th>
+                <th>Shift</th>
+                <th style="text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+              <tr>
+                <td colspan="7" class="loader-container">Loading records from Supabase...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="Employees.js"></script>
+</body>
+</html>

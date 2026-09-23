@@ -1,0 +1,297 @@
+/* Protección contra selección y mitigación parcial de PrintScreen */
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Opcional: difuminar el contenido si la ventana pierde el foco (ayuda contra capturas rápidas) */
+body.blurred {
+  filter: blur(8px);
+  transition: filter 0.1s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #e4e8ee;
+  --text-main: #2b3648;
+  --text-secondary: #58667e;
+  --text-muted: #8b97a8;
+  --primary-red: #c00d0d;
+  --pastel-red: rgba(192, 13, 13, 0.15);
+  --shadow-dark: #babecc;
+  --shadow-light: #ffffff;
+  --neo-extruded: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+  --neo-extruded-sm: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
+  --neo-inset: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+}
+
+body {
+  font-family: "Segoe UI", Inter, Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--text-main);
+  padding: 25px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.module-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Layout Principal: Formulario a un lado y Tabla al otro */
+.content-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 25px;
+}
+
+@media (max-width: 992px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tarjetas Neumórficas */
+.neo-card {
+  background: var(--bg);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: var(--neo-extruded);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-title i {
+  color: var(--primary-red);
+}
+
+/* Formulario */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-group label {
+  font-size: 10px;
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input, .form-group select, .table-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--bg);
+  box-shadow: var(--neo-inset);
+  color: var(--text-main);
+  font-size: 12px;
+  outline: none;
+  transition: all 0.2s ease;
+  /* Permitir escribir y seleccionar dentro de los inputs */
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.form-group select:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.table-input {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.form-group input:focus, .form-group select:focus, .table-input:focus {
+  box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light), 0 0 0 2px var(--pastel-red);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary-red);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 4px 4px 12px rgba(192, 13, 13, 0.3);
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.btn-submit:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Buscador y Tabla */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 12px;
+}
+
+.search-box {
+  flex: 1;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border-radius: 10px;
+  border: none;
+  background: var(--bg);
+  box-shadow: var(--neo-inset);
+  font-size: 12px;
+  color: var(--text-main);
+  outline: none;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.search-box i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* Botón de Limpiar Neumórfico */
+.btn-clear {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--bg);
+  box-shadow: var(--neo-extruded-sm);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-clear:hover {
+  color: var(--primary-red);
+  box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: var(--neo-inset);
+  padding: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+th {
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding: 12px 10px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(186, 190, 204, 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+td {
+  padding: 12px 10px;
+  color: var(--text-main);
+  border-bottom: 1px solid rgba(186, 190, 204, 0.2);
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Botones de acción en tabla */
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: var(--bg);
+  box-shadow: var(--neo-extruded-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all 0.2s;
+  margin: 0 2px;
+}
+
+.action-btn.edit { color: #2b3648; }
+.action-btn.edit:hover { background: #2b3648; color: #fff; }
+
+.action-btn.save { color: #2e7d32; }
+.action-btn.save:hover { background: #2e7d32; color: #fff; }
+
+.action-btn.cancel { color: #d84315; }
+.action-btn.cancel:hover { background: #d84315; color: #fff; }
+
+.action-btn.delete { color: var(--primary-red); }
+.action-btn.delete:hover { background: var(--primary-red); color: #fff; }
+
+.loader-container {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 12px;
+}

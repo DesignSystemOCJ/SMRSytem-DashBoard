@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management | SMRC System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="Menus.css">
+  <link rel="stylesheet" href="User.css">
+
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="users-wrapper">
+    
+    <div class="users-container" id="cardRegister">
+      <div class="accordion-header" id="headerRegister">
+        <div class="accordion-header-left">
+          <div class="users-icon-box">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <div>
+            <h2>Create a New Account</h2>
+            <p>User Registration</p>
+          </div>
+        </div>
+        <div class="accordion-chevron">
+          <i class="fa-solid fa-chevron-down"></i>
+        </div>
+      </div>
+
+      <div class="accordion-body">
+        <div id="alertBox" class="alert-box"></div>
+
+        <form id="createAccountForm">
+          <div class="form-group">
+            <label for="inputUsuario">User</label>
+            <input type="text" id="inputUsuario" required autocomplete="off" placeholder="Ex. jsmith">
+          </div>
+
+          <div class="form-group">
+            <label for="inputPassword">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="inputPassword" required placeholder="••••••••">
+              <i id="toggleUserPassword" class="fa-solid fa-eye" title="Show password"></i>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn" class="login-submit-btn" style="margin-top: 10px;">
+            <i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Create an account
+          </button>
+        </form>
+      </div>
+    </div>
+
+   <div class="table-container" id="cardTable">
+      <div class="accordion-header" id="headerTable">
+        <div class="accordion-header-left">
+          <div class="users-icon-box" style="color: var(--text-secondary);">
+            <i class="fa-solid fa-users-rectangle"></i>
+          </div>
+          <div>
+            <h2>Registered Accounts</h2>
+            <p>Database Management</p>
+          </div>
+        </div>
+        <div class="accordion-chevron">
+          <i class="fa-solid fa-chevron-down"></i>
+        </div>
+      </div>
+
+      <div class="accordion-body">
+        <div style="overflow-x: auto;">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Password</th>
+                <th style="text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="accountsTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading records...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="adminAuthModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="users-header" style="margin-bottom: 15px;">
+        <div class="users-icon-box" style="width: 38px; height: 38px; font-size: 14px;">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 15px;">Access Security</h2>
+          <p>Authorisation Required</p>
+        </div>
+      </div>
+      <form id="adminAuthForm">
+        <div class="form-group">
+          <label for="inputAdminPass">Authorisation key</label>
+          <input type="password" id="inputAdminPass" required placeholder="Enter the password">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-action" id="cancelAdminBtn" style="flex: 1; padding: 10px; width: auto; height: auto;">Cancel</button>
+          <button type="submit" id="btnVerificarAdmin" class="login-submit-btn" style="flex: 1; margin-top: 0; padding: 10px;">Verify</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="editAccountModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="users-header" style="margin-bottom: 15px;">
+        <div class="users-icon-box" style="width: 38px; height: 38px; font-size: 14px;">
+          <i class="fa-solid fa-user-pen"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 15px;">Modify Account</h2>
+          <p>Update Credentials</p>
+        </div>
+      </div>
+      <form id="editAccountForm">
+        <input type="hidden" id="editId">
+        <div class="form-group">
+          <label for="editUsuario">User</label>
+          <input type="text" id="editUsuario" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="editPassword">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="editPassword" required>
+            <i id="toggleEditPassword" class="fa-solid fa-eye toggle-edit-password" title="Show password"></i>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-action" id="cancelEditBtn" style="flex: 1; padding: 10px; width: auto; height: auto;">Cancel</button>
+          <button type="submit" id="updateBtn" class="login-submit-btn" style="flex: 1; margin-top: 0; padding: 10px;">
+            <i class="fa-solid fa-floppy-disk" style="margin-right: 6px;"></i> Verify
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="User.js"></script>
+</body>
+</html>
