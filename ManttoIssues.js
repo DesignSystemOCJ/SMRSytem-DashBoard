@@ -2,9 +2,6 @@ const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
 const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-/* =========================================================
-GLOBAL STATE & CONSTANTS
-========================================================= */
 let maintenanceData = [];
 let activeCharts = {};
 let selectedMachine = null;
@@ -19,9 +16,47 @@ Chart.defaults.font.family = '"Segoe UI", Inter, Arial, sans-serif';
 Chart.defaults.color = "#64748B";
 Chart.defaults.animation.duration = 800;
 
-/* =========================================================
-SUPABASE PAGINATED FETCH (Optimizado)
-========================================================= */
+function renderDynamicComponents() {
+    // 1. Renderizar Tarjetas KPI
+    const kpiContainer = document.getElementById("kpiGridContainer");
+    if (kpiContainer) {
+        const kpiData = [
+            { id: "totalIssues", icon: "fa-solid fa-triangle-exclamation", type: "danger", label: "TOTAL ISSUES", sub: "Maintenance events", val: "0" },
+            { id: "topCell", icon: "fa-solid fa-industry", type: "blue", label: "TOP CELL", sub: "Highest affected cell", val: "--" },
+            { id: "topIssue", icon: "fa-solid fa-screwdriver-wrench", type: "orange", label: "TOP ISSUE", sub: "Most frequent failure", val: "--" },
+            { id: "topOperation", icon: "fa-solid fa-gears", type: "purple", label: "TOP OPERATION", sub: "Main affected operation", val: "--" }
+        ];
+
+        kpiContainer.innerHTML = kpiData.map(kpi => `
+            <article class="kpi-card">
+                <div class="kpi-icon ${kpi.type}"><i class="${kpi.icon}"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">${kpi.label}</span>
+                    <strong id="${kpi.id}">${kpi.val}</strong>
+                    <small>${kpi.sub}</small>
+                </div>
+            </article>
+        `).join("");
+    }
+
+    const analysisContainer = document.getElementById("analysisGridContainer");
+    if (analysisContainer) {
+        const cards = [
+            { title: "MD", id: "mdChart", icon: "fa-solid fa-gears" },
+            { title: "1er Operation", id: "op1Chart", icon: "fa-solid fa-gears" },
+            { title: "2nd Operation", id: "op2Chart", icon: "fa-solid fa-gears" },
+            { title: "Chiron Operation", id: "chironChart", icon: "fa-solid fa-robot" }
+        ];
+
+        analysisContainer.innerHTML = cards.map(card => `
+            <div class="mini-analysis-card">
+                <div class="mini-card-header"><span>${card.title}</span><i class="${card.icon}"></i></div>
+                <div class="mini-chart"><canvas id="${card.id}"></canvas></div>
+            </div>
+        `).join("");
+    }
+}
+
 async function fetchAllSupabaseData(queryBuilderFn) {
     let allData = [];
     const pageSize = 1000;
@@ -47,9 +82,6 @@ async function fetchAllSupabaseData(queryBuilderFn) {
     }
 }
 
-/* =========================================================
-UI INITIALIZERS & DROPDOWNS
-========================================================= */
 function populateMonthDropdowns() {
     const monthContainer = document.getElementById("monthOptionsContainer");
     if (monthContainer) {
@@ -75,9 +107,6 @@ function populateModalCellFilter() {
     cellSelect.innerHTML = '<option value="">All Cells</option>' + machines.map(m => `<option value="${m}">${m}</option>`).join("");
 }
 
-/* =========================================================
-MODAL CONTROL & RECORDS
-========================================================= */
 function openRecordsModal() {
     document.getElementById("recordsModal")?.style.setProperty("display", "flex");
     const currentMonth = currentSelectedMonth || months[new Date().getMonth()];
@@ -160,9 +189,6 @@ function closeDataModal() {
     document.getElementById("dataIframe").src = "";
 }
 
-/* =========================================================
-EVENTS & MONTH SELECTION
-========================================================= */
 function toggleMonthDropdown(event) { event?.stopPropagation(); }
 
 window.addEventListener("click", function(event) {
@@ -201,9 +227,6 @@ async function loadMaintenance() {
     updateDashboard();
 }
 
-/* =========================================================
-DASHBOARD & KPIS
-========================================================= */
 function updateDashboard() {
     calculateKPIs();
     createOperationChart();
@@ -216,7 +239,8 @@ function updateDashboard() {
 }
 
 function calculateKPIs() {
-    document.getElementById("totalIssues").innerText = maintenanceData.length.toLocaleString();
+    const totalIssuesElem = document.getElementById("totalIssues");
+    if (totalIssuesElem) totalIssuesElem.innerText = maintenanceData.length.toLocaleString();
 
     const cells = {}, issues = {};
     const opCount = Object.fromEntries(operations.map(op => [op, 0]));
@@ -238,15 +262,14 @@ function calculateKPIs() {
     }
 
     const topOperation = Object.entries(opCount).sort((a,b) => b[1] - a[1])[0];
-    document.getElementById("topOperation").innerText = topOperation && topOperation[1] > 0 ? topOperation[0] : "--";
+    const topOpElem = document.getElementById("topOperation");
+    if (topOpElem) topOpElem.innerText = topOperation && topOperation[1] > 0 ? topOperation[0] : "--";
 
     const topIssue = Object.entries(issues).sort((a,b) => b[1] - a[1])[0];
-    document.getElementById("topIssue").innerText = topIssue ? topIssue[0] : "--";
+    const topIssueElem = document.getElementById("topIssue");
+    if (topIssueElem) topIssueElem.innerText = topIssue ? topIssue[0] : "--";
 }
 
-/* =========================================================
-CHARTS CONFIGURATION
-========================================================= */
 function renderChart(canvasId, config) {
     if (activeCharts[canvasId]) activeCharts[canvasId].destroy();
     const canvas = document.getElementById(canvasId);
@@ -430,9 +453,6 @@ function createMachineChart() {
     });
 }
 
-/* =========================================================
-TOP 10 & CELL ANALYSIS
-========================================================= */
 function createTop10Table() {
     const count = {};
     let totalValidIssues = 0;
@@ -480,9 +500,6 @@ function updateCellAnalysis() {
     });
 }
 
-/* =========================================================
-SESSION & AUTH
-========================================================= */
 let sessionActiveUser = null;
 
 function toggleUserDropdown(event) {
@@ -551,10 +568,8 @@ function handleSignOut() {
     document.getElementById("userDropdown")?.style.setProperty("display", "none");
 }
 
-/* =========================================================
-INITIALIZATION & SECURITY
-========================================================= */
 window.addEventListener("load", function() {
+    renderDynamicComponents(); // <--- Inyecta dinámicamente los elementos HTML modularizados
     populateMonthDropdowns();
     if (!currentSelectedMonth) {
         currentSelectedMonth = months[new Date().getMonth()] || "August";
