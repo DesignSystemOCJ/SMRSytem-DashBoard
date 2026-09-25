@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Balance & Uniformity Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="buu.css">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .bottom-navbar {
+            margin-top: 0 !important;
+            top: 0 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <nav class="bottom-navbar" style="justify-content: space-between;">
+        <div class="brand-section">
+            <div class="brand-icon-subtle">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <div class="brand-title-main">Balance & Uniformity Dashboard</div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="nav-links">
+                <div class="period-selector-nav nav-item active" id="filterBox">
+                    <i class="fa-regular fa-calendar-days" style="margin-right: 6px;"></i>
+                    <span id="selectedMonthText">Loading...</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>
+
+                    <div class="custom-dropdown" id="monthDropdown">
+                        <div class="dropdown-title">Select Maintenance Period</div>
+                        <div id="monthOptionsContainer"></div>
+                    </div>
+                </div>
+
+                <a href="#" class="nav-item" id="recordsMenuLink">
+                    <i class="fa-solid fa-table" style="margin-right: 6px;"></i>Records
+                </a>
+
+                <div class="nav-item has-submenu">
+                    <a href="#" id="optionDropdownToggle" style="text-decoration: none;">
+                        <i class="fa-solid fa-sliders" style="margin-right: 6px;"></i>Option <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 3px;"></i>
+                    </a>
+                    <div class="nav-dropdown">
+                        <div class="dropdown-submenu-container">
+                            <div class="custom-option has-nested">
+                                <span><i class="fa-solid fa-share-nodes" style="margin-right: 8px; color: #64748B;"></i>Share</span>
+                                <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+                            </div>
+                            <div class="nested-dropdown">
+                                <div class="custom-option" id="shareExcelOpt">
+                                    <i class="fa-solid fa-file-excel" style="margin-right: 8px; color: #107C41;"></i>Share to xls
+                                </div>
+                                <div class="custom-option" id="sharePdfOpt">
+                                    <i class="fa-solid fa-file-pdf" style="margin-right: 8px; color: #E53E3E;"></i>Share to pdf
+                                </div>
+                            </div>
+                        </div>
+                        <div class="custom-option" id="dataMenuOption" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
+                            <i class="fa-solid fa-database" style="margin-right: 8px; color: #2563EB;"></i>Data
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="topbar-right-icons" style="border-left: 1px solid rgba(148,163,184,0.2); padding-left: 14px;">
+                <button class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                
+                <div class="user-menu-container">
+                    <div class="user-avatar-container red-avatar" id="userAvatarContainerBtn" title="User Profile">
+                        <span id="userAvatarText">RC</span>
+                    </div>
+
+                    <div class="custom-dropdown" id="userDropdown" style="display: none;">
+                        <div class="ms-dropdown-header">
+                            <span id="companyNameText">SMRC System</span>
+                        </div>
+                        <div class="ms-dropdown-body">
+                            <div class="ms-user-avatar-large">
+                                <span id="userAvatarLargeText">LA</span>
+                            </div>
+                            <div class="ms-user-info">
+                                <strong id="userFullNameText">No Log In</strong>
+                                <span id="userEmailText" style="font-size: 11px; color: #64748B;">Sign in to continue</span>
+                            </div>
+                        </div>
+                        <div class="ms-dropdown-footer">
+                            <div class="ms-footer-option" id="loginMenuBtn" style="display: none;">
+                                <div class="ms-footer-icon"><i class="fa-regular fa-user"></i></div>
+                            </div>
+                            <div class="ms-footer-option" id="logoutMenuBtn" style="display: flex; color: #EF4444; cursor: default;">
+                                <span>Rough Cut</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        
+        <!-- Tarjetas KPI -->
+        <section class="kpi-grid" id="kpiGridContainer"></section>
+
+        <!-- Barra Pro de Botones para Weeks -->
+        <div class="week-filter-bar-container">
+            <div class="week-filter-header">
+                <i class="fa-solid fa-calendar-week"></i>
+                <span>WEEK FILTER:</span>
+            </div>
+            <div class="week-buttons-scroll" id="weekButtonsContainer"></div>
+        </div>
+
+        <section class="analytics-grid">
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">TOTAL ISSUES</span>
+                        <h2><i class="fa-solid fa-chart-column"></i> Issues per Model</h2>
+                    </div>
+                    <div class="panel-badge"><i class="fa-solid fa-chart-column"></i> Balance Data</div>
+                </div>
+                <div class="chart-container"><canvas id="operationChart"></canvas></div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">PRODUCTION CELLS</span>
+                        <h2><i class="fa-regular fa-calendar-days"></i> Issues by Cell</h2>
+                    </div>
+                    <div class="panel-badge"><i class="fa-solid fa-globe"></i>Balance Data</div>
+                </div>
+                <div class="chart-container"><canvas id="monthlyIssuesChart"></canvas></div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">TOTAL ISSUES</span>
+                        <h2><i class="fa-solid fa-industry"></i>Issues by Cell</h2>
+                    </div>
+                    <div class="panel-badge">Uniformity Data</div>
+                </div>
+                <div class="chart-container"><canvas id="cellChart"></canvas></div>
+            </article>
+
+            <article class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">PRODUCTION CELLS</span>
+                        <h2><i class="fa-solid fa-triangle-exclamation"></i> Issues by Cell</h2>
+                    </div>
+                    <div class="panel-badge">Uniformity Data</div>
+                </div>
+                <div class="chart-container"><canvas id="issueChart"></canvas></div>
+            </article>
+        </section>
+
+        <section class="dashboard-panel machine-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-kicker">MONTHLY OVERVIEW</span>
+                    <h2 id="machineChartTitle"><i class="fa-solid fa-robot"></i>Daily Percent Performance</h2>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="period-selector-nav" id="perfDropdownContainer" style="background-color: #2563EB; color: white; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(37,99,235,0.2);">
+                        <span id="togglePerfBtnText">Rendimiento Diario: Balance y Uniformidad</span>
+                        <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 6px;"></i>
+                        <div class="custom-dropdown" id="perfDropdown" style="right: 0; min-width: 250px;">
+                            <div class="dropdown-title">Select Performance View</div>
+                            <div class="custom-option perf-mode-opt" data-mode="daily_perf">Daily Percent Performance</div>
+                            <div class="custom-option perf-mode-opt" data-mode="balance_uniformity">Rendimiento Diario: Balance y Uniformidad</div>
+                            <div class="custom-option perf-mode-opt" data-mode="monthly_overview">Monthly Performance Overview</div>
+                        </div>
+                    </div>
+                    <div class="panel-badge live"><span></span> Live Analysis</div>
+                </div>
+            </div>
+            <div class="machine-chart-container"><canvas id="machineChart"></canvas></div>
+        </section>
+
+    </main>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal">
+    <div class="login-modal-container">
+        <div class="login-modal-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="login-icon-box"><i class="fa-solid fa-fingerprint"></i></div>
+                <div>
+                    <h2>Log In</h2>
+                    <p>Enter your administrator credentials</p>
+                </div>
+            </div>
+            <button class="login-close-btn" id="loginCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <form id="loginForm" class="login-form">
+            <div class="login-input-group">
+                <label for="loginUser">User</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <input type="text" id="loginUser" required placeholder="E.g. Admin-Admin" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="login-input-group">
+                <label for="loginPassword">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" class="login-submit-btn">
+                <span>verify access</span>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- RECORDS MODAL -->
+<div class="modal-overlay" id="recordsModal">
+    <div class="records-modal" style="width: 96%; max-width: 1600px;">
+        <div class="modal-topbar">
+            <div class="modal-title">
+                <div class="modal-title-icon"><i class="fa-solid fa-table-list"></i></div>
+                <div>
+                    <span>B&U DATABASE</span>
+                    <h2>Balance & Uniformity Records</h2>
+                </div>
+            </div>
+            <button class="modal-close" id="recordsModalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-filters" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div class="filter-control">
+                    <label><i class="fa-regular fa-calendar"></i> Month</label>
+                    <select id="modalMonthFilter"></select>
+                </div>
+                <div class="filter-control">
+                    <label><i class="fa-solid fa-industry"></i> Cell</label>
+                    <select id="modalCellFilter">
+                        <option value="">All Cells</option>
+                    </select>
+                </div>
+                <button class="clear-filter" id="clearCellFilterBtn">
+                    <i class="fa-solid fa-filter-circle-xmark"></i> Clear Filters
+                </button>
+            </div>
+
+            <!-- EXPORT BUTTONS -->
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="exportTableExcelBtn" style="background-color: #2563EB; color: white; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(37,99,235,0.2);">
+                    <i class="fa-solid fa-file-excel"></i> Export XLS
+                </button>
+                <button id="openExportRangeBtn" style="background-color: #7C3AED; color: white; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(124,58,237,0.2);">
+                    <i class="fa-solid fa-calendar-days"></i> Export Data
+                </button>
+                <span id="recordsCount" style="font-weight: 700; color: #475569; font-size: 13px; margin-left: 5px;">Loading records...</span>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-table-container">
+                <table id="modalTable">
+                    <thead><tr id="modalTableHeaders" style="background: #2563EB; color: white;"></tr></thead>
+                    <tbody id="modalTableBody">
+                        <tr><td colspan="100" class="loading-table"><div class="table-loader"></div>Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADVANCED EXPORT RANGE MODAL -->
+<div id="exportRangeModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 3000;">
+    <div class="modal-content" style="background: white; padding: 25px; border-radius: 12px; width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-top: 0; color: #1E293B; font-size: 18px; margin-bottom: 15px;"><i class="fa-solid fa-file-export" style="color: #7C3AED;"></i> Advanced Data Export</h3>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; color: #64748B; margin-bottom: 5px;">Select criteria:</label>
+            <select id="exportFilterType" style="width: 100%; padding: 9px; border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 500;">
+                <option value="range">Date Range (From - To)</option>
+                <option value="day">Specific Day</option>
+                <option value="month">Specific Month</option>
+            </select>
+        </div>
+
+        <!-- Range Option -->
+        <div id="filterRangeContainer" style="margin-bottom: 15px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 11px; font-weight: 600; color: #64748B;">Start Date:</label>
+                <input type="date" id="exportDateStart" style="width: 100%; padding: 7px; border: 1px solid #CBD5E1; border-radius: 6px; margin-top: 3px;">
+            </div>
+            <div>
+                <label style="font-size: 11px; font-weight: 600; color: #64748B;">End Date:</label>
+                <input type="date" id="exportDateEnd" style="width: 100%; padding: 7px; border: 1px solid #CBD5E1; border-radius: 6px; margin-top: 3px;">
+            </div>
+        </div>
+
+        <!-- Day Option -->
+        <div id="filterDayContainer" style="margin-bottom: 15px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; display: none;">
+            <label style="font-size: 11px; font-weight: 600; color: #64748B;">Select Day:</label>
+            <input type="date" id="exportSingleDay" style="width: 100%; padding: 7px; border: 1px solid #CBD5E1; border-radius: 6px; margin-top: 3px;">
+        </div>
+
+        <!-- Month Option -->
+        <div id="filterMonthContainer" style="margin-bottom: 15px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; display: none;">
+            <label style="font-size: 11px; font-weight: 600; color: #64748B;">Select Month:</label>
+            <select id="exportMonthSelect" style="width: 100%; padding: 8px; border: 1px solid #CBD5E1; border-radius: 6px; margin-top: 3px;">
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button id="exportRangeCancelBtn" style="padding: 9px 15px; background: #E2E8F0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: #334155;">Cancel</button>
+            <button id="exportRangeSubmitBtn" style="padding: 9px 15px; background: #2563EB; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;"><i class="fa-solid fa-download"></i> Download Excel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="dataModal">
+    <div class="records-modal" style="width: min(1000px, 90vw); height: min(1200px, 85vh);">
+        <div class="modal-topbar">
+            <div class="modal-title">
+                <div class="modal-title-icon"><i class="fa-solid fa-database"></i></div>
+                <div>
+                    <span>DATA MANAGEMENT</span>
+                    <h2>Upload Data</h2>
+                </div>
+            </div>
+            <button class="modal-close" id="dataModalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="padding: 0; background: #fff;">
+            <iframe id="dataIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="bu.js"></script>
+</body>
+</html>
