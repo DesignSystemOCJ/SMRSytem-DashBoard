@@ -1,0 +1,1128 @@
+const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
+const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+/* =========================================================
+GLOBAL STATE
+========================================================= */
+
+let maintenanceData = [];
+let globalProjectsData = [];
+let activeCharts = {};
+let selectedMachine = null;
+let modalRawData = [];
+let sessionActiveUser = null;
+
+/* =========================================================
+HELPER: FORMAT DATE (YYYY-MM-DD to DD-Mon-YY)
+========================================================= */
+
+function formatDateToCustom(dateString) {
+    if (!dateString) return '--';
+    const parts = dateString.split('T')[0].split('-');
+    if (parts.length !== 3) return dateString;
+    
+    const [year, month, day] = parts;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthIndex = parseInt(month, 10) - 1;
+    
+    if (monthIndex < 0 || monthIndex > 11) return dateString;
+    
+    const monthName = months[monthIndex];
+    const shortYear = year.slice(-2);
+    
+    return `${day}-${monthName}-${shortYear}`;
+}
+
+/* =========================================================
+HELPER: SUPABASE PAGINATED FETCH
+========================================================= */
+
+async function fetchAllSupabaseData(queryBuilderFn) {
+    let allData = [];
+    const pageSize = 1000;
+    let from = 0;
+    let moreData = true;
+
+    try {
+        while (moreData) {
+            let query = queryBuilderFn(supabaseClient.from("Projects")).range(from, from + pageSize - 1);
+            const { data, error } = await query;
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                allData = allData.concat(data);
+                from += pageSize;
+            } else {
+                moreData = false;
+            }
+        }
+        return { data: allData, error: null };
+    } catch (error) {
+        console.error("Supabase fetch error:", error);
+        return { data: null, error };
+    }
+}
+
+/* =========================================================
+DYNAMIC HTML INJECTION TO JS (Options Submenu)
+========================================================= */
+
+function renderDynamicDropdown() {
+    const dropdownContainer = document.getElementById("dynamicNavDropdown");
+    if (!dropdownContainer) return;
+
+    dropdownContainer.innerHTML = `
+        <div class="dropdown-submenu-container">
+            <div class="custom-option has-nested">
+                <span><i class="fa-solid fa-share-nodes" style="margin-right: 8px; color: #64748B;"></i>Share</span>
+                <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+            </div>
+            <div class="nested-dropdown">
+                <div class="custom-option" onclick="alert('Exporting to XLS...')">
+                    <i class="fa-solid fa-file-excel" style="margin-right: 8px; color: #107C41;"></i>Share to xls
+                </div>
+                <div class="custom-option" onclick="alert('Exporting to PDF...')">
+                    <i class="fa-solid fa-file-pdf" style="margin-right: 8px; color: #E53E3E;"></i>Share to pdf
+                </div>
+            </div>
+        </div>
+        <div class="custom-option" onclick="openPresentationModal()">
+            <i class="fa-solid fa-file-powerpoint" style="margin-right: 8px; color: #D97706;"></i>Presentation
+        </div>
+        <div class="custom-option" onclick="openGanttModal()">
+            <i class="fa-solid fa-chart-gantt" style="margin-right: 8px; color: #7C3AED;"></i>Gantt Chart
+        </div>
+        <div class="custom-option" id="dataMenuOption" onclick="handleDataClick()" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
+            <i class="fa-solid fa-database" style="margin-right: 8px; color: #2563EB;"></i>Data
+        </div>
+    `;
+}
+
+/* =========================================================
+PRESENTATION STORAGE MODAL & FILES LISTING
+========================================================= */
+
+async function openPresentationModal() {
+    const modal = document.getElementById("presentationModal");
+    if (modal) modal.style.display = "flex";
+    await loadPresentationFiles();
+}
+
+function closePresentationModal() {
+    const modal = document.getElementById("presentationModal");
+    if (modal) modal.style.display = "none";
+}
+
+async function loadPresentationFiles() {
+    const container = document.getElementById("presentationFilesContainer");
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #64748B;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+            <p>Loading files from Supabase Storage...</p>
+        </div>
+    `;
+
+    try {
+        const { data, error } = await supabaseClient.storage.from('Presentation').list('', {
+            limit: 100,
+            offset: 0,
+            sortBy: { column: 'name', order: 'asc' }
+        });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #94A3B8;">
+                    <i class="fa-solid fa-folder-open" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
+                    No files found in the Presentation storage.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+                ${data.map(file => {
+                    const { data: publicUrlData } = supabaseClient.storage.from('Presentation').getPublicUrl(file.name);
+                    const fileUrl = publicUrlData ? publicUrlData.publicUrl : '#';
+                    
+                    return `
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                                <i class="fa-solid fa-file-lines" style="font-size: 20px; color: var(--primary); flex-shrink: 0;"></i>
+                                <span style="font-size: 13px; font-weight: 700; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${file.name}">${file.name}</span>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="${fileUrl}" target="_blank" style="flex: 1; text-align: center; padding: 8px; background: #EFF6FF; color: var(--primary); border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                                <a href="${fileUrl}" download style="flex: 1; text-align: center; padding: 8px; background: #F1F5F9; color: #475569; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                                    <i class="fa-solid fa-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+        `;
+
+    } catch (err) {
+        console.error("Error loading presentation files:", err);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #EF4444;">
+                <i class="fa-solid fa-circle-exclamation" style="font-size: 24px; margin-bottom: 10px;"></i>
+                <p>Error loading files from storage. Make sure the bucket 'Presentation' is public.</p>
+            </div>
+        `;
+    }
+}
+
+/* =========================================================
+GANTT CHART MODAL & PREMIUM UI RENDERING
+========================================================= */
+
+function openGanttModal() {
+    const modal = document.getElementById("ganttModal");
+    if (modal) modal.style.display = "flex";
+    renderGanttChartUI();
+}
+
+function closeGanttModal() {
+    const modal = document.getElementById("ganttModal");
+    if (modal) modal.style.display = "none";
+}
+
+function renderGanttChartUI() {
+    const container = document.getElementById("ganttChartContainer");
+    if (!container) return;
+
+    const filteredGanttData = globalProjectsData.filter(project => {
+        const status = project.Status ? String(project.Status).toLowerCase().trim() : "";
+        const approved = project.Approved ? String(project.Approved).toLowerCase().trim() : "";
+        
+        const isInProcess = status.includes("in process");
+        const isApprovedYes = (approved === "yes" || approved === "true");
+
+        return isInProcess && isApprovedYes;
+    });
+
+    if (filteredGanttData.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px; color: #94A3B8; background: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0;">
+                <i class="fa-solid fa-chart-gantt" style="font-size: 40px; display: block; margin-bottom: 14px; color: #CBD5E1;"></i>
+                <h3 style="margin: 0 0 6px 0; color: #334155; font-size: 16px;">No projects found</h3>
+                <p style="margin: 0; font-size: 13px;">No active records match the criteria (Status: "In Process" & Approved: "Yes").</p>
+            </div>
+        `;
+        return;
+    }
+
+    let allTimestamps = [];
+    filteredGanttData.forEach(p => {
+        if (p.DateStart) allTimestamps.push(new Date(p.DateStart).getTime());
+        if (p.DateEnd) allTimestamps.push(new Date(p.DateEnd).getTime());
+    });
+
+    let minTime = Math.min(...allTimestamps);
+    let maxTime = Math.max(...allTimestamps);
+    if (!isFinite(minTime) || !isFinite(maxTime)) {
+        const now = new Date().getTime();
+        minTime = now;
+        maxTime = now + 30 * 24 * 60 * 60 * 1000;
+    }
+
+    const minDate = new Date(minTime);
+    const maxDate = new Date(maxTime);
+    
+    // Generar estructura de meses y semanas para la cabecera del cronograma
+    const timelineStart = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    const timelineEnd = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0);
+    const totalDays = Math.max(1, Math.ceil((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24)));
+
+    // Calcular la posición porcentual de la fecha actual
+    const todayPct = Math.max(0, Math.min(100, ((new Date() - timelineStart) / (timelineEnd - timelineStart)) * 100));
+
+    // Agrupar meses
+    let monthsHeader = [];
+    let curMonth = new Date(timelineStart);
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    while (curMonth <= timelineEnd) {
+        const year = curMonth.getFullYear();
+        const monthIndex = curMonth.getMonth();
+        const nextMonth = new Date(year, monthIndex + 1, 1);
+        const daysInMonth = Math.min(
+            Math.ceil((nextMonth - curMonth) / (1000 * 60 * 60 * 24)),
+            Math.ceil((timelineEnd - curMonth) / (1000 * 60 * 60 * 24))
+        );
+        const widthPct = (daysInMonth / totalDays) * 100;
+
+        monthsHeader.push({
+            label: `${monthNames[monthIndex]} ${year}`,
+            widthPct: widthPct
+        });
+
+        curMonth = nextMonth;
+    }
+
+    // Encabezado de semanas (1, 2, 3, 4 por mes)
+    let weeksHeader = [];
+    let curWeek = new Date(timelineStart);
+    while (curWeek <= timelineEnd) {
+        const nextWeek = new Date(curWeek.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const daysInWeek = Math.min(
+            7,
+            Math.ceil((timelineEnd - curWeek) / (1000 * 60 * 60 * 24))
+        );
+        const widthPct = (daysInWeek / totalDays) * 100;
+        
+        // Determinar número de semana relativa al mes
+        const weekNum = Math.ceil(curWeek.getDate() / 7);
+
+        weeksHeader.push({
+            label: `${weekNum}`,
+            widthPct: widthPct
+        });
+
+        curWeek = nextWeek;
+    }
+
+    container.innerHTML = `
+        <div class="gantt-wrapper">
+            <div class="gantt-table-column">
+                <div class="gantt-header-row table-header">
+                    <div class="col-folio">Folio</div>
+                    <div class="col-name">Project Name</div>
+                    <div class="col-lead">Manager</div>
+                    <div class="col-dates">Start / End</div>
+                    <div class="col-progress">% Progress</div>
+                </div>
+                ${filteredGanttData.map(proj => {
+                    const id = proj.id !== undefined ? proj.id : '--';
+                    const folio = proj.Folio || `#${id}`;
+                    const projectName = proj.ProjectName || 'Unnamed Project';
+                    const lead = proj.Lead || proj.Manager || '--';
+                    const dateStart = proj.DateStart ? proj.DateStart.split('T')[0] : '';
+                    const dateEnd = proj.DateEnd ? proj.DateEnd.split('T')[0] : '';
+                    const progress = parseFloat(proj.Progress) || 0;
+
+                    return `
+                        <div class="gantt-data-row">
+                            <div class="col-folio" title="${folio}">${folio}</div>
+                            <div class="col-name" title="${projectName}">${projectName}</div>
+                            <div class="col-lead" title="${lead}">${lead}</div>
+                            <div class="col-dates">${formatDateToCustom(dateStart)} <br>${formatDateToCustom(dateEnd)}</div>
+                            <div class="col-progress">
+                                <div class="gantt-progress-bar-bg">
+                                    <div class="gantt-progress-bar-fill" style="width: ${progress}%;">
+                                        <span>${progress}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+
+            <div class="gantt-timeline-column" style="position: relative;">
+                <!-- Línea vertical indicadora del día actual -->
+                <div style="position: absolute; top: 0; bottom: 0; left: ${todayPct}%; width: 2px; background-color: #EF4444; z-index: 10; pointer-events: none;" title="Día Actual">
+                    <span style="position: absolute; top: 2px; left: 50%; transform: translateX(-50%); background: #EF4444; color: #ffffff; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">HOY</span>
+                </div>
+
+                <div class="gantt-timeline-header">
+                    <div class="gantt-months-row">
+                        ${monthsHeader.map(m => `<div class="gantt-month-cell" style="width: ${m.widthPct}\%;">${m.label}</div>`).join("")}
+                    </div>
+                    <div class="gantt-weeks-row">
+                        ${weeksHeader.map(w => `<div class="gantt-week-cell" style="width: ${w.widthPct}\%;">${w.label}</div>`).join("")}
+                    </div>
+                </div>
+                <div class="gantt-timeline-body">
+                    ${filteredGanttData.map(proj => {
+                        const dateStart = proj.DateStart ? new Date(proj.DateStart) : null;
+                        const dateEnd = proj.DateEnd ? new Date(proj.DateEnd) : null;
+                        
+                        let leftPct = 0;
+                        let widthPct = 0;
+
+                        if (dateStart && dateEnd && !isNaN(dateStart.getTime()) && !isNaN(dateEnd.getTime())) {
+                            const startOffset = Math.max(0, dateStart - timelineStart);
+                            const duration = Math.max(86400000, dateEnd - dateStart);
+
+                            leftPct = (startOffset / (timelineEnd - timelineStart)) * 100;
+                            widthPct = (duration / (timelineEnd - timelineStart)) * 100;
+                        }
+
+                        return `
+                            <div class="gantt-timeline-row">
+                                <div class="gantt-bar-container">
+                                    <div class="gantt-bar-item" style="left: ${leftPct}\%; width:${Math.max(2, widthPct)}%;" title="${proj.ProjectName}:${proj.Progress}%">
+                                        <div class="gantt-bar-fill" style="width: ${proj.Progress || 0}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join("")}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/* =========================================================
+CELL FILTER
+========================================================= */
+
+function populateModalCellFilter() {
+    const cellSelect = document.getElementById("modalCellFilter");
+    if (!cellSelect) return;
+
+    const uniqueDepartments = [...new Set(modalRawData.map(item => item.Department).filter(Boolean))];
+    
+    cellSelect.innerHTML = '<option value="">All Cells / Departments</option>' + 
+        uniqueDepartments.map(dep => `<option value="${dep}">${dep}</option>`).join("");
+}
+
+/* =========================================================
+RECORD MODAL
+========================================================= */
+
+function openRecordsModal() {
+    const modal = document.getElementById("recordsModal");
+    if (modal) modal.style.display = "flex";
+    loadModalRecords();
+}
+
+function closeRecordsModal() {
+    const modal = document.getElementById("recordsModal");
+    if (modal) modal.style.display = "none";
+}
+
+function clearCellFilter() {
+    const cellFilter = document.getElementById("modalCellFilter");
+    if (cellFilter) cellFilter.value = "";
+    filterModalTable();
+}
+
+/* =========================================================
+LOAD RECORDS
+========================================================= */
+
+async function loadModalRecords() {
+    const tbody = document.getElementById("modalTableBody");
+    const thead = document.getElementById("modalTableHeaders");
+    const counter = document.getElementById("recordsCount");
+
+    if (!tbody || !thead) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="100" class="loading-table" style="text-align:center; padding:40px;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Loading records...
+            </td>
+        </tr>
+    `;
+    if (counter) counter.textContent = "Loading records...";
+
+    const { data: allData, error } = await fetchAllSupabaseData(query => query.select("*"));
+
+    if (error) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="100" style="text-align:center; padding:40px; color:#EF4444;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Error loading data from Supabase.
+                </td>
+            </tr>
+        `;
+        if (counter) counter.textContent = "Unable to load records";
+        return;
+    }
+
+    modalRawData = allData || [];
+    populateModalCellFilter();
+
+    if (modalRawData.length === 0) {
+        thead.innerHTML = "<th>No Data</th>";
+        tbody.innerHTML = `
+            <tr>
+                <td style="text-align:center; padding:40px;" colspan="100">
+                    <i class="fa-solid fa-database" style="font-size:25px; color:#CBD5E1; display:block; margin-bottom:10px;"></i>
+                    No records found.
+                </td>
+            </tr>
+        `;
+        if (counter) counter.textContent = "0 records";
+        return;
+    }
+
+    const availableKeys = Object.keys(modalRawData[0]);
+    thead.innerHTML = availableKeys.map(key => `<th>${key}</th>`).join("");
+    filterModalTable();
+}
+
+/* =========================================================
+FILTER RECORD TABLE
+========================================================= */
+
+function filterModalTable() {
+    const tbody = document.getElementById("modalTableBody");
+    const counter = document.getElementById("recordsCount");
+    const cellFilterVal = document.getElementById("modalCellFilter")?.value || "";
+
+    if (!tbody || modalRawData.length === 0) return;
+
+    const filtered = modalRawData.filter(row => {
+        if (!cellFilterVal) return true;
+        return row.Department === cellFilterVal;
+    });
+
+    if (counter) counter.textContent = `${filtered.length.toLocaleString()} records`;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="100" style="text-align:center; padding:40px;">
+                    No matching records found.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const availableKeys = Object.keys(modalRawData[0]);
+
+    tbody.innerHTML = filtered.map(row => 
+        `<tr>${availableKeys.map(key => `<td>${row[key] !== null && row[key] !== undefined ? row[key] : ""}</td>`).join("")}</tr>`
+    ).join("");
+}
+
+/* =========================================================
+DATA MODAL
+========================================================= */
+
+function handleDataClick() {
+    if (sessionActiveUser) {
+        const modal = document.getElementById("dataModal");
+        const iframe = document.getElementById("dataIframe");
+        if (iframe) iframe.src = "uploaddata.html?select=projects"; 
+        if (modal) modal.style.display = "flex";
+    } else {
+        alert('You must log in to access this option.');
+    }
+}
+
+function closeDataModal() {
+    const modal = document.getElementById("dataModal");
+    const iframe = document.getElementById("dataIframe");
+    if (modal) modal.style.display = "none";
+    if (iframe) iframe.src = ""; 
+}
+
+/* =========================================================
+NEW PROJECT MODAL FORM
+========================================================= */
+
+function openNewProjectFormUI() {
+    const formSection = document.getElementById("newProjectFormContainer");
+    if (formSection) formSection.style.display = "flex"; 
+
+    const form = document.getElementById("createProjectForm");
+    if (form) form.reset();
+}
+
+function closeNewProjectForm() {
+    const formSection = document.getElementById("newProjectFormContainer");
+    if (formSection) formSection.style.display = "none";
+}
+
+async function submitNewProject(event) {
+    event.preventDefault();
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+
+    const { count, error: countError } = await supabaseClient
+        .from("Projects")
+        .select("*", { count: 'exact', head: true });
+
+    const nextIdNumber = (count !== null && !countError ? count + 1 : 1);
+    const consecutive = String(nextIdNumber).padStart(4, '0');
+    const generatedFolio = `PRJ-${year}-${month}-${consecutive}`;
+
+    const currentDate = now.toISOString().split('T')[0];
+
+    const newProjectPayload = {
+        Folio: generatedFolio,
+        DateStart: currentDate,
+        Department: "Rough Cut",
+        ProjectName: document.getElementById("formProjectName").value.trim(),
+        Type: document.getElementById("formType").value,
+        ProblemDescription: document.getElementById("formProblemDescription").value.trim(),
+        Status: "New",
+        Lead: document.getElementById("formLead").value,
+        Manager: "Ernesto Guerrero",
+        Approved: null,
+        Progress: 0,
+        is_active: true
+    };
+
+    const { error } = await supabaseClient
+        .from("Projects")
+        .insert([newProjectPayload]);
+
+    if (error) {
+        alert("Error saving project to Supabase: " + error.message);
+        return;
+    }
+
+    alert(`Project successfully saved with Folio: ${generatedFolio}!`);
+    closeNewProjectForm();
+    loadMaintenance();
+}
+
+/* =========================================================
+WINDOW EVENTS
+========================================================= */
+
+window.addEventListener("click", function(event) {
+    const modal = document.getElementById("recordsModal");
+    const loginModal = document.getElementById("loginModal");
+    const dataModal = document.getElementById("dataModal");
+    const presentationModal = document.getElementById("presentationModal");
+    const ganttModal = document.getElementById("ganttModal");
+    const userDropdown = document.getElementById("userDropdown");
+    const avatarContainer = document.querySelector(".user-menu-container");
+
+    if (event.target === modal) closeRecordsModal();
+    if (event.target === loginModal) closeLoginModal();
+    if (event.target === dataModal) closeDataModal();
+    if (event.target === presentationModal) closePresentationModal();
+    if (event.target === ganttModal) closeGanttModal();
+
+    if (userDropdown && avatarContainer && !avatarContainer.contains(event.target)) {
+        userDropdown.style.display = "none";
+    }
+});
+
+/* =========================================================
+LOAD MAINTENANCE DATA (PROJECTS)
+========================================================= */
+
+async function loadMaintenance() {
+    const { data: allData, error } = await fetchAllSupabaseData(query => 
+        query.select("*").order('Folio', { ascending: true })
+    );
+
+    if (error) {
+        alert("Error loading Supabase data.");
+        return;
+    }
+
+    maintenanceData = allData || [];
+    globalProjectsData = allData || [];
+
+    renderProjectsTable(globalProjectsData);
+    calculateKPIs();
+}
+
+/* =========================================================
+HELPER: GET CSS CLASS BY STATUS
+========================================================= */
+function getStatusClass(status) {
+    if (!status) return "";
+    const cleanStatus = status.toLowerCase().trim();
+
+    if (cleanStatus === "new") return "status-new";
+    if (cleanStatus === "under review") return "status-under-review";
+    if (cleanStatus === "in process") return "status-in-process";
+    if (cleanStatus === "on hold") return "status-on-hold";
+    if (cleanStatus === "completed") return "status-completed";
+    if (cleanStatus === "closed") return "status-closed";
+    if (cleanStatus === "canceled" || cleanStatus === "cancelled") return "status-canceled";
+
+    return "";
+}
+
+/* =========================================================
+RENDER PROJECTS TABLE
+========================================================= */
+
+function renderProjectsTable(data) {
+    const tbody = document.getElementById("projectsTableBody");
+    if (!tbody) return;
+
+    const allowedStatuses = ["new", "in process"];
+
+    const filteredData = data.filter(project => {
+        const status = project.Status ? String(project.Status).toLowerCase().trim() : "";
+        return allowedStatuses.some(allowed => status.includes(allowed));
+    });
+
+    if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:40px; color: #94A3B8;">No projects found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filteredData.map(project => {
+        const progressNum = parseFloat(project.Progress) || 0;
+        const statusText = project.Status || '--';
+        const statusClass = getStatusClass(statusText);
+        
+        const hue = Math.round((progressNum / 100) * 120);
+        const progressColor = `hsl(${hue}, 85%, 45%)`;
+        
+        const approvedRaw = project.Approved ? String(project.Approved).trim().toLowerCase() : "";
+        let stateClass = "state-pending";
+        
+        const isDecided = approvedRaw === "yes" || approvedRaw === "true" || approvedRaw === "no" || approvedRaw === "false";
+
+        if (approvedRaw === "yes" || approvedRaw === "true") {
+            stateClass = "state-yes";
+        } else if (approvedRaw === "no" || approvedRaw === "false") {
+            stateClass = "state-no";
+        }
+        
+        const showYNStyles = stateClass === 'state-pending' ? 'display: block !important; opacity: 1 !important;' : 'display: none !important;';
+
+        const approvalCellContent = `
+            <div class="tri-switch-container ${stateClass} ${isDecided ? 'is-disabled' : ''}" id="tri-switch-${project.id}">
+                <div class="tri-switch-track" style="position: relative;">
+                    <span class="switch-label-y" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 900; color: #475569; pointer-events: none; z-index: 2; ${showYNStyles}">Y</span>
+                    <span class="switch-label-n" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 900; color: #475569; pointer-events: none; z-index: 2; ${showYNStyles}">N</span>
+                    <div class="tri-switch-thumb" style="z-index: 1;">
+                        <i class="fa-solid fa-check icon-yes"></i>
+                        <i class="fa-solid fa-minus icon-pending"></i>
+                        <i class="fa-solid fa-xmark icon-no"></i>
+                    </div>
+                    <button type="button" class="tri-switch-btn btn-yes" title="Approve (Yes)" onclick="setProjectApproval(${project.id}, 'Yes')"></button>
+                    <button type="button" class="tri-switch-btn btn-pending" title="Reset to Pending" onclick="setProjectApproval(${project.id}, 'Pending')"></button>
+                    <button type="button" class="tri-switch-btn btn-no" title="Reject (No)" onclick="setProjectApproval(${project.id}, 'No')"></button>
+                </div>
+            </div>
+        `;
+        
+        return `
+            <tr id="project-row-${project.id}" data-id="${project.id}" ondblclick="openProjectDetail(${project.id})" style="cursor: pointer;" title="Double click to view details">
+                <td style="font-weight: 700; color: #64748B;">#${project.id !== undefined && project.id !== null ? project.id : '--'}</td>
+                <td style="color: var(--primary); font-weight: normal;">${project.Folio || '--'}</td>
+                <td style="color: var(--text); font-weight: normal;">${project.ProjectName || '--'}</td>
+                <td>${project.Type || '--'}</td>
+                <td style="color: #64748B;">${formatDateToCustom(project.DateStart)}</td>
+                <td style="color: #64748B;">${formatDateToCustom(project.DateEnd)}</td>
+                <td class="status-cell">
+                    <span class="panel-badge ${statusClass} status-display">
+                        ${statusText}
+                    </span>
+                    <select class="status-select" style="display: none;" data-original="${statusText}">
+                        <option value="New" ${statusText.toLowerCase() === 'new' ? 'selected' : ''}>New</option>
+                        <option value="Under Review" ${statusText.toLowerCase() === 'under review' ? 'selected' : ''}>Under Review</option>
+                        <option value="In Process" ${statusText.toLowerCase() === 'in process' ? 'selected' : ''}>In Process</option>
+                        <option value="On Hold" ${statusText.toLowerCase() === 'on hold' ? 'selected' : ''}>On Hold</option>
+                        <option value="Completed" ${statusText.toLowerCase() === 'completed' ? 'selected' : ''}>Completed</option>
+                        <option value="Closed" ${statusText.toLowerCase() === 'closed' ? 'selected' : ''}>Closed</option>
+                        <option value="Canceled" ${statusText.toLowerCase() === 'canceled' || statusText.toLowerCase() === 'cancelled' ? 'selected' : ''}>Canceled</option>
+                    </select>
+                </td>
+                <td>${project.Manager || '--'}</td>
+                
+                <td style="text-align: center;" onclick="event.stopPropagation();">
+                    ${approvalCellContent}
+                </td>
+
+                <td>
+                    <div class="progress-wrapper-cell">
+                        <div class="progress-header-info">
+                            <span>Progress</span>
+                            <span style="font-weight: 800; color: var(--text);">${progressNum}%</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-fill" style="width: ${progressNum}%; background-color: ${progressColor};"></div>
+                        </div>
+                    </div>
+                </td>
+                <td onclick="event.stopPropagation();">
+                    <div class="action-buttons">
+                        <button class="action-btn edit-btn" title="Edit Status" onclick="enableProjectEdit(${project.id})">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="action-btn save-btn" title="Save Changes" style="display: none;" onclick="saveProjectStatus(${project.id})">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                        </button>
+                        <button class="action-btn cancel-btn" title="Cancel" style="display: none;" onclick="cancelProjectEdit(${project.id})">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+/* =========================================================
+SWITCH APPROVAL UPDATE LOGIC IN SUPABASE (Tri-State)
+========================================================= */
+
+async function setProjectApproval(projectId, value) {
+    const container = document.getElementById(`tri-switch-${projectId}`);
+    if (!container || container.classList.contains("is-disabled")) return;
+
+    if (value === "Yes" || value === "No") {
+        const confirmMsg = `¿Are you sure you want to approve this project? ${value}?.`;
+        if (!confirm(confirmMsg)) return;
+    }
+
+    container.classList.remove("state-yes", "state-pending", "state-no");
+    
+    const labelY = container.querySelector(".switch-label-y");
+    const labelN = container.querySelector(".switch-label-n");
+
+    if (value === "Yes") {
+        container.classList.add("state-yes", "is-disabled");
+        if (labelY) labelY.style.display = "none";
+        if (labelN) labelN.style.display = "none";
+    } else if (value === "No") {
+        container.classList.add("state-no", "is-disabled");
+        if (labelY) labelY.style.display = "none";
+        if (labelN) labelN.style.display = "none";
+    } else {
+        container.classList.add("state-pending");
+        if (labelY) labelY.style.display = "block";
+        if (labelN) labelN.style.display = "block";
+    }
+
+    try {
+        const dbValue = value === "Pending" ? null : value;
+        let updateData = { Approved: dbValue };
+
+        if (value === "Yes") {
+            updateData.Status = "In Process";
+        } else if (value === "No") {
+            updateData.Status = "Canceled";
+        }
+
+        const { error } = await supabaseClient
+            .from("Projects")
+            .update(updateData)
+            .eq("id", projectId);
+
+        if (error) {
+            alert("Error updating approval in Supabase: " + error.message);
+            loadMaintenance();
+            return;
+        }
+
+        const pIndex = globalProjectsData.findIndex(p => p.id == projectId);
+        if (pIndex !== -1) {
+            globalProjectsData[pIndex].Approved = updateData.Approved;
+            if (updateData.Status) globalProjectsData[pIndex].Status = updateData.Status;
+        }
+
+        const mIndex = maintenanceData.findIndex(p => p.id == projectId);
+        if (mIndex !== -1) {
+            maintenanceData[mIndex].Approved = updateData.Approved;
+            if (updateData.Status) maintenanceData[mIndex].Status = updateData.Status;
+        }
+
+        filterProjects();
+        calculateKPIs();
+
+    } catch (err) {
+        console.error("Unexpected error updating approval switch:", err);
+        alert("An error occurred while updating approval.");
+        loadMaintenance();
+    }
+}
+
+/* =========================================================
+OPEN PROJECT DETAIL
+========================================================= */
+
+function openProjectDetail(id) {
+    window.location.href = `Project_Detail.html?id=${id}`;
+}
+
+/* =========================================================
+STATUS EDIT AND SAVE FUNCTIONS
+========================================================= */
+
+function enableProjectEdit(id) {
+    const row = document.getElementById(`project-row-${id}`);
+    if (!row) return;
+
+    const statusDisplay = row.querySelector('.status-display');
+    const statusSelect = row.querySelector('.status-select');
+    const editBtn = row.querySelector('.edit-btn');
+    const saveBtn = row.querySelector('.save-btn');
+    const cancelBtn = row.querySelector('.cancel-btn');
+
+    if (statusDisplay) statusDisplay.style.display = 'none';
+    if (statusSelect) statusSelect.style.display = 'inline-block';
+    if (editBtn) editBtn.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'inline-flex';
+    if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+}
+
+function cancelProjectEdit(id) {
+    const row = document.getElementById(`project-row-${id}`);
+    if (!row) return;
+
+    const statusDisplay = row.querySelector('.status-display');
+    const statusSelect = row.querySelector('.status-select');
+    const editBtn = row.querySelector('.edit-btn');
+    const saveBtn = row.querySelector('.save-btn');
+    const cancelBtn = row.querySelector('.cancel-btn');
+
+    if (statusSelect) {
+        statusSelect.value = statusSelect.getAttribute('data-original');
+    }
+
+    if (statusDisplay) statusDisplay.style.display = 'inline-block';
+    if (statusSelect) statusSelect.style.display = 'none';
+    if (editBtn) editBtn.style.display = 'inline-flex';
+    if (saveBtn) saveBtn.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+}
+
+async function saveProjectStatus(id) {
+    const row = document.getElementById(`project-row-${id}`);
+    if (!row) return;
+
+    const statusSelect = row.querySelector('.status-select');
+    if (!statusSelect) return;
+
+    const newStatus = statusSelect.value;
+
+    const { error } = await supabaseClient
+        .from("Projects")
+        .update({ Status: newStatus })
+        .eq("id", id);
+
+    if (error) {
+        alert("Error updating status in Supabase: " + error.message);
+        return;
+    }
+
+    const projectIndex = globalProjectsData.findIndex(p => p.id == id);
+    if (projectIndex !== -1) globalProjectsData[projectIndex].Status = newStatus;
+
+    const mainIndex = maintenanceData.findIndex(p => p.id == id);
+    if (mainIndex !== -1) maintenanceData[mainIndex].Status = newStatus;
+
+    alert("Status successfully updated and saved!");
+    
+    filterProjects();
+    calculateKPIs();
+}
+
+/* =========================================================
+SEARCH & FILTERS FOR PROJECTS TABLE
+========================================================= */
+
+function filterProjects() {
+    const searchText = document.getElementById("projectSearchInput").value.toLowerCase();
+    
+    const allowedStatuses = ["new", "in process"];
+
+    const filteredData = globalProjectsData.filter(project => {
+        const status = project.Status ? String(project.Status).toLowerCase().trim() : "";
+        const matchesStatus = allowedStatuses.some(allowed => status.includes(allowed));
+        if (!matchesStatus) return false;
+
+        return Object.values(project).some(val => 
+            String(val).toLowerCase().includes(searchText)
+        );
+    });
+
+    renderProjectsTable(filteredData);
+}
+
+function clearProjectFilter() {
+    document.getElementById("projectSearchInput").value = "";
+    renderProjectsTable(globalProjectsData);
+}
+
+/* =========================================================
+KPI CALCULATIONS
+========================================================= */
+
+function calculateKPIs() {
+    const totalProjects = maintenanceData.filter(row => row.Folio !== null && row.Folio !== undefined && row.Folio !== "").length;
+
+    let openTotal = 0;       
+    let inProcessTotal = 0;
+    let closedTotal = 0;
+    let onHoldTotal = 0;
+    let cancelledTotal = 0;
+
+    maintenanceData.forEach(row => {
+        const status = row.Status ? String(row.Status).toLowerCase().trim() : "";
+
+        if (status.includes("new")) openTotal++;
+        if (status.includes("in process") || status.includes("en proceso")) inProcessTotal++;
+        if (status.includes("closed")) closedTotal++;
+        if (status.includes("hold")) onHoldTotal++;
+        if (status.includes("cancel") || status.includes("cancelado")) cancelledTotal++;
+    });
+
+    const adjustedTotalProjects = totalProjects - openTotal;
+
+    const totalIssuesElem = document.getElementById("totalIssues");
+    if (totalIssuesElem) totalIssuesElem.innerText = adjustedTotalProjects.toLocaleString();
+
+    const topCellElem = document.getElementById("topCell");
+    if (topCellElem) topCellElem.innerText = openTotal.toLocaleString();
+
+    const topIssueElem = document.getElementById("topIssue");
+    if (topIssueElem) topIssueElem.innerText = inProcessTotal.toLocaleString();
+
+    const topOperationElem = document.getElementById("topOperation");
+    if (topOperationElem) topOperationElem.innerText = closedTotal.toLocaleString();
+
+    const onHoldElem = document.getElementById("onHoldCount");
+    if (onHoldElem) onHoldElem.innerText = onHoldTotal.toLocaleString();
+
+    const cancelledElem = document.getElementById("cancelledCount");
+    if (cancelledElem) cancelledElem.innerText = cancelledTotal.toLocaleString();
+
+    const avgCompletionElem = document.getElementById("avgCompletion");
+    if (avgCompletionElem) {
+        if (adjustedTotalProjects > 0) {
+            const completionRatio = (closedTotal + onHoldTotal + cancelledTotal) / adjustedTotalProjects;
+            avgCompletionElem.innerText = (completionRatio * 100).toFixed(2) + "%";
+        } else {
+            avgCompletionElem.innerText = "0.00%";
+        }
+    }
+}
+
+/* =========================================================
+SESSION, AVATAR AND LOGIN MODAL CONTROL
+========================================================= */
+
+function toggleUserDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById("userDropdown");
+    if (dropdown) dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+}
+
+function setProtectedElementsState(isLoggedIn, userName = "") {
+    const dataOption = document.getElementById("dataMenuOption");
+    const loginBtn = document.getElementById("loginMenuBtn");
+    const logoutBtn = document.getElementById("logoutMenuBtn");
+    const statusText = document.getElementById("userStatusText");
+    const avatarText = document.getElementById("userAvatarText");
+
+    if (isLoggedIn) {
+        sessionActiveUser = userName;
+        if (dataOption) {
+            dataOption.style.opacity = "1";
+            dataOption.style.pointerEvents = "auto";
+            dataOption.style.cursor = "pointer";
+        }
+        if (loginBtn) loginBtn.style.display = "none";
+        if (logoutBtn) logoutBtn.style.display = "flex";
+        if (statusText) {
+            statusText.textContent = userName || "Active Session";
+            statusText.style.color = "#10B981";
+        }
+        if (avatarText && userName) avatarText.textContent = userName.substring(0, 2).toUpperCase();
+    } else {
+        sessionActiveUser = null;
+        if (dataOption) {
+            dataOption.style.opacity = "0.5";
+            dataOption.style.pointerEvents = "none";
+            dataOption.style.cursor = "not-allowed";
+        }
+        if (loginBtn) loginBtn.style.display = "flex";
+        if (logoutBtn) logoutBtn.style.display = "none";
+        if (statusText) {
+            statusText.textContent = "NO LOG IN";
+            statusText.style.color = "#EF4444";
+        }
+        if (avatarText) avatarText.textContent = "RC";
+    }
+}
+
+function openLoginPrompt() {
+    const dropdown = document.getElementById("userDropdown");
+    if (dropdown) dropdown.style.display = "none";
+    const loginModal = document.getElementById("loginModal");
+    if (loginModal) loginModal.style.display = "flex";
+}
+
+function closeLoginModal() {
+    const loginModal = document.getElementById("loginModal");
+    if (loginModal) loginModal.style.display = "none";
+}
+
+async function handleFormLogin(event) {
+    event.preventDefault();
+    const userInput = document.getElementById("loginUser").value.trim();
+    const passwordInput = document.getElementById("loginPassword").value.trim();
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("Cuentas")
+            .select("*")
+            .eq("Usurio", userInput)
+            .eq("Password", passwordInput);
+
+        if (error) {
+            alert("Error verifying credentials: " + error.message);
+            return;
+        }
+
+        if (data && data.length > 0) {
+            closeLoginModal();
+            setProtectedElementsState(true, userInput);
+            document.getElementById("loginUser").value = "";
+            document.getElementById("loginPassword").value = "";
+        } else {
+            alert("Incorrect user or password.");
+        }
+    } catch (err) {
+        console.error("Unexpected error:", err);
+        alert("An error occurred while attempting to log in.");
+    }
+}
+
+function handleSignOut() {
+    setProtectedElementsState(false);
+    const dropdown = document.getElementById("userDropdown");
+    if (dropdown) dropdown.style.display = "none";
+}
+
+/* =========================================================
+INITIALIZATION
+========================================================= */
+
+window.addEventListener("load", function() {
+    renderDynamicDropdown();
+    loadMaintenance();
+    setProtectedElementsState(false);
+});
+
+// ================================
+// PAGE PROTECTION
+// ================================
+
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+document.addEventListener("selectstart", (e) => e.preventDefault());
+document.addEventListener("copy", (e) => e.preventDefault());
+document.addEventListener("cut", (e) => e.preventDefault());
+document.addEventListener("dragstart", (e) => e.preventDefault());
+
+document.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+    if (e.key === "F12") { e.preventDefault(); return; }
+    if (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) { e.preventDefault(); return; }
+    if (e.ctrlKey && ["u", "c", "x", "s", "a"].includes(key)) { e.preventDefault(); return; }
+});
