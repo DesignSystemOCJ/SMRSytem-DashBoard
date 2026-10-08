@@ -208,7 +208,6 @@
                     </div>
                 </div>
 
-                <!-- Contenedor de Análisis de Celdas generado dinámicamente desde JS -->
                 <div class="analysis-grid" id="analysisGridContainer"></div>
             </article>
         </section>
@@ -277,6 +276,30 @@
                     <option value="">All Cells</option>
                 </select>
             </div>
+
+            <!-- CHECKBOXES PREMIUM UI (Selección Exclusiva) -->
+            <div class="filter-control" style="flex-grow: 1; min-width: 320px;">
+                <label><i class="fa-solid fa-gears"></i> Operation Filter (Select One)</label>
+                <div class="premium-checkbox-group">
+                    <label class="premium-checkbox-chip">
+                        <input type="checkbox" name="recordOpFilter" value="MD" onchange="handleRecordOpCheckbox(this)">
+                        <span>MD Camera</span>
+                    </label>
+                    <label class="premium-checkbox-chip">
+                        <input type="checkbox" name="recordOpFilter" value="OP1" onchange="handleRecordOpCheckbox(this)">
+                        <span>Operation 1</span>
+                    </label>
+                    <label class="premium-checkbox-chip">
+                        <input type="checkbox" name="recordOpFilter" value="OP2" onchange="handleRecordOpCheckbox(this)">
+                        <span>Operation 2</span>
+                    </label>
+                    <label class="premium-checkbox-chip">
+                        <input type="checkbox" name="recordOpFilter" value="CHIRON" onchange="handleRecordOpCheckbox(this)">
+                        <span>Drill Operation</span>
+                    </label>
+                </div>
+            </div>
+
             <button class="clear-filter" onclick="clearCellFilter()">
                 <i class="fa-solid fa-filter-circle-xmark"></i> Clear Filters
             </button>
