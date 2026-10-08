@@ -17,7 +17,6 @@ Chart.defaults.color = "#64748B";
 Chart.defaults.animation.duration = 800;
 
 function renderDynamicComponents() {
-    // 1. Renderizar Tarjetas KPI
     const kpiContainer = document.getElementById("kpiGridContainer");
     if (kpiContainer) {
         const kpiData = [
@@ -89,7 +88,7 @@ function populateMonthDropdowns() {
     }
     const modalSelect = document.getElementById("modalMonthFilter");
     if (modalSelect) {
-        modalSelect.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
+        modalSelect.innerHTML = '<option value="All">All</option>' + months.map(m => `<option value="${m}">${m}</option>`).join("");
     }
 }
 
@@ -119,14 +118,27 @@ function closeRecordsModal() {
     document.getElementById("recordsModal")?.style.setProperty("display", "none");
 }
 
+function handleRecordOpCheckbox(changedCheckbox) {
+    const checkboxes = document.querySelectorAll('input[name="recordOpFilter"]');
+    checkboxes.forEach(cb => {
+        if (cb !== changedCheckbox) cb.checked = false;
+    });
+    filterModalTable();
+}
+
 function clearCellFilter() {
     const cellFilter = document.getElementById("modalCellFilter");
     if (cellFilter) cellFilter.value = "";
+    
+    document.querySelectorAll('input[name="recordOpFilter"]').forEach(cb => cb.checked = false);
+    
+    document.querySelectorAll(".column-filter-input").forEach(input => input.value = "");
+
     filterModalTable();
 }
 
 async function loadModalRecords() {
-    const selectedMonth = document.getElementById("modalMonthFilter")?.value || "August";
+    const selectedMonth = document.getElementById("modalMonthFilter")?.value || "All";
     const tbody = document.getElementById("modalTableBody");
     const thead = document.getElementById("modalTableHeaders");
     const counter = document.getElementById("recordsCount");
@@ -136,7 +148,12 @@ async function loadModalRecords() {
     tbody.innerHTML = `<tr><td colspan="100" class="loading-table"><div class="table-loader"></div>Loading records...</td></tr>`;
     if (counter) counter.textContent = "Loading records...";
 
-    const { data, error } = await fetchAllSupabaseData(q => q.select("*").eq("Month", selectedMonth));
+    let queryFn = q => q.select("*");
+    if (selectedMonth !== "All") {
+        queryFn = q => q.select("*").eq("Month", selectedMonth);
+    }
+
+    const { data, error } = await fetchAllSupabaseData(queryFn);
 
     if (error) {
         tbody.innerHTML = `<tr><td colspan="100" style="text-align:center; padding:40px; color:#EF4444;"><i class="fa-solid fa-circle-exclamation"></i> Error loading data.</td></tr>`;
@@ -153,21 +170,58 @@ async function loadModalRecords() {
     }
 
     const keys = Object.keys(modalRawData[0]);
-    thead.innerHTML = keys.map(k => `<th>${k}</th>`).join("");
+    thead.innerHTML = keys.map(k => `
+        <th>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span>${k}</span>
+                <input type="text" 
+                       class="column-filter-input" 
+                       data-column="${k}" 
+                       placeholder="Filtrar..." 
+                       oninput="filterModalTable()" 
+                       onclick="event.stopPropagation()">
+            </div>
+        </th>
+    `).join("");
+
     filterModalTable();
 }
 
 function filterModalTable() {
     const selectedCell = document.getElementById("modalCellFilter")?.value || "";
+    const activeOpCb = document.querySelector('input[name="recordOpFilter"]:checked');
+    const activeOpCol = activeOpCb ? activeOpCb.value : "";
+
     const tbody = document.getElementById("modalTableBody");
     const counter = document.getElementById("recordsCount");
     if (!tbody) return;
 
-    const filtered = selectedCell ? modalRawData.filter(r => r.Maq === selectedCell) : modalRawData;
+    let filtered = selectedCell ? modalRawData.filter(r => r.Maq === selectedCell) : modalRawData;
+
+    if (activeOpCol) {
+        filtered = filtered.filter(r => {
+            const val = r[activeOpCol];
+            return val !== null && val !== undefined && String(val).trim() !== "";
+        });
+    }
+
+    const columnInputs = document.querySelectorAll(".column-filter-input");
+    columnInputs.forEach(input => {
+        const column = input.getAttribute("data-column");
+        const filterValue = input.value.trim().toLowerCase();
+        if (filterValue !== "") {
+            filtered = filtered.filter(r => {
+                const cellVal = r[column];
+                if (cellVal === null || cellVal === undefined) return false;
+                return String(cellVal).toLowerCase().includes(filterValue);
+            });
+        }
+    });
+
     if (counter) counter.textContent = `${filtered.length.toLocaleString()} records`;
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="100" style="text-align:center; padding:40px;">No records match the selected cell.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="100" style="text-align:center; padding:40px;">No records match the selected filters.</td></tr>`;
         return;
     }
 
@@ -291,7 +345,16 @@ function baseChartOptions() {
         },
         scales: {
             y: { beginAtZero: true, grace: "15%", ticks: { precision: 0, color: "#64748B", font: { size: 9 } }, grid: { color: "rgba(148,163,184,.13)" }, border: { display: false } },
-            x: { ticks: { color: "#64748B", font: { size: 8, weight: "600" }, maxRotation: 45, minRotation: 30 }, grid: { display: false }, border: { display: false } }
+            x: { 
+                ticks: { 
+                    color: "#000000", 
+                    font: { size: 9, weight: "normal" }, 
+                    maxRotation: 45, 
+                    minRotation: 30 
+                }, 
+                grid: { display: false }, 
+                border: { display: false } 
+            }
         }
     };
 }
@@ -442,13 +505,18 @@ function createMachineChart() {
     const count = Object.fromEntries(machines.map(m => [m, 0]));
     maintenanceData.forEach(row => { if (row.Maq && count.hasOwnProperty(row.Maq)) count[row.Maq]++; });
 
+    // Configuración ajustada para que las leyendas en X sean de color negro suave y sin negritas
+    const options = baseChartOptions();
+    options.scales.x.ticks.color = "#333333";
+    options.scales.x.ticks.font = { size: 9, weight: "normal" };
+
     renderChart("machineChart", {
         type: "bar",
         data: {
             labels: Object.keys(count),
             datasets: [{ label: "Issues", data: Object.values(count), backgroundColor: "rgba(37, 99, 235, 0.55)", hoverBackgroundColor: "#2563EB", borderRadius: 6, borderSkipped: false, barPercentage: .65 }]
         },
-        options: baseChartOptions(),
+        options: options,
         plugins: [ChartDataLabels]
     });
 }
@@ -569,7 +637,7 @@ function handleSignOut() {
 }
 
 window.addEventListener("load", function() {
-    renderDynamicComponents(); // <--- Inyecta dinámicamente los elementos HTML modularizados
+    renderDynamicComponents();
     populateMonthDropdowns();
     if (!currentSelectedMonth) {
         currentSelectedMonth = months[new Date().getMonth()] || "August";
@@ -582,7 +650,6 @@ window.addEventListener("load", function() {
     setProtectedElementsState(!!savedUser, savedUser || "");
 });
 
-// Bloqueos de seguridad originales conservados
 ["contextmenu", "selectstart", "copy", "cut", "dragstart"].forEach(evt => {
     document.addEventListener(evt, e => e.preventDefault());
 });
