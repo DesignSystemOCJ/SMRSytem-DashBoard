@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuedasPro - Producción en Tiempo Real</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        // Configuración de Supabase (usando supabaseClient para evitar conflictos)
+        const supabaseUrl = "https://mrxtqmvufmlozplszfxc.supabase.co";
+        const supabaseKey = "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-";
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        },
+                        appBg: '#f1f5f9',
+                        cardBg: '#ffffff'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .matrix-cell {
+            transition: all 0.2s ease;
+        }
+        .matrix-cell:hover {
+            transform: scale(1.04);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Estilos de resalte en cruz para Matriz de Modelos --- */
+        .matrix-cross-highlight {
+            background-color: #dbeafe !important;
+        }
+        .matrix-cell-selected {
+            background-color: #93c5fd !important;
+            font-weight: 800 !important;
+            box-shadow: 0 0 0 2px #2563eb !important;
+        }
+
+        .live-pulse {
+            animation: pulse-ring 1.8s infinite ease-out;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.7; }
+            100% { transform: scale(0.95); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar overflow-x-hidden">
+
+    <!-- MAIN BODY CONTAINER WITHOUT SIDEBAR & NAV BAR -->
+    <div class="flex flex-grow max-w-[1700px] w-full mx-auto p-4 lg:p-6 gap-6">
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-grow space-y-6 min-w-0">
+
+            <!-- SECTION 1: NAVE BANNER UNIFICADO PREMIUM -->
+            <div class="w-full max-w-5xl mx-auto bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 relative overflow-hidden">
+                <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
+                    
+                    <div class="flex flex-col items-start min-w-[140px] -mt-2">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Promedio Actual</span>
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                            <span id="promedio-time-val" class="text-3xl font-black text-slate-900 tracking-tight font-mono">24</span>
+                            <span class="text-[11px] text-slate-400 font-mono">ruedas/h</span>
+                        </div>
+                        <div id="target-vs-actual-container" class="text-[11px] font-semibold text-emerald-600 mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/60">
+                            <i id="target-vs-actual-icon" class="fa-solid fa-arrow-up text-[9px]"></i> 
+                            <span id="target-vs-actual-val">+0.0%</span> 
+                            <span class="text-slate-400 font-normal">Target vs. Actual</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center flex-1">
+                        <span class="text-xs font-mono font-bold text-slate-400 tracking-wider uppercase mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-blue-500"></i>Production: <strong id="production-val" class="text-slate-800 text-sm">8,960</strong>
+                        </span>
+                        
+                        <div class="w-32 h-32 relative flex items-center justify-center my-1">
+                            <canvas id="gaugeChart"></canvas>
+                            <div class="absolute text-center flex flex-col items-center">
+                                <span id="gauge-time-val" class="text-xl font-black text-slate-900 font-mono leading-none">112</span>
+                                <span class="text-[10px] font-bold text-slate-400 font-mono mt-0.5">WPH</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-start md:items-end min-w-[160px]">
+                        <div class="flex items-center gap-2">
+                            <span id="active-models-count" class="text-3xl font-black text-slate-900 font-mono">0</span>
+                            <span class="text-xs font-semibold text-slate-500 leading-tight">modelos<br/>activos</span>
+                        </div>
+                        <div class="mt-3 flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-sm" style="background-color: #0284c7;"></span>
+                            <span class="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-sm" style="background-color: #10b981;"></span>
+                            <span class="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-sm" style="background-color: #8b5cf6;"></span>
+                            <span class="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-sm" style="background-color: #f59e0b;"></span>
+                            <span class="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-sm" style="background-color: #ec4899;"></span>
+                            <span class="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-sm" style="background-color: #ef4444;"></span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-mono mt-2"></span>
+                    </div>
+
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-4">
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200 shadow-sm">
+                            <i class="fa-solid fa-check text-[11px]"></i> En objetivo
+                        </span>
+                    </div>
+
+                    <div class="w-full relative flex items-center">
+                        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200/80">
+                            <div class="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: 89.6%;"></div>
+                        </div>
+
+                        <div class="absolute -top-7 right-[10.4%] flex flex-col items-center transform translate-x-1/2">
+                            <div class="bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-md flex items-center justify-center font-mono">
+                                01
+                            </div>
+                            <div class="w-0.5 h-2.5 bg-purple-600"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex-shrink-0 font-mono text-sm font-extrabold text-slate-800">
+                        89.6%
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: MIDDLE ROW (TBLPROD TABLE & MATRIX HEATMAP) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                <!-- LEFT: NUEVA TABLA TBLPROD (3 COLS - Menos Ancho) -->
+                <div class="lg:col-span-3 bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4 flex flex-col justify-between">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-clock text-blue-600"></i>
+                            Produccion Actual
+                        </h3>
+                    </div>
+
+                    <!-- TABLE GRID -->
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-center border-collapse">
+                            <thead>
+                                <tr class="text-[10px] font-mono text-slate-500 uppercase border-b border-slate-100">
+                                    <th class="py-2 px-0.5 font-semibold text-center">Cell</th>
+                                    <th class="py-2 px-0.5 font-semibold text-center">Model</th>
+                                    <th class="py-2 px-0.5 font-semibold text-center">Time</th>
+                                    <th class="py-2 px-0.5 font-semibold text-center">Actual</th>
+                                    <th class="py-2 px-0.5 font-semibold text-center">Diff</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblprod-tbody" class="text-xs font-mono divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="5" class="py-4 text-center text-slate-400">Cargando datos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- RIGHT: MATRIX BY CELL AND MODEL (9 COLS - Ajustado para evitar scroll horizontal) -->
+                <div class="lg:col-span-9 bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-200 space-y-3 flex flex-col justify-start overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-table-cells text-blue-600"></i>
+                            Matriz de Modelos
+                        </h3>
+                        <!-- FILTRO DE MODELOS Y BOTÓN DE LIMPIEZA -->
+                        <div class="flex items-center gap-2">
+                            <select id="matrix-model-filter" class="bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700 rounded-lg px-2.5 py-1 focus:outline-none">
+                                <option value="">Todos los modelos</option>
+                            </select>
+                            <button id="matrix-clear-filter-btn" title="Limpiar filtro" class="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-900 px-2 py-1 rounded-lg text-xs transition-colors flex items-center justify-center">
+                                <i class="fa-solid fa-broom"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="w-full overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-separate border-spacing-0.5 table-fixed">
+                            <thead>
+                                <tr id="matrix-thead-tr" class="text-[10px] font-mono text-slate-500 uppercase">
+                                    <th class="py-1 px-1 font-semibold sticky left-0 bg-white z-20 w-[95px]">Modelo</th>
+                                    <th class="py-1 px-1 font-semibold sticky left-[95px] bg-white z-20 w-[55px]">SIZE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matrix-tbody" class="text-[11px] font-mono">
+                                <tr>
+                                    <td class="py-4 text-center text-slate-400">Cargando matriz...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT CHARTS INITIALIZATION & SUPABASE INTEGRATION -->
+    <script>
+        let globalModelos = []; // Almacena los registros de la tabla Modelos
+        let modelosMap = {}; // Mapa rápido de modelos a WPH y SIZE
+        let gaugeChartInstance = null; // Instancia global para el gráfico de rosca
+        let globalRegcicloData = []; // Datos de regciclo para filtrado dinámico
+        let currentModelFilter = ''; // Modelo seleccionado en el filtro
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initGaugeChart();
+            fetchSupabaseData();
+
+            // Escuchar cambios en el filtro de modelos
+            const modelFilterEl = document.getElementById('matrix-model-filter');
+            if (modelFilterEl) {
+                modelFilterEl.addEventListener('change', (e) => {
+                    currentModelFilter = e.target.value;
+                    if (globalRegcicloData.length > 0) {
+                        renderMatrixFromRegciclo(globalRegcicloData);
+                    }
+                });
+            }
+
+            // Escuchar clic en el botón de limpiar filtro (con icono de escoba)
+            const clearFilterBtn = document.getElementById('matrix-clear-filter-btn');
+            if (clearFilterBtn) {
+                clearFilterBtn.addEventListener('click', () => {
+                    currentModelFilter = '';
+                    if (modelFilterEl) {
+                        modelFilterEl.value = '';
+                    }
+                    if (globalRegcicloData.length > 0) {
+                        renderMatrixFromRegciclo(globalRegcicloData);
+                    }
+                });
+            }
+        });
+
+        // Función auxiliar para extraer números, calcular el promedio si hay múltiples valores y REDONDEAR siempre a entero
+        function parseAndAverageValue(value) {
+            if (value === null || value === undefined || value === '') return '-';
+
+            // Si es número directo
+            if (typeof value === 'number' && !isNaN(value)) {
+                return Math.round(value);
+            }
+
+            const strVal = String(value).trim();
+            if (strVal === '' || strVal === '-' || strVal.toLowerCase() === 'null' || strVal.toLowerCase() === 'undefined') {
+                return '-';
+            }
+
+            // Extrae todos los números (enteros o decimales) de la celda
+            const matches = strVal.match(/-?\d+(\.\d+)?/g);
+            if (matches && matches.length > 0) {
+                const nums = matches.map(Number).filter(n => !isNaN(n));
+                if (nums.length > 0) {
+                    const avg = nums.reduce((sum, n) => sum + n, 0) / nums.length;
+                    return Math.round(avg);
+                }
+            }
+
+            return strVal;
+        }
+
+        // Función para actualizar el gráfico circular: WPH equivale al 100% y se compara con el promedio Actual
+        function updateGaugeValue(avgActualValue, wphMax) {
+            const elGaugeText = document.getElementById('gauge-time-val');
+            if (elGaugeText) elGaugeText.textContent = wphMax;
+
+            if (gaugeChartInstance) {
+                const currentVal = Math.min(avgActualValue, wphMax);
+                const remainingVal = Math.max(0, wphMax - currentVal);
+
+                gaugeChartInstance.data.datasets[0].data = [currentVal, remainingVal];
+                gaugeChartInstance.update();
+            }
+        }
+
+        // Función para actualizar la variación porcentual entre Target (Time) y Actual
+        function updateTargetVsActualPercentage(avgTarget, avgActual) {
+            const container = document.getElementById('target-vs-actual-container');
+            const icon = document.getElementById('target-vs-actual-icon');
+            const valSpan = document.getElementById('target-vs-actual-val');
+
+            if (!container || !icon || !valSpan) return;
+
+            if (avgTarget > 0) {
+                const diffPct = ((avgActual - avgTarget) / avgTarget) * 100;
+                const formattedPct = (diffPct >= 0 ? '+' : '') + diffPct.toFixed(1) + '%';
+                valSpan.textContent = formattedPct;
+
+                if (diffPct >= 0) {
+                    container.className = "text-[11px] font-semibold text-emerald-600 mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/60";
+                    icon.className = "fa-solid fa-arrow-up text-[9px]";
+                } else {
+                    container.className = "text-[11px] font-semibold text-rose-600 mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200/60";
+                    icon.className = "fa-solid fa-arrow-down text-[9px]";
+                }
+            } else {
+                valSpan.textContent = "0.0%";
+            }
+        }
+
+        // Función auxiliar para recalcular promedios tras ediciones y actualizar el círculo con el promedio ACTUAL
+        function recalculateMetricsFromDOM() {
+            let totalTime = 0, countTime = 0;
+            let totalActual = 0, countActual = 0;
+
+            document.querySelectorAll('#tblprod-tbody tr').forEach(row => {
+                const timeCell = row.querySelector('.time-cell');
+                const actualCell = row.querySelector('.actual-cell');
+
+                if (timeCell) {
+                    const timeVal = parseFloat(timeCell.textContent);
+                    if (!isNaN(timeVal)) {
+                        totalTime += timeVal;
+                        countTime++;
+                    }
+                }
+
+                if (actualCell) {
+                    const actualVal = parseFloat(actualCell.textContent);
+                    if (!isNaN(actualVal)) {
+                        totalActual += actualVal;
+                        countActual++;
+                    }
+                }
+            });
+
+            const avgTarget = countTime > 0 ? totalTime / countTime : 0;
+            const avgActual = countActual > 0 ? totalActual / countActual : 0;
+
+            const elPromedioActual = document.getElementById('promedio-time-val');
+            if (elPromedioActual) {
+                elPromedioActual.textContent = Math.round(avgActual);
+            }
+
+            updateTargetVsActualPercentage(avgTarget, avgActual);
+
+            if (countTime > 0) {
+                const promedioTargetExacto = totalTime / countTime;
+                const promedioTime = Math.round(promedioTargetExacto);
+                const produccionCalculada = (promedioTargetExacto * 30 * 24 * 0.85) / 2;
+                
+                const elProduction = document.getElementById('production-val');
+                if (elProduction) {
+                    elProduction.textContent = Math.round(produccionCalculada).toLocaleString('en-US');
+                }
+
+                updateGaugeValue(avgActual, promedioTime);
+            }
+        }
+
+        // Función para renderizar la matriz de modelos dinámicamente incluyendo la columna SIZE estática al lado de MODELO (Ocultando columnas sin datos)
+        function renderMatrixFromRegciclo(regcicloData) {
+            globalRegcicloData = regcicloData;
+            const theadTr = document.getElementById('matrix-thead-tr');
+            const tbody = document.getElementById('matrix-tbody');
+            if (!theadTr || !tbody) return;
+
+            const modelsSet = new Set();
+            const cellsSet = new Set();
+            const matrixMap = {};
+
+            regcicloData.forEach(row => {
+                const modelVal = String(row.Model ?? row.model ?? row.MODEL ?? '').trim();
+                const cellVal = String(row.Cell ?? row.cell ?? row.CELL ?? '').trim();
+                const targetActualVal = row.Target_Actual ?? row.target_actual ?? row.TargetActual ?? row.targetActual ?? '';
+
+                if (cellVal && cellVal !== '-' && cellVal !== 'null' && cellVal !== 'undefined') {
+                    cellsSet.add(cellVal);
+                }
+
+                if (modelVal && modelVal !== '-' && modelVal !== 'null' && modelVal !== 'undefined') {
+                    modelsSet.add(modelVal);
+                    if (cellVal) {
+                        if (!matrixMap[modelVal]) matrixMap[modelVal] = {};
+                        if (!matrixMap[modelVal][cellVal]) matrixMap[modelVal][cellVal] = [];
+                        matrixMap[modelVal][cellVal].push(targetActualVal);
+                    }
+                }
+            });
+
+            let models = Array.from(modelsSet).sort((a, b) => {
+                const numA = parseFloat(a.replace(/[^\d.]/g, ''));
+                const numB = parseFloat(b.replace(/[^\d.]/g, ''));
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    if (numA !== numB) return numA - numB;
+                }
+                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            if (currentModelFilter) {
+                models = models.filter(m => m === currentModelFilter);
+            }
+
+            const allCells = Array.from(cellsSet).sort((a, b) => {
+                const numA = parseInt(a.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.replace(/\D/g, '')) || 0;
+                if (numA !== numB) return numA - numB;
+                return a.localeCompare(b);
+            });
+
+            // Filtrar únicamente las celdas (columnas) que tengan al menos un dato válido (diferente de '-') para los modelos mostrados
+            const cells = allCells.filter(cell => {
+                return models.some(model => {
+                    const rawCellData = (matrixMap[model] && matrixMap[model][cell]) ? matrixMap[model][cell] : '';
+                    let displayVal = '-';
+                    if (Array.isArray(rawCellData)) {
+                        displayVal = parseAndAverageValue(rawCellData.join(' '));
+                    } else if (rawCellData !== '' && rawCellData !== null) {
+                        displayVal = parseAndAverageValue(rawCellData);
+                    }
+                    return displayVal !== '-';
+                });
+            });
+
+            let theadHTML = `
+                <th class="py-1 px-1 font-semibold sticky left-0 bg-white z-20 w-[95px]">Modelo</th>
+                <th class="py-1 px-1 font-semibold sticky left-[95px] bg-white z-20 w-[55px]">SIZE</th>
+            `;
+            cells.forEach((cell, idx) => {
+                theadHTML += `<th class="py-1 px-0.5 text-center font-semibold" data-col-index="${idx}">${cell}</th>`;
+            });
+            theadTr.innerHTML = theadHTML;
+
+            let tbodyHTML = '';
+            if (models.length === 0 || cells.length === 0) {
+                tbodyHTML = `<tr><td colspan="${Math.max(cells.length + 2, 3)}" class="py-4 text-center text-slate-400">No hay modelos con datos disponibles para mostrar</td></tr>`;
+            } else {
+                models.forEach(model => {
+                    const sizeVal = (modelosMap[model] && (modelosMap[model].Size !== undefined || modelosMap[model].size !== undefined)) 
+                        ? (modelosMap[model].Size ?? modelosMap[model].size) 
+                        : '-';
+
+                    tbodyHTML += `<tr>`;
+                    tbodyHTML += `<td class="py-1 px-1 font-bold text-slate-800 font-sans flex items-center gap-1 sticky left-0 bg-white z-10 w-[95px]">
+                        <i class="fa-solid fa-circle-dot text-blue-600 text-[8px]"></i>
+                        <div class="truncate w-full" title="${model}">${model}</div>
+                    </td>`;
+                    tbodyHTML += `<td class="py-1 px-1 text-slate-600 font-medium sticky left-[95px] bg-white z-10 truncate w-[55px]" title="${sizeVal}">${sizeVal}</td>`;
+
+                    cells.forEach((cell, colIdx) => {
+                        const rawCellData = (matrixMap[model] && matrixMap[model][cell]) ? matrixMap[model][cell] : '';
+                        
+                        let displayVal = '-';
+                        if (Array.isArray(rawCellData)) {
+                            const joinedData = rawCellData.join(' ');
+                            displayVal = parseAndAverageValue(joinedData);
+                        } else if (rawCellData !== '' && rawCellData !== null) {
+                            displayVal = parseAndAverageValue(rawCellData);
+                        }
+
+                        tbodyHTML += `<td data-col-index="${colIdx}" class="text-center p-1 rounded-md bg-slate-100 text-slate-800 font-bold matrix-cell text-[10px] cursor-pointer">${displayVal}</td>`;
+                    });
+
+                    tbodyHTML += `</tr>`;
+                });
+            }
+            tbody.innerHTML = tbodyHTML;
+
+            attachMatrixHighlightEvents();
+        }
+
+        function attachMatrixHighlightEvents() {
+            const matrixTbody = document.getElementById('matrix-tbody');
+            if (!matrixTbody) return;
+
+            const cells = matrixTbody.querySelectorAll('td[data-col-index]');
+
+            cells.forEach(cell => {
+                cell.addEventListener('click', function(e) {
+                    e.stopPropagation();
+
+                    document.querySelectorAll('.matrix-cross-highlight').forEach(el => el.classList.remove('matrix-cross-highlight'));
+                    document.querySelectorAll('.matrix-cell-selected').forEach(el => el.classList.remove('matrix-cell-selected'));
+
+                    const selectedRow = this.closest('tr');
+                    const colIndex = this.getAttribute('data-col-index');
+
+                    selectedRow.querySelectorAll('td').forEach((td, index) => {
+                        if (index > 1) {
+                            td.classList.add('matrix-cross-highlight');
+                        }
+                    });
+
+                    if (colIndex !== null) {
+                        const allColCells = matrixTbody.querySelectorAll(`td[data-col-index="${colIndex}"]`);
+                        allColCells.forEach(td => td.classList.add('matrix-cross-highlight'));
+                    }
+
+                    this.classList.remove('matrix-cross-highlight');
+                    this.classList.add('matrix-cell-selected');
+                });
+            });
+        }
+
+        async function fetchSupabaseData() {
+            try {
+                const { data: modelos, error: errModelos } = await supabaseClient
+                    .from('Modelos')
+                    .select('*');
+
+                if (errModelos) {
+                    console.warn('Información de Supabase (Modelos):', errModelos.message);
+                } else {
+                    globalModelos = modelos || [];
+                }
+
+                modelosMap = {};
+                if (modelos) {
+                    modelos.forEach(m => {
+                        const modKey = String(m.Models ?? m.models ?? m.MODEL ?? '').trim();
+                        const wphVal = m.WPH ?? m.wph ?? m.Wph;
+                        const sizeVal = m.Size ?? m.size ?? m.SIZE;
+                        if (modKey) {
+                            modelosMap[modKey] = {
+                                wph: wphVal,
+                                size: sizeVal
+                            };
+                        }
+                    });
+                }
+
+                const { data: regciclo, error: errRegciclo } = await supabaseClient
+                    .from('regciclo')
+                    .select('*');
+
+                if (errRegciclo) {
+                    console.warn('Información de Supabase (regciclo):', errRegciclo.message);
+                } else if (regciclo) {
+                    renderMatrixFromRegciclo(regciclo);
+
+                    const modelFilter = document.getElementById('matrix-model-filter');
+                    if (modelFilter) {
+                        const uniqueRegcicloModels = new Set();
+                        regciclo.forEach(r => {
+                            const modVal = String(r.Model ?? r.model ?? r.MODEL ?? '').trim();
+                            if (modVal !== '' && modVal !== '-' && modVal !== 'null' && modVal !== 'undefined') {
+                                uniqueRegcicloModels.add(modVal);
+                            }
+                        });
+
+                        const sortedModels = Array.from(uniqueRegcicloModels).sort((a, b) => {
+                            const numA = parseFloat(a.replace(/[^\d.]/g, ''));
+                            const numB = parseFloat(b.replace(/[^\d.]/g, ''));
+                            if (!isNaN(numA) && !isNaN(numB)) {
+                                if (numA !== numB) return numA - numB;
+                            }
+                            return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+                        });
+
+                        let optionsHTML = `<option value="">Todos los modelos</option>`;
+                        sortedModels.forEach(mod => {
+                            optionsHTML += `<option value="${mod}">${mod}</option>`;
+                        });
+                        modelFilter.innerHTML = optionsHTML;
+                    }
+                }
+
+                const { data: tblprod, error: errTblprod } = await supabaseClient
+                    .from('tblprod')
+                    .select('*')
+                    .order('Cell', { ascending: true });
+
+                const tbody = document.getElementById('tblprod-tbody');
+                
+                if (errTblprod) {
+                    console.error('Error detallado en tblprod:', errTblprod);
+                    tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-500 text-[11px]">Error: ${errTblprod.message}</td></tr>`;
+                } else if (tblprod && tblprod.length > 0) {
+                    const uniqueModels = new Set();
+                    tblprod.forEach(r => {
+                        const mVal = String(r.MODEL ?? r.Model ?? r.model ?? '').trim();
+                        if (mVal !== '' && mVal !== '-') {
+                            uniqueModels.add(mVal);
+                        }
+                    });
+                    
+                    const elActiveModels = document.getElementById('active-models-count');
+                    if (elActiveModels) {
+                        elActiveModels.textContent = uniqueModels.size;
+                    }
+
+                    tblprod.sort((a, b) => {
+                        let valA = a.Cell ?? a.cell ?? 0;
+                        let valB = b.Cell ?? b.cell ?? 0;
+                        if (!isNaN(valA) && !isNaN(valB)) {
+                            return Number(valA) - Number(valB);
+                        }
+                        return String(valA).localeCompare(String(valB));
+                    });
+
+                    tbody.innerHTML = '';
+
+                    let totalTime = 0;
+                    let countTime = 0;
+                    let totalActual = 0;
+                    let countActual = 0;
+
+                    tblprod.forEach(row => {
+                        const cellVal = row.Cell ?? row.cell ?? '-';
+                        const modelVal = row.Model ?? row.model ?? row.MODEL ?? '';
+                        
+                        let timeVal = row.Time ?? row.time ?? '';
+                        const trimmedModel = String(modelVal).trim();
+                        if (trimmedModel !== '' && modelosMap[trimmedModel] !== undefined) {
+                            timeVal = modelosMap[trimmedModel].wph;
+                        }
+
+                        if (timeVal !== '' && timeVal !== null && timeVal !== '-' && !isNaN(timeVal)) {
+                            totalTime += Number(timeVal);
+                            countTime++;
+                        }
+
+                        const actualVal = row.Actual ?? row.actual ?? '-';
+                        let diffVal = row.Diff ?? row.diff ?? '-';
+
+                        if (actualVal !== '' && actualVal !== null && actualVal !== '-' && !isNaN(actualVal)) {
+                            totalActual += Number(actualVal);
+                            countActual++;
+                        }
+
+                        if (!isNaN(actualVal) && !isNaN(timeVal) && actualVal !== '-' && timeVal !== '' && timeVal !== '-') {
+                            diffVal = Number(actualVal) - Number(timeVal);
+                        }
+
+                        const tr = document.createElement('tr');
+                        if (!isNaN(diffVal) && diffVal !== '-' && Number(diffVal) < 0) {
+                            tr.className = 'bg-orange-100';
+                        }
+
+                        tr.innerHTML = `
+                            <td class="py-1.5 px-0.5 font-bold text-slate-800 text-center">${cellVal}</td>
+                            <td class="py-1.5 px-0.5 text-slate-600 font-medium text-center cursor-pointer hover:bg-slate-50 transition-colors editable-model-cell model-cell truncate max-w-[60px]" data-cell="${cellVal}" title="Haz clic para editar">${modelVal !== '' && modelVal !== null ? modelVal : '-'}</td>
+                            <td class="py-1.5 px-0.5 text-center font-bold text-blue-600 time-cell" data-cell="${cellVal}">${timeVal !== '' && timeVal !== null ? timeVal : '-'}</td>
+                            <td class="py-1.5 px-0.5 text-center text-slate-600 cursor-pointer hover:bg-slate-50 transition-colors editable-actual-cell actual-cell font-semibold" data-field="Actual" data-cell="${cellVal}" title="Haz clic para editar">${actualVal !== '' && actualVal !== null ? actualVal : '-'}</td>
+                            <td class="py-1.5 px-0.5 text-center font-semibold diff-cell ${Number(diffVal) < 0 ? 'text-rose-600' : Number(diffVal) > 0 ? 'text-emerald-600' : 'text-slate-600'}">${diffVal}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    let promedioActualExacto = 0;
+                    if (countActual > 0) {
+                        promedioActualExacto = totalActual / countActual;
+                        const promedioActualNum = Math.round(promedioActualExacto);
+                        const elPromedio = document.getElementById('promedio-time-val');
+                        if (elPromedio) elPromedio.textContent = promedioActualNum;
+                    }
+
+                    if (countTime > 0) {
+                        const promedioTargetExacto = totalTime / countTime;
+                        const promedioTime = Math.round(promedioTargetExacto);
+
+                        updateTargetVsActualPercentage(promedioTargetExacto, promedioActualExacto);
+                        
+                        const produccionCalculada = (promedioTargetExacto * 30 * 24 * 0.85) / 2;
+                        
+                        const elProduction = document.getElementById('production-val');
+                        if (elProduction) {
+                            elProduction.textContent = Math.round(produccionCalculada).toLocaleString('en-US');
+                        }
+
+                        updateGaugeValue(promedioActualExacto, promedioTime);
+                    }
+
+                    attachModelEditableEvents();
+                    attachActualEditableEvents();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">La tabla tblprod está vacía</td></tr>`;
+                }
+
+            } catch (error) {
+                console.error('Error de red o excepción al conectar con Supabase:', error);
+                const tbody = document.getElementById('tblprod-tbody');
+                if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-500">Error de conexión / Red</td></tr>`;
+            }
+        }
+
+        function attachModelEditableEvents() {
+            const modelCells = document.querySelectorAll('.editable-model-cell');
+            modelCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    if (cell.querySelector('input')) return;
+
+                    const currentValue = cell.textContent.trim() === '-' ? '' : cell.textContent.trim();
+                    const cellName = cell.getAttribute('data-cell');
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = currentValue;
+                    input.className = 'w-full bg-slate-50 border border-blue-500 rounded px-1 py-0.5 text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-blue-500';
+
+                    cell.textContent = '';
+                    cell.appendChild(input);
+                    input.focus();
+                    input.select();
+
+                    let isSaved = false;
+
+                    async function saveChange() {
+                        if (isSaved) return;
+                        isSaved = true;
+
+                        const newValue = input.value.trim();
+                        cell.textContent = newValue !== '' ? newValue : '-';
+
+                        try {
+                            const updateObj = {
+                                Model: newValue === '' ? null : newValue
+                            };
+
+                            const { error } = await supabaseClient
+                                .from('tblprod')
+                                .update(updateObj)
+                                .eq('Cell', cellName);
+
+                            if (error) {
+                                console.error('Error al actualizar Model en Supabase:', error);
+                                alert('Error al actualizar: ' + error.message);
+                                cell.textContent = currentValue || '-';
+                            } else {
+                                const rowTr = cell.closest('tr');
+                                const timeCell = rowTr.querySelector('.time-cell');
+                                const actualCell = rowTr.querySelector('.actual-cell');
+                                const diffCell = rowTr.querySelector('.diff-cell');
+
+                                let newTime = '';
+                                if (newValue !== '' && modelosMap[newValue] !== undefined) {
+                                    newTime = modelosMap[newValue].wph;
+                                }
+                                if (timeCell) {
+                                    timeCell.textContent = newTime !== '' ? newTime : '-';
+                                }
+
+                                const curTime = parseFloat(newTime);
+                                const curActual = actualCell ? parseFloat(actualCell.textContent) : NaN;
+
+                                if (!isNaN(curActual) && !isNaN(curTime)) {
+                                    const diff = curActual - curTime;
+                                    diffCell.textContent = diff;
+                                    diffCell.className = `py-1.5 px-0.5 text-center font-semibold diff-cell ${diff < 0 ? 'text-rose-600' : diff > 0 ? 'text-emerald-600' : 'text-slate-600'}`;
+                                    if (diff < 0) {
+                                        rowTr.classList.add('bg-orange-100');
+                                    } else {
+                                        rowTr.classList.remove('bg-orange-100');
+                                    }
+                                } else {
+                                    diffCell.textContent = '-';
+                                    diffCell.className = 'py-1.5 px-0.5 text-center font-semibold diff-cell text-slate-600';
+                                    rowTr.classList.remove('bg-orange-100');
+                                }
+
+                                const uniqueModels = new Set();
+                                document.querySelectorAll('.editable-model-cell').forEach(mc => {
+                                    const mVal = mc.textContent.trim();
+                                    if (mVal !== '' && mVal !== '-') {
+                                        uniqueModels.add(mVal);
+                                    }
+                                });
+                                const elActiveModels = document.getElementById('active-models-count');
+                                if (elActiveModels) {
+                                    elActiveModels.textContent = uniqueModels.size;
+                                }
+
+                                recalculateMetricsFromDOM();
+                            }
+                        } catch (err) {
+                            console.error('Excepción al actualizar Model:', err);
+                            cell.textContent = currentValue || '-';
+                        }
+                    }
+
+                    input.addEventListener('blur', function() {
+                        saveChange();
+                    });
+
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
+                            e.preventDefault();
+                            input.blur();
+                        }
+                    });
+                });
+            });
+        }
+
+        function attachActualEditableEvents() {
+            const actualCells = document.querySelectorAll('.editable-actual-cell');
+            actualCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    if (cell.querySelector('input')) return;
+
+                    const currentValue = cell.textContent.trim() === '-' ? '' : cell.textContent.trim();
+                    const cellName = cell.getAttribute('data-cell');
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = currentValue;
+                    input.className = 'w-full bg-slate-50 border border-blue-500 rounded px-1.5 py-0.5 text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-blue-500';
+
+                    cell.textContent = '';
+                    cell.appendChild(input);
+                    input.focus();
+                    input.select();
+
+                    let isSaved = false;
+
+                    async function saveChange() {
+                        if (isSaved) return;
+                        isSaved = true;
+
+                        const newValue = input.value.trim();
+                        if (newValue === currentValue) {
+                            cell.textContent = currentValue || '-';
+                            return;
+                        }
+
+                        cell.textContent = newValue || '-';
+
+                        try {
+                            const updateObj = {
+                                Actual: newValue === '' ? null : (!isNaN(newValue) ? Number(newValue) : newValue)
+                            };
+
+                            const { error } = await supabaseClient
+                                .from('tblprod')
+                                .update(updateObj)
+                                .eq('Cell', cellName);
+
+                            if (error) {
+                                console.error('Error al actualizar en Supabase:', error);
+                                alert('Error al actualizar: ' + error.message);
+                                cell.textContent = currentValue || '-';
+                            } else {
+                                const rowTr = cell.closest('tr');
+                                const timeCell = rowTr.querySelector('.time-cell');
+                                const diffCell = rowTr.querySelector('.diff-cell');
+
+                                const curTime = timeCell ? parseFloat(timeCell.textContent) : NaN;
+                                const curActual = !isNaN(newValue) && newValue !== '' ? parseFloat(newValue) : NaN;
+
+                                if (!isNaN(curActual) && !isNaN(curTime)) {
+                                    const diff = curActual - curTime;
+                                    diffCell.textContent = diff;
+                                    diffCell.className = `py-1.5 px-0.5 text-center font-semibold diff-cell ${diff < 0 ? 'text-rose-600' : diff > 0 ? 'text-emerald-600' : 'text-slate-600'}`;
+                                    
+                                    if (diff < 0) {
+                                        rowTr.classList.add('bg-orange-100');
+                                    } else {
+                                        rowTr.classList.remove('bg-orange-100');
+                                    }
+                                } else {
+                                    diffCell.textContent = '-';
+                                    diffCell.className = 'py-1.5 px-0.5 text-center font-semibold diff-cell text-slate-600';
+                                    rowTr.classList.remove('bg-orange-100');
+                                }
+
+                                recalculateMetricsFromDOM();
+                            }
+                        } catch (err) {
+                            console.error('Excepción al actualizar:', err);
+                            cell.textContent = currentValue || '-';
+                        }
+                    }
+
+                    input.addEventListener('blur', function() {
+                        saveChange();
+                    });
+
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
+                            e.preventDefault();
+                            input.blur();
+                        }
+                    });
+                });
+            });
+        }
+
+        // GAUGE RING CHART
+        function initGaugeChart() {
+            const ctx = document.getElementById('gaugeChart').getContext('2d');
+            
+            gaugeChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [112, 0],
+                        backgroundColor: ['#15803d', '#e2e8f0'],
+                        borderWidth: 0,
+                        borderCornerRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    rotation: -90,
+                    circumference: 360,
+                    plugins: {
+                        tooltip: { enabled: false },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
