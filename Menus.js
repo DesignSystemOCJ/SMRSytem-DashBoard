@@ -1,4 +1,3 @@
-// --- CONFIGURACIÓN E INICIALIZACIÓN DE SUPABASE ---
 const SUPABASE_CONFIG = {
   url: "https://mrxtqmvufmlozplszfxc.supabase.co",
   key: "sb_publishable_jlCWFKk3xQnfvcjH1PfywQ_cJqILkk-"
@@ -25,7 +24,8 @@ const menuConfig = [
     label: "RoughCut Summarys",
     subItems: [
       { href: "ManttoIssues.html", icon: "fa-solid fa-screwdriver-wrench", label: "Maintenance Issues" },
-      { href: "PilotBore.html", icon: "fa-solid fa-file-lines", label: "Pilot Bore Report" }
+      { href: "md.html", icon: "fa-solid fa-file-lines", label: "MD Machine" },
+      { href: "tciclo.html", icon: "fa-solid fa-file-lines", label: "TC Rough Cut" }
     ]
   },
   {
