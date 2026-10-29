@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance & Uniformidad | SMRC System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="uploadbu.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header-title">
+        <i class="fa-solid fa-layer-group"></i>
+        <h2>Balance & Uniformidad</h2>
+    </div>
+
+    <div class="cards-grid">
+        <div class="card-option" id="cardBuData">
+            <i class="fa-solid fa-database"></i>
+            <h3>Balance & Uniformidad Data</h3>
+        </div>
+        <div class="card-option" id="cardBuDaily">
+            <i class="fa-solid fa-calendar-day"></i>
+            <h3>Balance & Uniformity Daily</h3>
+        </div>
+    </div>
+
+    <div id="uploadFormContainer" class="hidden-form">
+        <div>
+            <label>Upload CSV file (Data)</label>
+            <div class="drop-zone" id="dropZone">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span id="fileLabel">Drag your CSV file here or click to select it from your files</span>
+                <input type="file" id="csvFileInput" accept=".csv" />
+            </div>
+
+            <label for="pasteTextarea">Or paste your data (CSV / Tabular)</label>
+            <textarea id="pasteTextarea" placeholder="Week,Month,Date,...&#10;1,January,2026-01-01,..."></textarea>
+        </div>
+        
+        <button class="neo-btn" id="enviarBtn">
+            <i class="fa-solid fa-paper-plane"></i> Submit Data
+        </button>
+
+        <div id="mensajeEstado"></div>
+    </div>
+
+    <div id="uploadDailyFormContainer" class="hidden-form">
+        <div>
+            <label>Upload CSV file (Daily)</label>
+            <div class="drop-zone" id="dropZoneDaily">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span id="fileLabelDaily">Drag your CSV file here or click to select it from your files</span>
+                <input type="file" id="csvFileDailyInput" accept=".csv" />
+            </div>
+
+            <label for="pasteDailyTextarea">Or paste your data (Week, Month, Date, Qty, Prod, Percent, Goal)</label>
+            <textarea id="pasteDailyTextarea" placeholder="Week,Month,Date,Qty,Prod,Percent,Goal&#10;1,January,2026-01-01,100,ProdA,95,98"></textarea>
+        </div>
+        
+        <button class="neo-btn" id="enviarDailyBtn">
+            <i class="fa-solid fa-paper-plane"></i> Submit Daily Data
+        </button>
+
+        <div id="mensajeEstadoDaily"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="uploadbu.js"></script>
+
+</body>
+</html>
