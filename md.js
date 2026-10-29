@@ -379,7 +379,7 @@ async function downloadStyledExcel(dataArray, filename = "Maintenance_Report.xls
 
 function handleDataClick() {
     if (sessionActiveUser) {
-        document.getElementById("dataIframe").src = "uploadmtto.html";
+        document.getElementById("dataIframe").src = "uploadmd.html";
         setModalDisplay("dataModal", "flex");
     } else {
         alert('You must log in to access this option.');
