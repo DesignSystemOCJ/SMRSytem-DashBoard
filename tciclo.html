@@ -86,6 +86,12 @@
             box-shadow: 0 0 0 2px #2563eb !important;
         }
 
+        /* Estilo optimizado y rápido para la selección de filas en Historial de Modelos */
+        .history-row-selected td {
+            background-color: #dbeafe !important;
+            font-weight: 700 !important;
+        }
+
         .live-pulse {
             animation: pulse-ring 1.8s infinite ease-out;
         }
@@ -514,7 +520,7 @@
             let tbodyHTML = '';
 
             cellList.forEach(cell => {
-                tbodyHTML += `<tr>`;
+                tbodyHTML += `<tr class="hover:bg-slate-50 transition-colors cursor-pointer">`;
                 tbodyHTML += `<td class="py-1.5 px-2 font-bold text-slate-800 sticky left-0 bg-white z-10 w-[70px]">${cell}</td>`;
 
                 let lastSeenModel = null;
@@ -558,6 +564,24 @@
             });
 
             historyTbody.innerHTML = tbodyHTML;
+            attachHistoryRowEvents();
+        }
+
+        // Función para manejar la selección visual rápida de la fila completa en Historial de Modelos
+        function attachHistoryRowEvents() {
+            const historyTbody = document.getElementById('history-tbody');
+            if (!historyTbody) return;
+
+            const rows = historyTbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                row.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    historyTbody.querySelectorAll('tr.history-row-selected').forEach(r => {
+                        r.classList.remove('history-row-selected');
+                    });
+                    row.classList.add('history-row-selected');
+                });
+            });
         }
 
         function parseAndAverageValue(value) {
