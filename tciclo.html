@@ -798,9 +798,6 @@
                 const { data: regciclo, error: errRegciclo } = await supabaseClient.from('regciclo').select('*');
                 if (errRegciclo) console.warn('Supabase regciclo warning:', errRegciclo.message);
 
-                // =========================================================================
-                // LECTURA DIRECTA DE HORA Y FECHA LITERAL DESDE SUPABASE (UTC)
-                // =========================================================================
                 const tijonaTz = 'America/Tijuana';
                 const hourFormatter = new Intl.DateTimeFormat('en-US', { timeZone: tijonaTz, hour: 'numeric', hour12: false });
                 const minuteFormatter = new Intl.DateTimeFormat('en-US', { timeZone: tijonaTz, minute: 'numeric' });
@@ -816,7 +813,6 @@
                 const year = parts.find(p => p.type === 'year').value;
                 const todayIsoStr = `${year}-${month}-${day}`;
 
-                // Turno Matutino de visibilidad: 6:01 AM (361 min) a 18:00 PM (1080 min)
                 const isCurrentDayShift = (currentTotalMins >= 361 && currentTotalMins <= 1080);
 
                 let targetDateIso = todayIsoStr;
@@ -830,7 +826,6 @@
                     const createdAt = row.created_at ?? row.CreatedAt ?? '';
                     if (!createdAt) return false;
 
-                    // Extraer hora literal del registro de Supabase
                     const timePartFull = createdAt.includes('T') ? createdAt.split('T')[1] : createdAt.split(' ')[1];
                     if (!timePartFull) return false;
 
@@ -842,10 +837,8 @@
                     if (rowDatePart !== targetDateIso) return false;
 
                     if (isCurrentDayShift) {
-                        // Turno Matutino: inyección/visibilidad de 6:01 AM a 18:00 PM
                         return rowMinutes >= 361 && rowMinutes <= 1080;
                     } else {
-                        // Turno Nocturno: inyección/visibilidad de 18:01 PM a 6:00 AM del día siguiente
                         return rowMinutes >= 1081 || rowMinutes <= 360;
                     }
                 });
