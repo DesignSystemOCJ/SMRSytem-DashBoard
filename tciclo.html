@@ -149,7 +149,6 @@
                             <i class="fa-solid fa-table-cells text-blue-600"></i>
                             Matriz de Modelos
                         </h3>
-                        <!-- LISTA DE OPCIONES (SELECT) Y FILTROS -->
                         <div class="flex items-center gap-2">
                             <select id="matrix-view-select" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm focus:outline-none cursor-pointer">
                                 <option value="model-cells" class="bg-white text-slate-800">Model&Cells</option>
@@ -195,7 +194,6 @@
                             </h3>
                         </div>
                         
-                        <!-- CONTROLES DE NAVEGACIÓN DE FECHAS (10 DÍAS POR PÁGINA) -->
                         <div class="flex items-center gap-2">
                             <span id="history-date-range-label" class="text-xs font-mono text-slate-500 font-medium"></span>
                             <button id="history-prev-days-btn" title="Días anteriores" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors">
@@ -212,7 +210,6 @@
                             <thead>
                                 <tr id="history-thead-tr" class="text-[10px] font-mono text-slate-500 uppercase">
                                     <th class="py-1.5 px-2 font-semibold sticky left-0 bg-white z-20 w-[70px]">CELL</th>
-                                    <!-- Fechas dinámicas aquí -->
                                 </tr>
                             </thead>
                             <tbody id="history-tbody" class="text-[11px] font-mono divide-y divide-slate-100">
@@ -237,13 +234,12 @@
         let globalRegcicloData = []; 
         let globalTblprodData = []; 
         let currentModelFilter = ''; 
-        let historyOffsetDays = 0; // Control de paginación de 10 días hacia atrás
+        let historyOffsetDays = 0;
 
         window.addEventListener('DOMContentLoaded', () => {
             initGaugeChart();
             fetchSupabaseData();
 
-            // Escuchar cambios en el filtro de modelos y búsqueda inteligente por teclado
             const modelFilterEl = document.getElementById('matrix-model-filter');
             if (modelFilterEl) {
                 let searchBuffer = '';
@@ -256,7 +252,6 @@
                     }
                 });
 
-                // Permitir digitar progresivamente en el filtro sin alterar su apariencia ni que se escriba texto plano
                 modelFilterEl.addEventListener('keydown', (e) => {
                     if (e.key === 'Backspace') {
                         searchBuffer = searchBuffer.slice(0, -1);
@@ -273,11 +268,7 @@
 
                     if (searchBuffer.trim() !== '') {
                         const options = Array.from(modelFilterEl.options);
-                        
-                        // 1. Buscar coincidencia exacta al inicio del texto
                         let matchedOption = options.find(opt => opt.value.toLowerCase().startsWith(searchBuffer));
-                        
-                        // 2. Si no encuentra, buscar cualquier opción que contenga el texto digitado
                         if (!matchedOption) {
                             matchedOption = options.find(opt => opt.value.toLowerCase().includes(searchBuffer));
                         }
@@ -293,7 +284,6 @@
                 });
             }
 
-            // Escuchar clic en el botón de limpiar filtro
             const clearFilterBtn = document.getElementById('matrix-clear-filter-btn');
             if (clearFilterBtn) {
                 clearFilterBtn.addEventListener('click', () => {
@@ -307,7 +297,6 @@
                 });
             }
 
-            // Lógica para el selector de vistas (Model&Cells / Historial de Modelos)
             const matrixViewSelect = document.getElementById('matrix-view-select');
             const containerMatriz = document.getElementById('container-matriz-modelos');
             const containerHistorial = document.getElementById('container-historial-modelos');
@@ -326,7 +315,6 @@
                 });
             }
 
-            // Botón Volver desde Historial de Modelos
             const backToMatrixBtn = document.getElementById('back-to-matrix-btn');
             if (backToMatrixBtn && containerMatriz && containerHistorial && matrixViewSelect) {
                 backToMatrixBtn.addEventListener('click', () => {
@@ -336,7 +324,6 @@
                 });
             }
 
-            // Navegación de días en Historial
             const prevDaysBtn = document.getElementById('history-prev-days-btn');
             const nextDaysBtn = document.getElementById('history-next-days-btn');
 
@@ -358,16 +345,15 @@
         });
 
         // ================= HISTORIAL DE MODELOS =================
-        const historyCache = {};        // rango de fechas -> { ts, rows }
-        const HISTORY_CACHE_TTL = 60000; // 60 s
-        let historyRenderToken = 0;      // evita que respuestas viejas pisen a las nuevas
+        const historyCache = {};
+        const HISTORY_CACHE_TTL = 60000;
+        let historyRenderToken = 0;
         let historyEventsBound = false;
 
         function escapeHtml(v) {
             return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        // Fecha local YYYY-MM-DD (toISOString usa UTC y puede correr el día)
         function localIsoDate(d) {
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
         }
@@ -375,17 +361,16 @@
         function getHistoryDates() {
             const dates = [];
             const monthsEs = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-            const today = new Date();
+            const today = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Tijuana" }));
             for (let i = 0; i < 10; i++) {
                 const d = new Date(today);
                 d.setDate(today.getDate() - (historyOffsetDays + i));
                 const formatted = String(d.getDate()).padStart(2, '0') + '-' + monthsEs[d.getMonth()] + '-' + String(d.getFullYear()).slice(-2);
                 dates.push({ formatted, iso: localIsoDate(d), dateObj: d });
             }
-            return dates; // [0] = más reciente, [9] = más antiguo
+            return dates;
         }
 
-        // Descarga solo los 10 días visibles (con paginación, Supabase limita a 1000 filas por consulta)
         async function fetchHistoryRows(dates) {
             const from = new Date(dates[dates.length - 1].dateObj);
             from.setDate(from.getDate() - 1);
@@ -413,7 +398,7 @@
                 all = all.concat(data || []);
                 if (!data || data.length < PAGE) break;
                 start += PAGE;
-                if (start >= 50000) break; // tope de seguridad
+                if (start >= 50000) break;
             }
             historyCache[key] = { ts: Date.now(), rows: all };
             return all;
@@ -452,22 +437,20 @@
                 rows = await fetchHistoryRows(dates);
             } catch (err) {
                 console.error('Error al cargar historial desde Supabase:', err);
-                rows = globalRegcicloData || []; // respaldo: lo que ya estaba en memoria
+                rows = globalRegcicloData || [];
             }
 
-            if (token !== historyRenderToken) return; // llegó otro render más nuevo
+            if (token !== historyRenderToken) return;
 
             if (prevDaysBtn) prevDaysBtn.disabled = false;
             if (nextDaysBtn) nextDaysBtn.disabled = (historyOffsetDays === 0);
 
-            // Generar C01 a C36 omitiendo C31 y C32
             const cellList = [];
             for (let i = 1; i <= 36; i++) {
                 if (i === 31 || i === 32) continue;
                 cellList.push('C' + String(i).padStart(2, '0'));
             }
 
-            // Solo se indexan las fechas visibles; se guarda el primer registro por celda/día
             const visibleDates = new Set(dates.map(d => d.iso));
             const firstByCellDate = {};
             rows.forEach(row => {
@@ -488,11 +471,9 @@
             const parts = [];
 
             cellList.forEach(cell => {
-                // Arreglo de tamaño fijo: posición idx = columna idx (0 = más reciente)
                 const rowCells = new Array(dates.length).fill(emptyTd);
                 let lastSeenModel = null;
 
-                // De más antiguo a más reciente para detectar el cambio de modelo
                 for (let idx = dates.length - 1; idx >= 0; idx--) {
                     const rec = firstByCellDate[cell + '|' + dates[idx].iso];
                     if (!rec) continue;
@@ -515,7 +496,6 @@
             bindHistoryRowEvents();
         }
 
-        // Un solo listener (delegación) para seleccionar la fila; se registra una sola vez
         function bindHistoryRowEvents() {
             if (historyEventsBound) return;
             const historyTbody = document.getElementById('history-tbody');
@@ -533,41 +513,28 @@
 
         function parseAndAverageValue(value) {
             if (value === null || value === undefined || value === '') return '-';
-
-            if (typeof value === 'number' && !isNaN(value)) {
-                return Math.round(value);
-            }
+            if (typeof value === 'number' && !isNaN(value)) return Math.round(value);
 
             const strVal = String(value).trim();
             if (strVal === '' || strVal === '-' || strVal.toLowerCase() === 'null' || strVal.toLowerCase() === 'undefined') {
                 return '-';
             }
 
-            // Si es un número puro en formato string, parsear y redondear
-            if (!isNaN(strVal)) {
-                return Math.round(parseFloat(strVal));
-            }
+            if (!isNaN(strVal)) return Math.round(parseFloat(strVal));
 
-            // Si contiene espacio (múltiples entradas concatenadas)
             if (strVal.includes(' ')) {
                 const parts = strVal.split(/\s+/).filter(p => p.trim() !== '');
-                
-                // Verificar si todas las partes son strictly numéricas
                 const allNumbers = parts.every(p => !isNaN(p));
                 if (allNumbers && parts.length > 0) {
                     const nums = parts.map(Number);
-                    const avg = nums.reduce((sum, n) => sum + n, 0) / nums.length;
-                    return Math.round(avg);
+                    return Math.round(nums.reduce((sum, n) => sum + n, 0) / nums.length);
                 }
             }
-
-            // Si la cadena contiene texto alfanumérico (ej. "TPM2", "MANTTO", "SET-UP"), conservarla completa
             return strVal;
         }
 
         function updateGaugeValue(avgActualValue, wphMax) {
             const elGaugeText = document.getElementById('gauge-time-val');
-            
             if (!wphMax || isNaN(wphMax) || wphMax <= 0) {
                 if (elGaugeText) elGaugeText.textContent = '-';
                 if (gaugeChartInstance) {
@@ -582,7 +549,6 @@
             if (gaugeChartInstance) {
                 const currentVal = Math.min(avgActualValue, wphMax);
                 const remainingVal = Math.max(0, wphMax - currentVal);
-
                 gaugeChartInstance.data.datasets[0].data = [currentVal, remainingVal];
                 gaugeChartInstance.update();
             }
@@ -622,18 +588,11 @@
 
                 if (timeCell) {
                     const timeVal = parseFloat(timeCell.textContent);
-                    if (!isNaN(timeVal)) {
-                        totalTime += timeVal;
-                        countTime++;
-                    }
+                    if (!isNaN(timeVal)) { totalTime += timeVal; countTime++; }
                 }
-
                 if (actualCell) {
                     const actualVal = parseFloat(actualCell.textContent);
-                    if (!isNaN(actualVal)) {
-                        totalActual += actualVal;
-                        countActual++;
-                    }
+                    if (!isNaN(actualVal)) { totalActual += actualVal; countActual++; }
                 }
             });
 
@@ -641,9 +600,7 @@
             const avgActual = countActual > 0 ? totalActual / countActual : 0;
 
             const elPromedioActual = document.getElementById('promedio-time-val');
-            if (elPromedioActual) {
-                elPromedioActual.textContent = Math.round(avgActual);
-            }
+            if (elPromedioActual) elPromedioActual.textContent = Math.round(avgActual);
 
             updateTargetVsActualPercentage(avgTarget, avgActual);
 
@@ -653,17 +610,13 @@
                 const produccionCalculada = (promedioTargetExacto * 30 * 24 * 0.85) / 2;
                 
                 const elProduction = document.getElementById('production-val');
-                if (elProduction) {
-                    elProduction.textContent = Math.round(produccionCalculada).toLocaleString('en-US');
-                }
+                if (elProduction) elProduction.textContent = Math.round(produccionCalculada).toLocaleString('en-US');
 
                 updateGaugeValue(avgActual, promedioTime);
             } else {
                 updateGaugeValue(0, 0);
                 const elProduction = document.getElementById('production-val');
-                if (elProduction) {
-                    elProduction.textContent = '-';
-                }
+                if (elProduction) elProduction.textContent = '-';
             }
         }
 
@@ -687,7 +640,6 @@
                 return;
             }
 
-            // 1. Extraer modelos sin duplicados y mapear sus datos activos directamente de Producción Actual
             globalTblprodData.forEach(row => {
                 const modelVal = String(row.Model ?? row.model ?? row.MODEL ?? '').trim();
                 const cellVal = String(row.Cell ?? row.cell ?? row.CELL ?? '').trim();
@@ -695,7 +647,6 @@
 
                 if (modelVal !== '' && modelVal !== '-' && modelVal !== 'null' && modelVal !== 'undefined') {
                     modelsSet.add(modelVal);
-
                     if (cellVal && cellVal !== '-' && cellVal !== 'null' && cellVal !== 'undefined') {
                         cellsSet.add(cellVal);
                         if (!matrixMap[modelVal]) matrixMap[modelVal] = {};
@@ -754,7 +705,6 @@
                         ? (modelosMap[model].Size ?? modelosMap[model].size) 
                         : '-';
 
-                    // Obtener el WPH (TIME) correspondiente al modelo desde modelosMap o la tabla Producción Actual
                     let wphVal = (modelosMap[model] && (modelosMap[model].wph !== undefined)) ? modelosMap[model].wph : '-';
                     if (wphVal === '-' && globalTblprodData) {
                         const foundProdRow = globalTblprodData.find(r => String(r.Model ?? r.model ?? r.MODEL ?? '').trim().toLowerCase() === model.toLowerCase());
@@ -776,16 +726,13 @@
 
                     cells.forEach((cell, colIdx) => {
                         const rawCellData = (matrixMap[model] && matrixMap[model][cell]) ? matrixMap[model][cell] : '';
-                        
                         let displayVal = '-';
                         if (Array.isArray(rawCellData)) {
-                            const joinedData = rawCellData.join(' ');
-                            displayVal = parseAndAverageValue(joinedData);
+                            displayVal = parseAndAverageValue(rawCellData.join(' '));
                         } else if (rawCellData !== '' && rawCellData !== null) {
                             displayVal = parseAndAverageValue(rawCellData);
                         }
 
-                        // Comparar si el dato es menor que WPH para aplicar color rosa / rojo claro
                         let cellBgClass = 'bg-slate-100';
                         const numDisplay = parseFloat(displayVal);
                         const numWph = parseFloat(wphVal);
@@ -795,12 +742,10 @@
 
                         tbodyHTML += `<td data-col-index="${colIdx}" class="text-center p-1 rounded-md ${cellBgClass} text-slate-800 font-bold matrix-cell text-[10px] cursor-pointer">${displayVal}</td>`;
                     });
-
                     tbodyHTML += `</tr>`;
                 });
             }
             tbody.innerHTML = tbodyHTML;
-
             attachMatrixHighlightEvents();
         }
 
@@ -808,12 +753,9 @@
             const matrixTbody = document.getElementById('matrix-tbody');
             if (!matrixTbody) return;
 
-            const cells = matrixTbody.querySelectorAll('td[data-col-index]');
-
-            cells.forEach(cell => {
+            matrixTbody.querySelectorAll('td[data-col-index]').forEach(cell => {
                 cell.addEventListener('click', function(e) {
                     e.stopPropagation();
-
                     document.querySelectorAll('.matrix-cross-highlight').forEach(el => el.classList.remove('matrix-cross-highlight'));
                     document.querySelectorAll('.matrix-cell-selected').forEach(el => el.classList.remove('matrix-cell-selected'));
 
@@ -821,14 +763,11 @@
                     const colIndex = this.getAttribute('data-col-index');
 
                     selectedRow.querySelectorAll('td').forEach((td, index) => {
-                        if (index > 2) {
-                            td.classList.add('matrix-cross-highlight');
-                        }
+                        if (index > 2) td.classList.add('matrix-cross-highlight');
                     });
 
                     if (colIndex !== null) {
-                        const allColCells = matrixTbody.querySelectorAll(`td[data-col-index="${colIndex}"]`);
-                        allColCells.forEach(td => td.classList.add('matrix-cross-highlight'));
+                        matrixTbody.querySelectorAll(`td[data-col-index="${colIndex}"]`).forEach(td => td.classList.add('matrix-cross-highlight'));
                     }
 
                     this.classList.remove('matrix-cross-highlight');
@@ -839,98 +778,88 @@
 
         async function fetchSupabaseData() {
             try {
-                const { data: modelos, error: errModelos } = await supabaseClient
-                    .from('Modelos')
-                    .select('*');
-
-                if (errModelos) {
-                    console.warn('Información de Supabase (Modelos):', errModelos.message);
-                } else {
-                    globalModelos = modelos || [];
-                }
+                const { data: modelos, error: errModelos } = await supabaseClient.from('Modelos').select('*');
+                if (!errModelos) globalModelos = modelos || [];
 
                 modelosMap = {};
                 if (modelos) {
                     modelos.forEach(m => {
                         const modKey = String(m.Models ?? m.models ?? m.MODEL ?? '').trim();
-                        const wphVal = m.WPH ?? m.wph ?? m.Wph;
-                        const sizeVal = m.Size ?? m.size ?? m.SIZE;
-                        const updateVal = m.Update ?? m.update ?? m.UPDATE;
                         if (modKey) {
                             modelosMap[modKey] = {
-                                wph: wphVal,
-                                size: sizeVal,
-                                update: updateVal
+                                wph: m.WPH ?? m.wph ?? m.Wph,
+                                size: m.Size ?? m.size ?? m.SIZE,
+                                update: m.Update ?? m.update ?? m.UPDATE
                             };
                         }
                     });
                 }
 
-                const { data: regciclo, error: errRegciclo } = await supabaseClient
-                    .from('regciclo')
-                    .select('*');
+                const { data: regciclo, error: errRegciclo } = await supabaseClient.from('regciclo').select('*');
+                if (errRegciclo) console.warn('Supabase regciclo warning:', errRegciclo.message);
 
-                if (errRegciclo) {
-                    console.warn('Información de Supabase (regciclo):', errRegciclo.message);
+                // =========================================================================
+                // LECTURA DIRECTA DE HORA Y FECHA LITERAL DESDE SUPABASE (UTC)
+                // =========================================================================
+                const tijonaTz = 'America/Tijuana';
+                const hourFormatter = new Intl.DateTimeFormat('en-US', { timeZone: tijonaTz, hour: 'numeric', hour12: false });
+                const minuteFormatter = new Intl.DateTimeFormat('en-US', { timeZone: tijonaTz, minute: 'numeric' });
+                const dateFormatter = new Intl.DateTimeFormat('en-US', { timeZone: tijonaTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+
+                const currentHour = parseInt(hourFormatter.format(new Date()), 10);
+                const currentMinute = parseInt(minuteFormatter.format(new Date()), 10);
+                const currentTotalMins = currentHour * 60 + currentMinute;
+
+                const parts = dateFormatter.formatToParts(new Date());
+                const month = parts.find(p => p.type === 'month').value;
+                const day = parts.find(p => p.type === 'day').value;
+                const year = parts.find(p => p.type === 'year').value;
+                const todayIsoStr = `${year}-${month}-${day}`;
+
+                // Turno Matutino de visibilidad: 6:01 AM (361 min) a 18:00 PM (1080 min)
+                const isCurrentDayShift = (currentTotalMins >= 361 && currentTotalMins <= 1080);
+
+                let targetDateIso = todayIsoStr;
+                if (!isCurrentDayShift && currentHour < 6) {
+                    const prevDay = new Date(todayIsoStr + 'T00:00:00');
+                    prevDay.setDate(prevDay.getDate() - 1);
+                    targetDateIso = localIsoDate(prevDay);
                 }
-
-                const now = new Date();
-                const currentHour = now.getHours();
-                const currentMinute = now.getMinutes();
-                const totalMinutes = currentHour * 60 + currentMinute;
-
-                const isDayShift = (totalMinutes >= 361 && totalMinutes <= 1080);
-
-                let startDate = new Date();
-                if (!isDayShift && currentHour < 6) {
-                    startDate.setDate(startDate.getDate() - 1);
-                }
-                const startDateIso = startDate.toISOString().split('T')[0];
-
-                let endDate = new Date(startDate);
-                if (!isDayShift) {
-                    endDate.setDate(endDate.getDate() + 1);
-                }
-                const endDateIso = endDate.toISOString().split('T')[0];
 
                 const filteredRegciclo = (regciclo || []).filter(row => {
                     const createdAt = row.created_at ?? row.CreatedAt ?? '';
                     if (!createdAt) return false;
 
-                    const [datePart, timePartFull] = createdAt.includes('T') ? createdAt.split('T') : [createdAt.split(' ')[0], createdAt.split(' ')[1]];
-                    if (!datePart || !timePartFull) return false;
+                    // Extraer hora literal del registro de Supabase
+                    const timePartFull = createdAt.includes('T') ? createdAt.split('T')[1] : createdAt.split(' ')[1];
+                    if (!timePartFull) return false;
 
-                    const timePart = timePartFull.split('.')[0];
-                    const [hStr, mStr] = timePart.split(':');
+                    const timeClean = timePartFull.split('+')[0].split('Z')[0];
+                    const [hStr, mStr] = timeClean.split(':');
                     const rowMinutes = parseInt(hStr || 0) * 60 + parseInt(mStr || 0);
 
-                    if (isDayShift) {
-                        return datePart === startDateIso && rowMinutes >= 361 && rowMinutes <= 1080;
+                    const rowDatePart = createdAt.split('T')[0].split(' ')[0];
+                    if (rowDatePart !== targetDateIso) return false;
+
+                    if (isCurrentDayShift) {
+                        // Turno Matutino: inyección/visibilidad de 6:01 AM a 18:00 PM
+                        return rowMinutes >= 361 && rowMinutes <= 1080;
                     } else {
-                        if (datePart === startDateIso && rowMinutes >= 1081) {
-                            return true;
-                        }
-                        if (datePart === endDateIso && rowMinutes <= 360) {
-                            return true;
-                        }
-                        return false;
+                        // Turno Nocturno: inyección/visibilidad de 18:01 PM a 6:00 AM del día siguiente
+                        return rowMinutes >= 1081 || rowMinutes <= 360;
                     }
                 });
 
                 let shiftValue = '';
                 if (filteredRegciclo.length > 0) {
                     const shifts = filteredRegciclo.map(r => r.Shift ?? r.shift ?? r.SHIFT).filter(Boolean);
-                    if (shifts.length > 0) {
-                        shiftValue = shifts[0];
-                    }
+                    if (shifts.length > 0) shiftValue = shifts[0];
                 }
 
                 const fechaActualEl = document.getElementById('fecha-actual-prod');
                 if (fechaActualEl) {
-                    const dia = String(startDate.getDate()).padStart(2, '0');
-                    const mes = String(startDate.getMonth() + 1).padStart(2, '0');
-                    const anio = startDate.getFullYear();
-                    fechaActualEl.textContent = `${dia}/${mes}/${anio}${shiftValue ? ' - Shift: ' + shiftValue : ''}`;
+                    const [y, m, d] = targetDateIso.split('-');
+                    fechaActualEl.textContent = `${d}/${m}/${y}${shiftValue ? ' - Shift: ' + shiftValue : ''}`;
                 }
 
                 filteredRegciclo.sort((a, b) => {
@@ -956,28 +885,19 @@
                 const tbody = document.getElementById('tblprod-tbody');
                 
                 if (errRegciclo) {
-                    console.error('Error al obtener regciclo:', errRegciclo);
                     tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-500 text-[11px]">Error al cargar datos</td></tr>`;
                 } else if (globalTblprodData.length > 0) {
                     const uniqueModels = new Set();
                     globalTblprodData.forEach(r => {
                         const mVal = String(r.Model ?? r.model ?? r.MODEL ?? '').trim();
-                        if (mVal !== '' && mVal !== '-') {
-                            uniqueModels.add(mVal);
-                        }
+                        if (mVal !== '' && mVal !== '-') uniqueModels.add(mVal);
                     });
                     
                     const elActiveModels = document.getElementById('active-models-count');
-                    if (elActiveModels) {
-                        elActiveModels.textContent = uniqueModels.size;
-                    }
+                    if (elActiveModels) elActiveModels.textContent = uniqueModels.size;
 
                     tbody.innerHTML = '';
-
-                    let totalTime = 0;
-                    let countTime = 0;
-                    let totalActual = 0;
-                    let countActual = 0;
+                    let totalTime = 0, countTime = 0, totalActual = 0, countActual = 0;
 
                     globalTblprodData.forEach(row => {
                         const cellVal = row.Cell ?? row.cell ?? '-';
@@ -989,15 +909,11 @@
                         const trimmedModel = String(modelVal).trim();
                         
                         if (trimmedModel !== '' && globalModelos && globalModelos.length > 0) {
-                            const matchedModelo = globalModelos.find(m => {
-                                const mName = String(m.Models ?? m.models ?? m.MODEL ?? '').trim();
-                                return mName.toLowerCase() === trimmedModel.toLowerCase();
-                            });
+                            const matchedModelo = globalModelos.find(m => String(m.Models ?? m.models ?? m.MODEL ?? '').trim().toLowerCase() === trimmedModel.toLowerCase());
                             if (matchedModelo) {
                                 timeVal = matchedModelo.WPH ?? matchedModelo.wph ?? matchedModelo.Wph ?? '';
                                 const updateVal = matchedModelo.Update ?? matchedModelo.update ?? matchedModelo.UPDATE;
-                                const isTrue = updateVal === true || String(updateVal).toLowerCase() === 'true';
-                                if (isTrue) {
+                                if (updateVal === true || String(updateVal).toLowerCase() === 'true') {
                                     updateBoxHTML = `<span class="inline-block w-1.5 h-3 bg-blue-500 rounded-[1px] flex-shrink-0" title="Update: TRUE"></span>`;
                                 }
                             }
@@ -1022,7 +938,6 @@
 
                         let indicatorHTML = '';
                         const actualStr = String(actualVal).trim().toUpperCase();
-                        
                         if (actualStr === 'MANTTO') {
                             indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm" title="Mantto"></span>`;
                         } else if (actualStr === 'TPM2' || actualStr === 'TPM') {
@@ -1036,14 +951,11 @@
                         }
 
                         const tr = document.createElement('tr');
-                        if (!isNaN(diffVal) && diffVal !== '-' && Number(diffVal) < 0) {
-                            tr.className = 'bg-orange-100';
-                        }
+                        if (!isNaN(diffVal) && diffVal !== '-' && Number(diffVal) < 0) tr.className = 'bg-orange-100';
 
                         tr.innerHTML = `
                             <td class="py-1.5 px-0.5 font-bold text-slate-800 text-center flex items-center justify-center gap-1.5">
-                                ${indicatorHTML}
-                                ${cellVal}
+                                ${indicatorHTML} ${cellVal}
                             </td>
                             <td class="py-1.5 px-0.5 text-slate-600 font-medium text-center cursor-pointer hover:bg-slate-50 transition-colors editable-model-cell model-cell truncate max-w-[80px]" data-cell="${cellVal}" data-id="${recordId}" title="Haz clic para editar">
                                 <div class="flex items-center justify-center gap-1.5">
@@ -1061,31 +973,24 @@
                     let promedioActualExacto = 0;
                     if (countActual > 0) {
                         promedioActualExacto = totalActual / countActual;
-                        const promedioActualNum = Math.round(promedioActualExacto);
                         const elPromedio = document.getElementById('promedio-time-val');
-                        if (elPromedio) elPromedio.textContent = promedioActualNum;
+                        if (elPromedio) elPromedio.textContent = Math.round(promedioActualExacto);
                     }
 
                     if (countTime > 0) {
                         const promedioTargetExacto = totalTime / countTime;
                         const promedioTime = Math.round(promedioTargetExacto);
-
                         updateTargetVsActualPercentage(promedioTargetExacto, promedioActualExacto);
-                        
                         const produccionCalculada = (promedioTargetExacto * 30 * 24 * 0.85) / 2;
                         
                         const elProduction = document.getElementById('production-val');
-                        if (elProduction) {
-                            elProduction.textContent = Math.round(produccionCalculada).toLocaleString('en-US');
-                        }
+                        if (elProduction) elProduction.textContent = Math.round(produccionCalculada).toLocaleString('en-US');
 
                         updateGaugeValue(promedioActualExacto, promedioTime);
                     } else {
                         updateGaugeValue(0, 0);
                         const elProduction = document.getElementById('production-val');
-                        if (elProduction) {
-                            elProduction.textContent = '-';
-                        }
+                        if (elProduction) elProduction.textContent = '-';
                     }
 
                     attachModelEditableEvents();
@@ -1099,7 +1004,6 @@
 
                 if (regciclo) {
                     renderMatrixFromRegciclo(regciclo);
-
                     const modelFilter = document.getElementById('matrix-model-filter');
                     if (modelFilter) {
                         const uniqueRegcicloModels = new Set();
@@ -1115,9 +1019,7 @@
                         const sortedModels = Array.from(uniqueRegcicloModels).sort((a, b) => {
                             const numA = parseFloat(a.replace(/[^\d.]/g, ''));
                             const numB = parseFloat(b.replace(/[^\d.]/g, ''));
-                            if (!isNaN(numA) && !isNaN(numB)) {
-                                if (numA !== numB) return numA - numB;
-                            }
+                            if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numA - numB;
                             return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
                         });
 
@@ -1132,16 +1034,14 @@
             } catch (error) {
                 console.error('Error de red o excepción al conectar con Supabase:', error);
                 const tbody = document.getElementById('tblprod-tbody');
-                if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-500">Error de conexión / Red</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-500">Error de conexión / Red</td></tr>`;
             }
         }
 
         function attachModelEditableEvents() {
-            const modelCells = document.querySelectorAll('.editable-model-cell');
-            modelCells.forEach(cell => {
+            document.querySelectorAll('.editable-model-cell').forEach(cell => {
                 cell.addEventListener('click', function handler(e) {
                     if (cell.querySelector('input')) return;
-
                     const modelTextSpan = cell.querySelector('.model-text') || cell;
                     const currentValue = modelTextSpan.textContent.trim() === '-' ? '' : modelTextSpan.textContent.trim();
                     const cellName = cell.getAttribute('data-cell');
@@ -1158,39 +1058,22 @@
                     input.select();
 
                     let isSaved = false;
-
                     async function saveChange(nextElementToFocus = null) {
                         if (isSaved) return;
                         isSaved = true;
-
                         const newValue = input.value.trim();
 
                         try {
-                            const updateObj = {
-                                Model: newValue === '' ? null : newValue
-                            };
-
+                            const updateObj = { Model: newValue === '' ? null : newValue };
                             let query = supabaseClient.from('regciclo').update(updateObj);
-                            if (recordId) {
-                                query = query.eq('id', recordId);
-                            } else {
-                                query = query.eq('Cell', cellName);
-                            }
+                            if (recordId) query = query.eq('id', recordId);
+                            else query = query.eq('Cell', cellName);
 
                             const { data, error } = await query;
-
                             if (error) {
-                                console.error('Error al actualizar Model en Supabase:', error);
                                 alert('Error al actualizar: ' + error.message);
-                                const fallbackBox = `<span class="inline-block w-1.5 h-3 rounded-[1px] flex-shrink-0"></span>`;
-                                cell.innerHTML = `
-                                    <div class="flex items-center justify-center gap-1.5">
-                                        ${fallbackBox}
-                                        <span class="model-text truncate">${currentValue || '-'}</span>
-                                    </div>
-                                `;
+                                cell.innerHTML = `<div class="flex items-center justify-center gap-1.5"><span class="model-text truncate">${currentValue || '-'}</span></div>`;
                             } else {
-                                console.log('Actualización de Model exitosa en regciclo:', data);
                                 const rowTr = cell.closest('tr');
                                 const timeCell = rowTr.querySelector('.time-cell');
                                 const actualCell = rowTr.querySelector('.actual-cell');
@@ -1199,30 +1082,18 @@
                                 let newTime = '';
                                 let newUpdateBoxHTML = `<span class="inline-block w-1.5 h-3 rounded-[1px] flex-shrink-0"></span>`;
                                 if (newValue !== '' && globalModelos && globalModelos.length > 0) {
-                                    const matchedModelo = globalModelos.find(m => {
-                                        const mName = String(m.Models ?? m.models ?? m.MODEL ?? '').trim();
-                                        return mName.toLowerCase() === newValue.toLowerCase();
-                                    });
+                                    const matchedModelo = globalModelos.find(m => String(m.Models ?? m.models ?? m.MODEL ?? '').trim().toLowerCase() === newValue.toLowerCase());
                                     if (matchedModelo) {
                                         newTime = matchedModelo.WPH ?? matchedModelo.wph ?? matchedModelo.Wph ?? '';
                                         const updateVal = matchedModelo.Update ?? matchedModelo.update ?? matchedModelo.UPDATE;
-                                        const isTrue = updateVal === true || String(updateVal).toLowerCase() === 'true';
-                                        if (isTrue) {
+                                        if (updateVal === true || String(updateVal).toLowerCase() === 'true') {
                                             newUpdateBoxHTML = `<span class="inline-block w-1.5 h-3 bg-blue-500 rounded-[1px] flex-shrink-0" title="Update: TRUE"></span>`;
                                         }
                                     }
                                 }
 
-                                cell.innerHTML = `
-                                    <div class="flex items-center justify-center gap-1.5">
-                                        ${newUpdateBoxHTML}
-                                        <span class="model-text truncate">${newValue !== '' ? newValue : '-'}</span>
-                                    </div>
-                                `;
-
-                                if (timeCell) {
-                                    timeCell.textContent = newTime !== '' ? newTime : '-';
-                                }
+                                cell.innerHTML = `<div class="flex items-center justify-center gap-1.5">${newUpdateBoxHTML}<span class="model-text truncate">${newValue !== '' ? newValue : '-'}</span></div>`;
+                                if (timeCell) timeCell.textContent = newTime !== '' ? newTime : '-';
 
                                 const curTime = parseFloat(newTime);
                                 const curActual = actualCell ? parseFloat(actualCell.textContent) : NaN;
@@ -1231,52 +1102,31 @@
                                     const diff = curActual - curTime;
                                     diffCell.textContent = diff;
                                     diffCell.className = `py-1.5 px-0.5 text-center font-semibold diff-cell ${diff < 0 ? 'text-rose-600' : diff > 0 ? 'text-emerald-600' : 'text-slate-600'}`;
-                                    if (diff < 0) {
-                                        rowTr.classList.add('bg-orange-100');
-                                    } else {
-                                        rowTr.classList.remove('bg-orange-100');
-                                    }
+                                    if (diff < 0) rowTr.classList.add('bg-orange-100');
+                                    else rowTr.classList.remove('bg-orange-100');
                                 } else {
                                     diffCell.textContent = '-';
                                     diffCell.className = 'py-1.5 px-0.5 text-center font-semibold diff-cell text-slate-600';
                                     rowTr.classList.remove('bg-orange-100');
                                 }
-
                                 recalculateMetricsFromDOM();
                             }
                             attachModelEditableEvents();
-                            if (nextElementToFocus) {
-                                nextElementToFocus.click();
-                            }
+                            if (nextElementToFocus) nextElementToFocus.click();
                         } catch (err) {
-                            console.error('Excepción al actualizar Model:', err);
-                            const fallbackBox = `<span class="inline-block w-1.5 h-3 rounded-[1px] flex-shrink-0"></span>`;
-                            cell.innerHTML = `
-                                <div class="flex items-center justify-center gap-1.5">
-                                    ${fallbackBox}
-                                    <span class="model-text truncate">${currentValue || '-'}</span>
-                                </div>
-                            `;
+                            cell.innerHTML = `<div class="flex items-center justify-center gap-1.5"><span class="model-text truncate">${currentValue || '-'}</span></div>`;
                             attachModelEditableEvents();
                         }
                     }
 
-                    input.addEventListener('blur', function() {
-                        saveChange();
-                    });
-
-                    input.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
+                    input.addEventListener('blur', () => saveChange());
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+                        else if (e.key === 'Tab') {
                             e.preventDefault();
+                            const nextCell = cell.closest('tr').querySelector('.editable-actual-cell');
                             input.blur();
-                        } else if (e.key === 'Tab') {
-                            e.preventDefault();
-                            const rowTr = cell.closest('tr');
-                            const nextCell = rowTr.querySelector('.editable-actual-cell');
-                            input.blur();
-                            if (nextCell) {
-                                nextCell.click();
-                            }
+                            if (nextCell) nextCell.click();
                         }
                     });
                 });
@@ -1284,11 +1134,9 @@
         }
 
         function attachActualEditableEvents() {
-            const actualCells = document.querySelectorAll('.editable-actual-cell');
-            actualCells.forEach(cell => {
+            document.querySelectorAll('.editable-actual-cell').forEach(cell => {
                 cell.addEventListener('click', function handler(e) {
                     if (cell.querySelector('input')) return;
-
                     const currentValue = cell.textContent.trim() === '-' ? '' : cell.textContent.trim();
                     const cellName = cell.getAttribute('data-cell');
                     const recordId = cell.getAttribute('data-id');
@@ -1304,11 +1152,9 @@
                     input.select();
 
                     let isSaved = false;
-
                     async function saveChange() {
                         if (isSaved) return;
                         isSaved = true;
-
                         const newValue = input.value.trim();
                         if (newValue === currentValue) {
                             cell.textContent = currentValue || '-';
@@ -1317,28 +1163,17 @@
                         }
 
                         cell.textContent = newValue || '-';
-
                         try {
-                            // Usar el nombre exacto de la columna en Supabase: Target_Actual
-                            const updateObj = {
-                                Target_Actual: newValue === '' ? null : (!isNaN(newValue) ? Number(newValue) : newValue)
-                            };
-
+                            const updateObj = { Target_Actual: newValue === '' ? null : (!isNaN(newValue) ? Number(newValue) : newValue) };
                             let query = supabaseClient.from('regciclo').update(updateObj);
-                            if (recordId) {
-                                query = query.eq('id', recordId);
-                            } else {
-                                query = query.eq('Cell', cellName);
-                            }
+                            if (recordId) query = query.eq('id', recordId);
+                            else query = query.eq('Cell', cellName);
 
-                            const { data, error } = await query;
-
+                            const { error } = await query;
                             if (error) {
-                                console.error('Error al actualizar Actual en Supabase:', error);
                                 alert('Error al actualizar: ' + error.message);
                                 cell.textContent = currentValue || '-';
                             } else {
-                                console.log('Actualización de Actual exitosa en regciclo:', data);
                                 const rowTr = cell.closest('tr');
                                 const timeCell = rowTr.querySelector('.time-cell');
                                 const diffCell = rowTr.querySelector('.diff-cell');
@@ -1349,56 +1184,38 @@
 
                                 const actualStr = String(newValue).trim().toUpperCase();
                                 let indicatorHTML = '';
-                                if (actualStr === 'MANTTO') {
-                                    indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm" title="Mantto"></span>`;
-                                } else if (actualStr === 'PM' || actualStr === 'P.M.') {
-                                    indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm" title="P.M."></span>`;
-                                } else if (actualStr === 'SET-UP' || actualStr === 'SETUP') {
-                                    indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm" title="SET-UP"></span>`;
-                                } else if (newValue !== '' && newValue !== null && newValue !== '-' && !isNaN(newValue) && Number(newValue) > 0) {
-                                    indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm animate-blink-dot" title="Running"></span>`;
-                                } else {
-                                    indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300 shadow-sm" title="Inactivo"></span>`;
-                                }
-                                if (cellTd) {
-                                    cellTd.innerHTML = `${indicatorHTML} ${cellName}`;
-                                }
+                                if (actualStr === 'MANTTO') indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm" title="Mantto"></span>`;
+                                else if (actualStr === 'PM' || actualStr === 'P.M.') indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm" title="P.M."></span>`;
+                                else if (actualStr === 'SET-UP' || actualStr === 'SETUP') indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm" title="SET-UP"></span>`;
+                                else if (newValue !== '' && !isNaN(newValue) && Number(newValue) > 0) indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm animate-blink-dot" title="Running"></span>`;
+                                else indicatorHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300 shadow-sm" title="Inactivo"></span>`;
+
+                                if (cellTd) cellTd.innerHTML = `${indicatorHTML} ${cellName}`;
 
                                 if (!isNaN(curActual) && !isNaN(curTime)) {
                                     const diff = curActual - curTime;
                                     diffCell.textContent = diff;
                                     diffCell.className = `py-1.5 px-0.5 text-center font-semibold diff-cell ${diff < 0 ? 'text-rose-600' : diff > 0 ? 'text-emerald-600' : 'text-slate-600'}`;
-                                    
-                                    if (diff < 0) {
-                                        rowTr.classList.add('bg-orange-100');
-                                    } else {
-                                        rowTr.classList.remove('bg-orange-100');
-                                    }
+                                    if (diff < 0) rowTr.classList.add('bg-orange-100');
+                                    else rowTr.classList.remove('bg-orange-100');
                                 } else {
                                     diffCell.textContent = '-';
                                     diffCell.className = 'py-1.5 px-0.5 text-center font-semibold diff-cell text-slate-600';
                                     rowTr.classList.remove('bg-orange-100');
                                 }
-
                                 recalculateMetricsFromDOM();
                             }
                             attachActualEditableEvents();
                         } catch (err) {
-                            console.error('Excepción al actualizar Actual:', err);
                             cell.textContent = currentValue || '-';
                             attachActualEditableEvents();
                         }
                     }
 
-                    input.addEventListener('blur', function() {
-                        saveChange();
-                    });
-
-                    input.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            input.blur();
-                        } else if (e.key === 'Tab') {
+                    input.addEventListener('blur', () => saveChange());
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+                        else if (e.key === 'Tab') {
                             e.preventDefault();
                             input.blur();
                             const nextRow = cell.closest('tr').nextElementSibling;
@@ -1414,15 +1231,13 @@
 
         function initGaugeChart() {
             const ctx = document.getElementById('gaugeChart').getContext('2d');
-            
             gaugeChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     datasets: [{
                         data: [0, 100],
                         backgroundColor: ['#15803d', '#e2e8f0'],
-                        borderWidth: 0,
-                        borderCornerRadius: 6
+                        borderWidth: 0
                     }]
                 },
                 options: {
@@ -1431,10 +1246,7 @@
                     cutout: '80%',
                     rotation: -90,
                     circumference: 360,
-                    plugins: {
-                        tooltip: { enabled: false },
-                        legend: { display: false }
-                    }
+                    plugins: { tooltip: { enabled: false }, legend: { display: false } }
                 }
             });
         }
