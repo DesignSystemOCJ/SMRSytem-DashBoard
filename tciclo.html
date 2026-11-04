@@ -346,7 +346,7 @@
             }
         });
 
-        // ================= HISTORIAL DE MODELOS =================
+        // ================= HISTORIAL DE MODELOS (OPTIMIZADO) =================
         const historyCache = {};
         const HISTORY_CACHE_TTL = 60000;
         let historyRenderToken = 0;
@@ -386,13 +386,13 @@
             if (cached && (Date.now() - cached.ts) < HISTORY_CACHE_TTL) return cached.rows;
 
             const PAGE = 1000;
-            const MAX_PAGES = 12;          // tope de seguridad (antes hasta 50 consultas seguidas)
-            const REQUEST_TIMEOUT = 12000; // 12 s por consulta, evita que la página quede "colgada"
+            const MAX_PAGES = 5;          // Límite de seguridad ajustado para evitar congelamiento
+            const REQUEST_TIMEOUT = 8000; // 8 segundos de límite por petición
             let all = [];
             let start = 0;
             let pages = 0;
+            
             while (pages < MAX_PAGES) {
-                // Si el usuario ya cambió de vista/rango, cancelar esta carga
                 if (token !== undefined && token !== historyRenderToken) return all;
 
                 const controller = new AbortController();
@@ -407,16 +407,27 @@
                         .order('created_at', { ascending: true })
                         .range(start, start + PAGE - 1)
                         .abortSignal(controller.signal);
+                } catch (err) {
+                    console.warn('Petición de historial detenida o agotada por tiempo:', err);
+                    break;
                 } finally {
                     clearTimeout(timer);
                 }
+
                 const { data, error } = res;
-                if (error) throw error;
-                all = all.concat(data || []);
+                if (error) {
+                    console.error('Error en Supabase:', error);
+                    break;
+                }
+
+                if (!data || data.length === 0) break;
+                all = all.concat(data);
                 pages++;
-                if (!data || data.length < PAGE) break;
+
+                if (data.length < PAGE) break;
                 start += PAGE;
             }
+
             historyCache[key] = { ts: Date.now(), rows: all };
             return all;
         }
@@ -1243,8 +1254,6 @@
             const ctx = document.getElementById('gaugeChart').getContext('2d');
             gaugeChartInstance = new Chart(ctx, {
                 type: 'doughnut',
-                // resizeDelay evita bucles de redimensionado que hacen crecer la página
-                // (el tamaño ya lo fija el contenedor de 8rem x 8rem)
                 data: {
                     datasets: [{
                         data: [0, 100],
