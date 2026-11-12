@@ -137,8 +137,8 @@
                                 <tr class="text-[10px] font-mono text-slate-500 uppercase border-b border-slate-100">
                                     <th class="py-2 px-0.5 font-semibold text-center">Cell</th>
                                     <th class="py-2 px-0.5 font-semibold text-center">Model</th>
-                                    <th class="py-2 px-0.5 font-semibold text-center">Time</th>
-                                    <th class="py-2 px-0.5 font-semibold text-center bg-blue-50 text-blue-700">Anterior</th>
+                                    <th class="py-2 px-0.5 font-semibold text-center">Goal</th>
+                                    <th class="py-2 px-0.5 font-semibold text-center bg-blue-50 text-blue-700"></th>
                                     <th class="py-2 px-0.5 font-semibold text-center">Actual</th>
                                     <th class="py-2 px-0.5 font-semibold text-center">Diff</th>
                                 </tr>
@@ -263,20 +263,20 @@
                     </div>
 
                     <div class="w-full overflow-x-auto custom-scrollbar max-h-[600px]">
-                        <table class="w-full text-left border-collapse text-xs font-mono">
+                        <table class="w-full text-center border-collapse text-xs font-mono">
                             <thead class="bg-slate-100 sticky top-0 z-10 text-slate-600 uppercase text-[10px]">
                                 <tr>
-                                    <th class="p-2 border-b">id</th>
-                                    <th class="p-2 border-b">Models</th>
-                                    <th class="p-2 border-b">OP1</th>
-                                    <th class="p-2 border-b">OP2</th>
-                                    <th class="p-2 border-b">Chiron</th>
-                                    <th class="p-2 border-b">CT</th>
-                                    <th class="p-2 border-b">WPH</th>
-                                    <th class="p-2 border-b">Client</th>
-                                    <th class="p-2 border-b">Size</th>
-                                    <th class="p-2 border-b">Update</th>
-                                    <th class="p-2 border-b">Comentarios</th>
+                                    <th class="p-2 border-b text-center">id</th>
+                                    <th class="p-2 border-b text-center">Models</th>
+                                    <th class="p-2 border-b text-center">OP1</th>
+                                    <th class="p-2 border-b text-center">OP2</th>
+                                    <th class="p-2 border-b text-center">Chiron</th>
+                                    <th class="p-2 border-b text-center">CT</th>
+                                    <th class="p-2 border-b text-center">WPH</th>
+                                    <th class="p-2 border-b text-center">Client</th>
+                                    <th class="p-2 border-b text-center">Size</th>
+                                    <th class="p-2 border-b text-center">Update</th>
+                                    <th class="p-2 border-b text-center">Comentarios</th>
                                 </tr>
                             </thead>
                             <tbody id="models-table-tbody" class="divide-y divide-slate-100 text-slate-700">
@@ -502,8 +502,7 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('Modelos')
-                    .select('*')
-                    .order('id', { ascending: true });
+                    .select('*');
 
                 if (error) {
                     tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-rose-500">Error al cargar: ${escapeHtml(error.message)}</td></tr>`;
@@ -515,29 +514,71 @@
                     return;
                 }
 
+                // Ordenar de menor a mayor basado en la columna "Models"
+                data.sort((a, b) => {
+                    const valA = String(a.Models ?? '').trim();
+                    const valB = String(b.Models ?? '').trim();
+                    const numA = parseFloat(valA.replace(/[^\d.]/g, ''));
+                    const numB = parseFloat(valB.replace(/[^\d.]/g, ''));
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        if (numA !== numB) return numA - numB;
+                    }
+                    return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+                });
+
                 let html = '';
                 data.forEach(row => {
+                    const isUpdateActive = row.Update === true || String(row.Update).toLowerCase() === 'true';
                     html += `<tr class="hover:bg-slate-50 transition-colors" data-id="${row.id}">
-                        <td class="p-2 border-b text-slate-400">${escapeHtml(row.id)}</td>
-                        <td class="p-2 border-b font-bold text-blue-600 editable-supabase-cell cursor-pointer" data-field="Models" title="Editar">${escapeHtml(row.Models ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="OP1" title="Editar">${escapeHtml(row.OP1 ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="OP2" title="Editar">${escapeHtml(row.OP2 ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="Chiron" title="Editar">${escapeHtml(row.Chiron ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="CT" title="Editar">${escapeHtml(row.CT ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="WPH" title="Editar">${escapeHtml(row.WPH ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="Client" title="Editar">${escapeHtml(row.Client ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="Size" title="Editar">${escapeHtml(row.Size ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="Update" title="Editar">${escapeHtml(row.Update ?? '')}</td>
-                        <td class="p-2 border-b editable-supabase-cell cursor-pointer" data-field="Comentarios" title="Editar">${escapeHtml(row.Comentarios ?? '')}</td>
+                        <td class="p-2 border-b text-slate-400 text-center">${escapeHtml(row.id)}</td>
+                        <td class="p-2 border-b font-bold text-blue-600 editable-supabase-cell cursor-pointer text-center" data-field="Models" title="Editar">${escapeHtml(row.Models ?? '')}</td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="OP1" title="Editar">${escapeHtml(row.OP1 ?? '')}</td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="OP2" title="Editar">${escapeHtml(row.OP2 ?? '')}</td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="Chiron" title="Editar">${escapeHtml(row.Chiron ?? '')}</td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="CT" title="Editar">${escapeHtml(row.CT ?? '')}</td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="WPH" title="Editar">${escapeHtml(row.WPH ?? '')}</td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="Client" title="Editar">${escapeHtml(row.Client ?? '')}</td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="Size" title="Editar">${escapeHtml(row.Size ?? '')}</td>
+                        <td class="p-2 border-b text-center"><input type="checkbox" class="supabase-update-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer" ${isUpdateActive ? 'checked' : ''}></td>
+                        <td class="p-2 border-b editable-supabase-cell cursor-pointer text-center" data-field="Comentarios" title="Editar">${escapeHtml(row.Comentarios ?? '')}</td>
                     </tr>`;
                 });
 
                 tbody.innerHTML = html;
                 attachSupabaseTableEditableEvents();
+                attachSupabaseCheckboxEvents();
             } catch (err) {
                 console.error('Excepción al cargar tabla Modelos:', err);
                 tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-rose-500">Error inesperado al cargar datos.</td></tr>`;
             }
+        }
+
+        function attachSupabaseCheckboxEvents() {
+            document.querySelectorAll('#models-table-tbody .supabase-update-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', async function() {
+                    const isChecked = this.checked;
+                    const rowTr = this.closest('tr');
+                    const rowId = rowTr.getAttribute('data-id');
+                    const parsedVal = isChecked ? true : null;
+
+                    try {
+                        const { error } = await supabaseClient
+                            .from('Modelos')
+                            .update({ Update: parsedVal })
+                            .eq('id', rowId);
+
+                        if (error) {
+                            alert('Error al actualizar Update: ' + error.message);
+                            this.checked = !isChecked;
+                        } else {
+                            fetchSupabaseData();
+                        }
+                    } catch (err) {
+                        console.error('Error al actualizar checkbox Update:', err);
+                        this.checked = !isChecked;
+                    }
+                });
+            });
         }
 
         function attachSupabaseTableEditableEvents() {
@@ -552,7 +593,7 @@
                     const input = document.createElement('input');
                     input.type = 'text';
                     input.value = currentValue;
-                    input.className = 'w-full bg-slate-50 border border-blue-500 rounded px-1.5 py-0.5 text-xs font-mono text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500';
+                    input.className = 'w-full bg-slate-50 border border-blue-500 rounded px-1.5 py-0.5 text-xs font-mono text-center text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500';
 
                     cell.textContent = '';
                     cell.appendChild(input);
@@ -570,9 +611,6 @@
                             let parsedVal = newValue === '' ? null : newValue;
                             if (fieldName === 'WPH' && newValue !== '' && !isNaN(newValue)) {
                                 parsedVal = Number(newValue);
-                            } else if (fieldName === 'Update') {
-                                if (newValue.toLowerCase() === 'true') parsedVal = true;
-                                else if (newValue.toLowerCase() === 'false') parsedVal = false;
                             }
 
                             const updateObj = {};
