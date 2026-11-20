@@ -1320,7 +1320,35 @@
                     });
                 }
 
-                const { data: regciclo, error: errRegciclo } = await supabaseClient.from('regciclo').select('*');
+                // Cargar todos los registros de regciclo paginando de 1000 en 1000 para superar el límite por defecto de Supabase
+                let regciclo = [];
+                let fromRow = 0;
+                const pageSize = 1000;
+                let fetchMore = true;
+
+                while (fetchMore) {
+                    const { data: partialData, error: errPartial } = await supabaseClient
+                        .from('regciclo')
+                        .select('*')
+                        .range(fromRow, fromRow + pageSize - 1);
+
+                    if (errPartial) {
+                        console.error('Error al cargar bloque de regciclo:', errPartial.message);
+                        break;
+                    }
+
+                    if (partialData && partialData.length > 0) {
+                        regciclo = regciclo.concat(partialData);
+                        if (partialData.length < pageSize) {
+                            fetchMore = false;
+                        } else {
+                            fromRow += pageSize;
+                        }
+                    } else {
+                        fetchMore = false;
+                    }
+                }
+                const errRegciclo = null; // Control unificado
 
                 const tijonaTz = 'America/Tijuana';
                 const hourFormatter = new Intl.DateTimeFormat('en-US', { timeZone: tijonaTz, hour: 'numeric', hour12: false });
